@@ -1,0 +1,34 @@
+version: "3"
+
+services:
+
+  postgres:
+    image: "postgres:alpine"
+    container_name: postgres-mandso
+    environment:
+      POSTGRES_DB: mandsodb
+      POSTGRES_USER: mandso
+      POSTGRES_PASSWORD: admin
+      LANG: pt_BR.UTF8
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: mandsodb
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: mandso
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "8000:8000"
+    
+
+volumes:
+  postgres_data:

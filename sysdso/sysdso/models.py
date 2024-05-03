@@ -26,6 +26,18 @@ class Categoria(models.Model):
    ativa = models.BooleanField("Ativa",default=True,null=False)
    def __str__(self):
         return self.nome
+   # define o nome padrão da tabela a ser criada no BD
+   class Meta:
+      db_table = "tb_categoria"
+      verbose_name = 'Categoria'
+      verbose_name_plural = 'Categorias'
+      permissions = [
+         ("can_view_categoria", "Can view categorias"),
+         ("can_change_categoria", "Can change categorias"),
+         ("can_add_categoria", "Can add categorias"),
+         ("can_delete_categoria", "Can delete categorias"),
+         ]
+   
 
 # Abrangência
 class Abrangencia(models.Model):
@@ -33,6 +45,17 @@ class Abrangencia(models.Model):
    ativa = models.BooleanField("Ativa",default=True,null=False)
    def __str__(self):
       return self.nome
+   # define o nome padrão da tabela a ser criada no BD
+   class Meta:
+      db_table = "tb_abrangencia"
+      verbose_name = 'Abrangência'
+      verbose_name_plural = 'Abrangências'
+      permissions = [
+         ("can_view_abrangencia", "Can view abrangencias"),
+         ("can_change_abrangencia", "Can change abrangencias"),
+         ("can_add_abrangencia", "Can add abrangencias"),
+         ("can_delete_abrangencia", "Can delete abrangencias"),
+         ]
 
 # Área negocial
 class AreaNegocial(models.Model):
@@ -42,8 +65,17 @@ class AreaNegocial(models.Model):
    ativa = models.BooleanField("Ativa",default=True,null=False)
    def __str__(self):
       return self.nome
-
-
+   # define o nome padrão da tabela a ser criada no BD
+   class Meta:
+      db_table = "tb_area_negocial"
+      verbose_name = 'Área Negocial'
+      verbose_name_plural = 'Áreas Negociais'
+      permissions = [
+         ("can_view_area_negocial", "Can view areas negociais"),
+         ("can_change_area_negocial", "Can change areas negociais"),
+         ("can_add_area_negocial", "Can add areas negociais"),
+         ("can_delete_area_negocial", "Can delete areas negociais"),
+         ]
 
 # Sistema
 class Sistema(models.Model):
