@@ -1,9 +1,9 @@
 version: "3"
 
 services:
-
+  # banco de dados
   postgres:
-    image: "postgres:alpine"
+    image: postgres:alpine
     container_name: postgres-mandso
     environment:
       POSTGRES_DB: mandsodb
@@ -15,8 +15,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-
-  app:
+  # aplicações
+  app-gerenciamento:
     build: .
     depends_on:
       - postgres
@@ -28,7 +28,23 @@ services:
       POSTGRES_PASSWORD: admin
     ports:
       - "8000:8000"
-    
+  app-frontend:
+
+  # sonarqube - para fazer verificação de código fonte (SAST)
+  sonar:
+    image: sonarqube:lts-community  
+    container_name: sonar-mandso
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonar_data:/opt/sonarqube/data
+      - sonar_extensions:/opt/sonarqube/extensions
+      - sonar_logs:/opt/sonarqube/logs
 
 volumes:
   postgres_data:
+  sonar_data:
+  sonar_extensions:
+  sonar_logs:
+  owasp-dc:
+
