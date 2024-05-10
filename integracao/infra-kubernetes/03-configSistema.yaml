@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sistema-config
+  labels:
+    app: sistema
+  namespace: sistema
+data:
+  POSTGRES_HOST: postgres-svc
+  POSTGRES_DB: sysdso
+  POSTGRES_USER: admin
+  POSTGRES_PORT: "5432"
+  

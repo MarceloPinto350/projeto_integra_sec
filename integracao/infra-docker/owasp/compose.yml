@@ -1,0 +1,12 @@
+version: "3"
+services:  
+  # owasp dependency-check - para fazer verificação de dependências (SCA)
+  dependency-check:
+    image: owasp/dependency-check
+    container_name: dependency-check-mandso
+    volumes:
+      - owasp-dc:/src
+    command: --scan /src --format "ALL" --out /src/reports
+  
+volumes:
+  owasp-dc:
