@@ -61,4 +61,6 @@ def topology():
 
 if __name__ == '__main__':
 	setLogLevel('info')
+	# rodar em moddo debug para ver erros de mapeamento da rede do Container 
+	# instalar net-tools, iproute2 ??? (buscar erro "command not found")
 	topology()
