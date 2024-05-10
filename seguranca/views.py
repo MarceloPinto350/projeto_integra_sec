@@ -4,7 +4,7 @@ from rest_framework import status
 
 from .models import TipoAplicacao,Aplicacao, ResultadoScan
 from .serializers import TipoAplicacaoSerializer,AplicacaoSerializer, ResultadoScanSerializer
-from .scanners import sonarQube #, owaspZap, owaspDependencyCheck
+#from .scanners import sonarQube #, owaspZap, owaspDependencyCheck
 
 # Importações das bibliotecas para as ferramentas de segurança
 #import sonarQube
