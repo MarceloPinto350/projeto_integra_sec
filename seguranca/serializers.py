@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
-from .models import Aplicacao, ResultadoScan, TipoAplicacao
+from django.db.models import Count
+
+from .models import Aplicacao, ResultadoScan, TipoAplicacao, VersaoAplicacao
 
 class TipoAplicacaoSerializer(serializers.ModelSerializer):
    class Meta:
@@ -8,13 +10,31 @@ class TipoAplicacaoSerializer(serializers.ModelSerializer):
       fields = '__all__'
 
 
+
+class VersaoAplicacaoSerializer(serializers.ModelSerializer):
+   class Meta:
+      model = VersaoAplicacao
+      fields = '__all__'
+
+  
 class AplicacaoSerializer(serializers.ModelSerializer):
+   # usando Nested Relatioship: Ruim para muitos registros, pois pode sobrecarregar a API
+   #versoes = VersaoAplicacaoSerializer(many=True, read_only=True,) 
+   #
+   # usando Hyperlinked Related Field (recomendado para volume médio de registros)
+   # atentar para o view_name que deve ser o mesmo nome da view que define a rota
+   #versoes = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='versaoaplicacao-detail')
+   #
+   # usando PrimaryKey Related Field (recomendado para poucos registros)
+   # recomendado para muitos registros pois retorna apenas o id do registro relacionado
+   versoes = serializers.PrimaryKeyRelatedField(many=True, read_only=True) 
+   
    class Meta:
       extra_kwargs = {
          'url_acesso': {'write_only': True},
          'usuario_servico': {'write_only': True},
          'senha_servico': {'write_only': True},
-         'token_acesso': {'write_only': True},
+         'token_acesso': {'write_only': True},         
       }
       model = Aplicacao
       fields = (
@@ -23,11 +43,34 @@ class AplicacaoSerializer(serializers.ModelSerializer):
          #'area_analista_liberacao','abrangencia','area_responsavel','gestor_negocial',
          #'essencial','estrategico','arquitetura','hospedagem',
          'tipo','url_acesso','aplicacao_pai',
-         'usuario_servico','senha_servico','token_acesso'
+         'usuario_servico','senha_servico','token_acesso',
+         # campo para serialização de versões de aplicação
+         'versoes', 
+         # campo calculado para contagem de versões de aplicação
+         'cont_versoes'
       )
+      # validação de dados na serialização
+      # o nome da função deve ser validate_<nome_campo>
+      def validate_data_descontinuacao (self, data):
+         if data < timezone.now():
+            raise serializers.ValidationError('A data de descontinuação não pode ser menor que a data atual.')
+         return data
+      # extendendo campos serializados
+      def get_cont_versoes(self, obj):
+         contagem = obj.versoes.aggregate(contagem=Count('id'))
+         if contagem is None:
+            return 0
+         return contagem
+      
 
-        
+      
 class ResultadoScanSerializer(serializers.ModelSerializer):
    class Meta:
       model = ResultadoScan
-      fields = '__all__'        
+      fields = '__all__'
+      
+   def validate_data_resultado (self, data):
+      if data > timezone.now():
+         raise serializers.ValidationError('A data de resultado não pode ser maior que a data atual.')
+      return data
+   

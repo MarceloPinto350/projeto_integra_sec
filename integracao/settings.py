@@ -8,6 +8,10 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
+
+<Token ADMIN: d869109dc87e9803567c13eda1820cffa6c2d00c>
+<Token MMPINTO: f0ee4a32f947f00cc06202ee306b5524fe1f3590>
+
 """
 
 from pathlib import Path
@@ -41,6 +45,7 @@ INSTALLED_APPS = [
     # configurações para o django-rest-framework
     'django_filters',
     'rest_framework',
+    'rest_framework.authtoken', # para permitir autenticação via tokentokn
     # configurações para a aplicação de segurança
     'seguranca', 
 ]
@@ -141,11 +146,27 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Django Rest Framework (DRF) settings
-REST_FRAMEWORK = {
+REST_FRAMEWORK = {    
+
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
+        #'rest_framework.authentication.SessionAuthentication', # para autenticação via sessão
+        'rest_framework.authentication.TokenAuthentication', # para autenticação via token
     ],  
+    # CONFIGURAÇÕES DE SEGURANÇA DE NÍVEL GLOBAL
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',    # para permitir leitura sem autenticação
+        #'rest_framework.permissions.IsAuthenticated', # para permitir autenticação em todas as rotas
     ],
+    # definindo a paginação padrão para 2 registros por página
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 2,
+    # configurando o limite global de requisições por segundo para a API
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    "DEFAULT_THROTTLE_RATES": { # Pode ser limitado por dia, segundo, hora etc e também por IP, usuário ou grupo)
+        'anon': '5/minute',     # 5 requisições por minuto para usuários anônimos
+        'user': '8/minute',   # 100 requisições por minuto para usuários autenticados
+    }
 }

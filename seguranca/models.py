@@ -79,6 +79,7 @@ class TipoAplicacao(models.Model):
          ("can_add_tipo_aplicacao", "Can add tipos aplicação"),
          ("can_delete_tipo_aplicacao", "Can delete tipos aplicação"),
          ]
+      ordering = ['nome']
    def __str__(self):
       return self.nome
    
@@ -99,6 +100,7 @@ class AreaNegocial(models.Model):
          ("can_add_area_negocial", "Can add areas negociais"),
          ("can_delete_area_negocial", "Can delete areas negociais"),
          ]
+      ordering = ['nome']
    def __str__(self):
       return self.nome
 
@@ -184,6 +186,7 @@ class Aplicacao(models.Model):
          ("can_add_aplicacao", "Can add aplicações"),
          ("can_delete_aplicacao", "Can delete aplicações"),
          ]
+      ordering = ['nome']
 
 # Versão do Sistema
 class VersaoAplicacao(models.Model):
@@ -196,7 +199,7 @@ class VersaoAplicacao(models.Model):
       descricao: Descrição da versão
       sistuacao: Situação da versão  
    """
-   aplicacao = models.ForeignKey(Aplicacao, on_delete=models.CASCADE, null=False)
+   aplicacao = models.ForeignKey(Aplicacao, related_name='versoes',on_delete=models.CASCADE, null=False)
    numero_versao = models.CharField(max_length=50)
    data_lancamento = models.DateField()
    descricao = models.TextField()
@@ -214,6 +217,7 @@ class VersaoAplicacao(models.Model):
          ("can_add_versao_aplicacao", "Can add versões aplicação"),
          ("can_delete_versao_aplicacao", "Can delete versões aplicação"),
          ]
+      ordering = ['aplicacao','numero_versao']
 
 # Tipos de ativos de infraestrutura
 class TipoAtivoInfraestrutura(models.Model):
@@ -236,6 +240,7 @@ class TipoAtivoInfraestrutura(models.Model):
          ("can_add_tipo_ativo_infraestrutura", "Can add tipos ativos infraestrutura"),
          ("can_delete_tipo_ativo_infraestrutura", "Can delete tipos ativos infraestrutura"),
          ]
+      ordering = ['nome']
    def __str__(self):
       return self.nome
 
@@ -275,6 +280,7 @@ class AtivoInfraestrutura(models.Model):
          ("can_add_ativo_infraestrutura", "Can add ativos infraestrutura"),
          ("can_delete_ativo_infraestrutura", "Can delete ativos infraestrutura"),
          ]
+      ordering = ['tipo','nome']
    def __str__(self):
       return self.nome
    
@@ -289,8 +295,6 @@ class ResultadoScan(models.Model):
    aplicacao = models.ForeignKey(Aplicacao, verbose_name="Aplicação",on_delete=models.CASCADE, null=False)
    resultado = models.JSONField("Resultado",null=False)
    data_resultado = models.DateTimeField("Data da análise",auto_now=True,null=False)
-   def __str__(self):
-      return f"Resultado da varredura de {self.aplicacao.nome}"
    class Meta:
       db_table = "tb_resultado_scan"
       verbose_name = 'Resultado da Varredura'
@@ -301,3 +305,7 @@ class ResultadoScan(models.Model):
          ("can_add_resultado_scan", "Can add resultados scan"),
          ("can_delete_resultado_scan", "Can delete resultados scan"),
          ]
+      ordering = ['aplicacao','data_resultado']
+      #para colocar a ordenação em ordem decrescente usar o sinal de menos antes do campo
+   def __str__(self):
+      return f"Resultado da varredura de {self.aplicacao.nome}"
