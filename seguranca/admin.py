@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TipoAplicacao, AreaNegocial, Aplicacao, VersaoAplicacao, TipoAtivoInfraestrutura, AtivoInfraestrutura
+from .models import TipoAplicacao, AreaNegocial, Aplicacao, VersaoAplicacao, TipoAtivoInfraestrutura, AtivoInfraestrutura, TipoVarredura,SistemaVarredura
 
 #class CustomAdminSite(admin.AdminSite):
 #    site_header = 'Sistema de integração de segurança de aplicações - SISAP'
@@ -50,3 +50,14 @@ class AtivoInfraestruturaAdmin(admin.ModelAdmin):
     list_display_icons = True
     list_per_page = 10
     
+@admin.register(TipoVarredura)
+class TipoVarreduraAdmin(admin.ModelAdmin):
+    list_display = ('nome','descricao')
+    list_display_icons = True
+    list_per_page = 10
+    
+@admin.register(SistemaVarredura)
+class SistemaVarreduraAdmin(admin.ModelAdmin):
+    list_display = ('nome','descricao','tipo','url','usuario','senha','token','status')
+    list_display_icons = True
+    list_per_page = 10

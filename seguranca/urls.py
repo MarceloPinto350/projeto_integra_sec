@@ -10,7 +10,9 @@ from .views import (
       TipoAplicacaoViewSet, 
       AplicacaoViewSet, 
       VersaoViewSet, 
-      ResultadoScanViewSet)
+      ResultadoScanViewSet,
+      TipoVarreduraViewSet, 
+      SistemaVarreduraViewSet)   
 
 # definindo o roteador para facilitar a referencia das APIs
 router = SimpleRouter()
@@ -18,6 +20,8 @@ router.register('tiposaplicacao',TipoAplicacaoViewSet)
 router.register('aplicacoes',AplicacaoViewSet)
 router.register('versoes',VersaoViewSet)
 router.register('resultadosscan',ResultadoScanViewSet)
+router.register('tiposvarredura',TipoVarreduraViewSet)
+router.register('sistemasvarredura',SistemaVarreduraViewSet)      
 
 # define as rotas para as APIs
 urlpatterns = [
@@ -32,7 +36,6 @@ urlpatterns = [
       path('versoes/', VersoesAPIView.as_view(), name='versoes'),
       path('versoes/<int:versao_pk>/', VersaoAPIView.as_view(), name='versao'),
       
-
       path('resultadosscan/', ResultadosScanAPIView.as_view(), name='resultadosscan'),
       path('resultadosscan/<int:pk>/', ResultadoScanAPIView.as_view(), name='resultadoscan'),
 

@@ -8,8 +8,11 @@ from rest_framework import mixins
 
 from rest_framework import permissions 
 
-from .models import TipoAplicacao, Aplicacao, ResultadoScan, VersaoAplicacao
-from .serializers import TipoAplicacaoSerializer, AplicacaoSerializer, ResultadoScanSerializer, VersaoAplicacaoSerializer
+from .models import TipoAplicacao, Aplicacao, ResultadoScan, VersaoAplicacao, TipoVarredura, SistemaVarredura
+from .serializers import (TipoAplicacaoSerializer, AplicacaoSerializer,
+   ResultadoScanSerializer, VersaoAplicacaoSerializer, 
+   TipoVarreduraSerializer, SistemaVarreduraSerializer
+)
 from .permissions import EhSuperUsuario
 
 
@@ -127,6 +130,14 @@ class VersaoViewSet(
    queryset = VersaoAplicacao.objects.all()
    serializer_class = VersaoAplicacaoSerializer
 
+class TipoVarreduraViewSet(viewsets.ModelViewSet):
+   queryset = TipoVarredura.objects.all()
+   serializer_class = TipoVarreduraSerializer
+
+class SistemaVarreduraViewSet(viewsets.ModelViewSet):
+   permissions_classes = (permissions.DjangoModelPermissions, )
+   queryset = SistemaVarredura.objects.all()
+   serializer_class = SistemaVarreduraSerializer
 
 class ResultadoScanViewSet(viewsets.ModelViewSet):
    queryset = ResultadoScan.objects.all()

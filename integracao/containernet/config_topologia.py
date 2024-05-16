@@ -47,16 +47,15 @@ def monta_topologia():
       volumes=["sonar_data:/opt/sonarqube/data",
          "sonar_extensions:/opt/sonarqube/extensions",
          "sonar_logs:/opt/sonarqube/logs"])
-      #environment={'SONARQUBE_JDBC_URL':"jdbc:postgresql://)
+      #environment={'SONARQUBE_JDBC_URL':"jdbc:postgresql:/exit
+      # /)
       
    # aplicação OWASP Dependency-Check - SCA
    owasp_dc = net.addDocker('owasp_dc', 
       ip='10.100.0.130',
       dimage="owasp/dependency-check:9.1.0",  # usando a versão 9.1.0 para fins de teste, porque é mais recente
       volumes=["owasp_dc:/src"],
-      dcmd="
-      
-      dependency-check.sh -f ALL -s /src -o /src/report")
+      dcmd="dependency-check.sh -f ALL -s /src -o /src/report")
       #dcmd="--scan /src --format "ALL" --out /src/reports")
       
    # aplicação OWASP ZAP - DAST
@@ -64,9 +63,10 @@ def monta_topologia():
       ip='10.100.0.140',      
       dimage="zaproxy/zap-bare:2.14.0",       # usando esta imagem para fins de teste, porque é mais leve
       #dimage="zaproxy/zap-stable",
-         volumes=["owasp_zap:/zap/wrk"],
-         dcmd="zap.sh -daemon -host http://10.100.0.140 -port 8000 -config api.disablekey=true")
-         # aplicação XPTO - IAST
+      volumes=["owasp_zap:/zap/wrk"],
+      dcmd="zap.sh -daemon -host http://10.100.0.140 -port 8000 -config api.disablekey=true")
+   
+   # aplicação XPTO - IAST
   
    info('*** Adicionando os volumes\n')
    #net.addVolume('pg_data', '/var/lib/postgresql/data')

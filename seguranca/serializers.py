@@ -2,20 +2,32 @@ from rest_framework import serializers
 
 from django.db.models import Count
 
-from .models import Aplicacao, ResultadoScan, TipoAplicacao, VersaoAplicacao
+from .models import Aplicacao, ResultadoScan, TipoAplicacao, VersaoAplicacao, TipoVarredura, SistemaVarredura
 
 class TipoAplicacaoSerializer(serializers.ModelSerializer):
    class Meta:
       model = TipoAplicacao
       fields = '__all__'
 
-
-
 class VersaoAplicacaoSerializer(serializers.ModelSerializer):
    class Meta:
       model = VersaoAplicacao
       fields = '__all__'
 
+class TipoVarreduraSerializer(serializers.ModelSerializer):  
+   class Meta:
+      model = TipoVarredura
+      fields = '__all__'
+
+class SistemaVarreduraSerializer(serializers.ModelSerializer):
+   tiposvarredura = TipoVarreduraSerializer(many=True, read_only=True)  
+   class Meta:
+      model = SistemaVarredura
+      fields = (
+         'nome','descricao','url','usuario','senha','token','status',
+         # campo para serialização dos tipos de varredura
+         'tiposvarredura' 
+      )
   
 class AplicacaoSerializer(serializers.ModelSerializer):
    # usando Nested Relatioship: Ruim para muitos registros, pois pode sobrecarregar a API
@@ -25,7 +37,7 @@ class AplicacaoSerializer(serializers.ModelSerializer):
    # atentar para o view_name que deve ser o mesmo nome da view que define a rota
    #versoes = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='versaoaplicacao-detail')
    #
-   # usando PrimaryKey Related Field (recomendado para poucos registros)
+   # usando PrimaryKey Related Field
    # recomendado para muitos registros pois retorna apenas o id do registro relacionado
    versoes = serializers.PrimaryKeyRelatedField(many=True, read_only=True) 
    

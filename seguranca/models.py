@@ -150,7 +150,7 @@ class Aplicacao(models.Model):
    tipo = models.ForeignKey(TipoAplicacao,on_delete=models.CASCADE,null=False)
    #hospedagem = models.CharField("Hospedagem",max_length=20,default="LOCAL",null=False,choices=HOSPEDAGEM_CHOICES)
    url_acesso = models.URLField("URL Acesso",unique=True,max_length=500, null=False)                               
-   aplicacao_pai = models.ForeignKey('self', verbose_name="Aplicação pai",on_delete=models.CASCADE,null=True)
+   aplicacao_pai = models.ForeignKey('self', verbose_name="Aplicação pai",on_delete=models.CASCADE,null=True, blank=True)
    usuario_servico = models.CharField("Usuário de serviço",max_length=50)
    senha_servico = models.CharField("Senha de serviço",max_length=50)
    token_acesso = models.CharField("Token de acesso",max_length=1000, null=True,blank=True)   
@@ -292,7 +292,7 @@ class ResultadoScan(models.Model):
       resultado: Resultado da varredura de segurança.
       data_resultado: Data do resultado da varredura.
    """
-   aplicacao = models.ForeignKey(Aplicacao, verbose_name="Aplicação",on_delete=models.CASCADE, null=False)
+   aplicacao = models.ForeignKey(VersaoAplicacao, verbose_name="Aplicação",on_delete=models.CASCADE, null=False)
    resultado = models.JSONField("Resultado",null=False)
    data_resultado = models.DateTimeField("Data da análise",auto_now=True,null=False)
    class Meta:
@@ -309,3 +309,59 @@ class ResultadoScan(models.Model):
       #para colocar a ordenação em ordem decrescente usar o sinal de menos antes do campo
    def __str__(self):
       return f"Resultado da varredura de {self.aplicacao.nome}"
+
+class TipoVarredura(models.Model):
+   """
+   Define os tipos de varredura de segurança.
+   Atributos:
+      nome: Nome do tipo de varredura.
+      descricao: Descrição do tipo de varredura.
+   """
+   nome = models.CharField("Nome",max_length=50, unique=True,null=False)
+   descricao = models.TextField("Descrição",max_length=1000)
+   class Meta:
+      db_table = "tb_tipo_varredura"
+      verbose_name = 'Tipo de Varredura'
+      verbose_name_plural = 'Tipos de Varredura'
+      permissions = [
+         ("can_view_tipo_varredura", "Can view tipos varredura"),
+         ("can_change_tipo_varredura", "Can change tipos varredura"),
+         ("can_add_tipo_varredura", "Can add tipos varredura"),
+         ("can_delete_tipo_varredura", "Can delete tipos varredura"),
+         ]
+      ordering = ['nome']
+   def __str__(self):
+      return self.nome
+
+class SistemaVarredura(models.Model):
+   """
+   Define os sistemas de varredura de segurança.
+   Atributos:
+      nome: Nome do sistema de varredura.
+      descricao: Descrição do sistema de varredura.
+      tipo: Tipo do sistema de varredura.
+      url: URL do sistema de varredura.
+      usuario: Usuário do sistema de varredura.
+      senha: Senha do sistema de varredura.
+      token: Token do sistema de varredura.
+      status: Status do sistema de varredura.
+   """
+   nome = models.CharField("Nome",max_length=100, unique=True,null=False)
+   descricao = models.TextField("Descrição",max_length=1000)
+   tipo = models.ForeignKey(TipoVarredura, verbose_name="Tipo de Varredura",on_delete=models.CASCADE,null=False)
+   url = models.URLField("URL",max_length=200,null=False)
+   usuario = models.CharField("Usuário",max_length=50,null=True,blank=True)
+   senha = models.CharField("Senha",max_length=50,null=True,blank=True)
+   token = models.CharField("Token",max_length=1000,null=True,blank=True)
+   status = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_ATIVO_CHOICES,default='ATIVO')   
+   class Meta:   
+      db_table = "tb_sistema_varredura"
+      verbose_name = 'Sistema de Varredura'
+      verbose_name_plural = 'Sistemas de Varredura'
+      permissions = [
+         ("can_view_sistema_varredura", "Can view sistemas varredura"),
+         ("can_change_sistema_varredura", "Can change sistemas varredura"),
+         ("can_add_sistema_varredura", "Can add sistemas varredura"),
+         ("can_delete_sistema_varredura", "Can delete sistemas varredura"),
+         ]
+      ordering = ['tipo','nome']
