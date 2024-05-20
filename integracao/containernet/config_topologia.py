@@ -98,6 +98,43 @@ def topologia():
       environment={'DB_SERVER':"db_dvwa"})
 
       
+   # Banco de dados da aplicação de segurança APPSEG
+   appseg_db = net.addDocker('appseg_db',
+      ip='10.100.0.155',
+      dimage="postgres:alpine",
+      environment={'POSTGRES_DB':'appseg',
+         'POSTGRES_USER':'postgres',
+         'POSTGRES_PASSWORD':'postgres',
+         'POSTGRES_PORT':'5432'},
+      volumes=["pg_data:/var/lib/postgresql/data"])
+   
+   
+   # Aplicação de segurança APPSEG
+   appseg = net.addDocker('appseg',
+      ip='10.100.0.160',
+      port='8000:8000',
+      cpu_shares=20,
+      dimage="python:3.10",
+      environment={'POSTGRES_HOST':'appseg_db',
+         'POSTRGES_PORT':'5432',
+         'POSTGRES_DB':'appseg',
+         'POSTGRES_USER':'postgres',
+         'POSTGRES_PASSWORD':'postgres'},
+      volumes=["appseg:/appseg"])
+   
+   info('*** Configurando sonarqube CLI ... \n')
+   appseg.cmd ('apt update && apt upgrade -y')
+   appseg.cmd ('apt install -y linux-headers net-tools apt-transport-https ca-certificates curl openssh-server openssl postgresql-client iputils-ping')
+   appseg.cmd ('pip install -y -U pip setuptools')
+	
+   info('*** Instalando a aplicação appseg... \n')
+   if not os.path.exists(''):
+      subprocess.run(f"docker cp /projeto_integra_sec mn.appsec:/.", shell=True)
+   appseg.cmd("pip install -r requirements.txt")
+   appseg.cmd("python manage.py runserver 0.0.0.0:8000")
+   #appseg.cmd("python manage.py makemigrations")
+   #appseg.cmd("python manage.py migrate")
+   #appseg.cmd("python manage.py createsuperuser")
     
 #   info('*** Adicionando os volumes\n')
 #   #net.addVolume('pg_data', '/var/lib/postgresql/data')
@@ -137,6 +174,7 @@ def topologia():
 	net.addLink(owasp_zap, s1)
    net.addLink(db_dvwa, s1)
    net.addLink(dvwa, s1)
+   net.addLink(appseg_db, s1)
 	#net.addLink(h2, s1)
 	#net.addLink(s1, s2, cls=TCLink, delay='100ms', bw=1)
 	#net.addLink(s1, bibpub)
