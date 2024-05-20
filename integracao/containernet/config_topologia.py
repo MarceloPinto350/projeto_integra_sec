@@ -124,14 +124,21 @@ def topologia():
    
    info('*** Configurando sonarqube CLI ... \n')
    appseg.cmd ('apt update && apt upgrade -y')
-   appseg.cmd ('apt install -y linux-headers net-tools apt-transport-https ca-certificates curl openssh-server openssl postgresql-client iputils-ping')
-   appseg.cmd ('pip install -y -U pip setuptools')
-	
+   appseg.cmd ('apt install -y linux-headers net-tools \
+      apt-transport-https ca-certificates curl openssh-server \
+      openssl postgresql-client iputils-ping setuptools')
+   
    info('*** Instalando a aplicação appseg... \n')
-   if not os.path.exists(''):
-      subprocess.run(f"docker cp /projeto_integra_sec mn.appsec:/.", shell=True)
-   appseg.cmd("pip install -r requirements.txt")
-   appseg.cmd("python manage.py runserver 0.0.0.0:8000")
+   if not os.path.exists('/home/docker/projeto_integra_sec/'):
+      appseg.cappseg.cmd ("cd /home/docker/")
+      subprocess.run("git clone https://github.com/MarceloPinto350/projeto_integra_sec.git")
+   subprocess.run("docker cp projeto_integra_sec/ mn.appsec:/.", shell=True)
+   appseg.cappseg.cmd ("cd projeto_integra_sec")   
+   appseg.cmd ("python3 -m venv venv")        # configura as configurações de ambiente com o venv
+   appseg.cmd ("source venv/bin/activate")    # para ativar o venv - observe que irá ficar com o texto (venv) no início do prompt
+   appseg.cmd ('pip install -U pip')
+   appseg.cmd ("pip install -r requirements.txt")
+   appseg.cmd ("python manage.py runserver 0.0.0.0:8000")
    #appseg.cmd("python manage.py makemigrations")
    #appseg.cmd("python manage.py migrate")
    #appseg.cmd("python manage.py createsuperuser")
