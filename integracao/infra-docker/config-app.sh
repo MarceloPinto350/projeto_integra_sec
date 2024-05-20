@@ -17,7 +17,7 @@ if [ ! -d DVWA ]; then
 fi
 # subindo o container
 cd DVWA
-# ajustar o copose.yml antes de subir
+# ajustar o compose.yml antes de subir
 # alterar pull_policy=always para pull_policy=build
 # aLterar a url para 0.0.0.0 ao invés de loalhost
 docker-compose up -d

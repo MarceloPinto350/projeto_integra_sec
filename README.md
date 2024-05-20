@@ -31,7 +31,23 @@ O ambiente da relização da prova de conceito da solução é composto de:
 containernet> d1 ifconfig to see config of container d1
 ```
 
-3. Clonar a imagem da aplicação DAMN VULNERABLE WEB APPLICATION (DVWA) que será usada para testes. Será utilizada imagem clonada 
+3. Clonar a imagem da aplicação DAMN VULNERABLE WEB APPLICATION (DVWA) que será usada para testes. 
+
+```shell
+# 
+~$ sudo apt install git ansible -y
+
+# Clonar e instalar o containernet
+~$ git clone https://github.com/ramonfontes/containernet.git
+~$ cd containernet
+~/containernet$ sudo util/install.sh -W
+
+# Executar os comandos abaixo par testar se a instalação do containernet
+~/containernet$ cd containernet
+~/containernet/containernet$ sudo python examples/containernet_example.py
+containernet> d1 ifconfig to see config of container d1
+```
+
 
 
 ## Instalação do container com o banco de dados da aplicação AppSeg
