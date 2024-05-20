@@ -28,7 +28,7 @@ O ambiente da relização da prova de conceito da solução é composto de:
 # Executar os comandos abaixo par testar se a instalação do containernet
 ~/containernet$ cd containernet
 ~/containernet/containernet$ sudo python examples/containernet_example.py
-containernet> d1 ifconfig to see config of container d1
+containernet> d1 ifconfig 
 ```
 
 3. Clonar a imagem da aplicação DAMN VULNERABLE WEB APPLICATION (DVWA) que será usada para testes. 
