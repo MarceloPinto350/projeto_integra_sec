@@ -24,9 +24,10 @@ class SistemaVarreduraSerializer(serializers.ModelSerializer):
    class Meta:
       model = SistemaVarredura
       fields = (
-         'nome','descricao','url','usuario','senha','token','status',
+         'nome','descricao','url','usuario','senha',
+         'token','status','aplicacoes',
          # campo para serialização dos tipos de varredura
-         'tiposvarredura' 
+         'tiposvarredura'
       )
   
 class AplicacaoSerializer(serializers.ModelSerializer):

@@ -204,6 +204,7 @@ class VersaoAplicacao(models.Model):
    data_lancamento = models.DateField()
    descricao = models.TextField()
    situacao = models.CharField(default="EM DESENVOLVIMENTO",max_length=20,null=False,choices=SITUACAO_SW_CHOICES)
+   varreduras = models.ManyToManyField('SistemaVarredura', related_name='versoes', blank=True)   
    def __str__(self):
         return f"{self.aplicacao.nome} v{self.numero_versao}"
    class Meta:    
@@ -345,6 +346,7 @@ class SistemaVarredura(models.Model):
       senha: Senha do sistema de varredura.
       token: Token do sistema de varredura.
       status: Status do sistema de varredura.
+      aplicacoes: Aplicações relacionadas ao sistema de varredura.
    """
    nome = models.CharField("Nome",max_length=100, unique=True,null=False)
    descricao = models.TextField("Descrição",max_length=1000)
@@ -353,7 +355,8 @@ class SistemaVarredura(models.Model):
    usuario = models.CharField("Usuário",max_length=50,null=True,blank=True)
    senha = models.CharField("Senha",max_length=50,null=True,blank=True)
    token = models.CharField("Token",max_length=1000,null=True,blank=True)
-   status = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_ATIVO_CHOICES,default='ATIVO')   
+   status = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_ATIVO_CHOICES,default='ATIVO') 
+   aplicacoes = models.ManyToManyField(VersaoAplicacao, related_name='sistemas_varredura', blank=True)
    class Meta:   
       db_table = "tb_sistema_varredura"
       verbose_name = 'Sistema de Varredura'
@@ -365,3 +368,5 @@ class SistemaVarredura(models.Model):
          ("can_delete_sistema_varredura", "Can delete sistemas varredura"),
          ]
       ordering = ['tipo','nome']
+   def __str__(self):
+      return self.nome

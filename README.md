@@ -7,18 +7,19 @@ O ambiente da relização da prova de conceito da solução é composto de:
 
 
 
+
 ## Instalação do Containernet:
 
 1. Criar uma VM Ubuntu 22.04 server, limpa, com os pacotes mínimos
 
    Usuário: cnet
-
    Senha: cnet
 
-2. Executar os comandos abaixo para instalar e testar a instalçai do containernet em bare metal:
+2. Executar os comandos abaixo para proceder a instalação e os testes do containernet em bare metal:
 ```shell
 # Instalar ansible
 ~$ sudo apt install git ansible -y
+
 # Clonar e instalar o containernet
 ~$ git clone https://github.com/ramonfontes/containernet.git
 ~$ cd containernet
@@ -30,12 +31,14 @@ O ambiente da relização da prova de conceito da solução é composto de:
 containernet> d1 ifconfig to see config of container d1
 ```
 
+3. Clonar a imagem da aplicação DAMN VULNERABLE WEB APPLICATION (DVWA) que será usada para testes. Será utilizada imagem clonada 
 
-## Instalação do container com o banco de dados da aplicação
+
+## Instalação do container com o banco de dados da aplicação AppSeg
 
 Executar o comando para criação da imagem:
 ```shell
-$ docker run -d --name pg_appseg -e POSTGRES_DB=appseg -e POSTGRES_USER=postgres -e POSdcTGRES_PASSWORD=postgres -p 5432:5432 -v postgres_data:/var/lib/postgresql/data
+$ docker run -d --name pg_appseg -e POSTGRES_DB=appseg -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v postgres_data:/var/lib/postgresql/data
 ```
 
 Clonar o projeto para a pasta local

@@ -1,7 +1,11 @@
 # Description: Este módulo contém as funções para iniciar e obter os resultados das varreduras de segurança.
+import requests 
+
 # importar as bibliotecas para as ferramentas de segurança
 #import sonarQube
 #import owaspZap
+
+
 
 # Define o métodos para iniciar e obter os resultados da varredura para o SonarQube
 def sonarQube_scan(application_url, code_source_url):
