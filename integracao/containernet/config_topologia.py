@@ -12,13 +12,13 @@ import subprocess, os
 
 
 def topologia():
-	"Criando uma rede..."
-	net = Containernet(controller=Controller, ipBase='10.100.0.0/24')
-	#setLogLevel('info')
+   "Criando uma rede..."
+   net = Containernet(controller=Controller, ipBase='10.100.0.0/24')
+   #setLogLevel('info')
    #net = Containernet(controller=Controller)
 
-	info('*** Adicinando um controlador\n')
-	net.addController('c0')
+   info('*** Adicinando um controlador\n')
+   net.addController('c0')
 
    #exemplos genéricos de como configurar containers
    #sast_container = net.addDocker('sast-container', ip='10.0.0.3', dimage='bandit_image')
@@ -26,7 +26,7 @@ def topologia():
    #dast_container = net.addDocker('dast-container', ip='10.0.0.5', dimage='burp_suite_image')
    #iast_container = net.addDocker('iast-container', ip='10.0.0.6', dimage='jacoco_zap_image')
 
-	info('*** Adicionando os conteineres\n')
+   info('*** Adicionando os conteineres\n')
 	# Criar o container do SonarQube
    sonar = net.addDocker('sonar', 
       ip='10.100.0.125', 
@@ -60,15 +60,15 @@ def topologia():
 	
 	# configuração do  container do owasp_zap
    owasp_zap = net.addDocker('owasp_zap', 
-		ip='10.100.0.140',
-		cpu_shares=20,
+      ip='10.100.0.140',
+      cpu_shares=20,
 		#dimage="zaproxy/zap-bare:2.14.0",       # usando esta imagem para fins de teste, porque é mais leve (é muito restrita)
-		dimage="zaproxy/zap-stable",		#atualizado o uso para essa versão por conta de ter mais recursos
+      dimage="zaproxy/zap-stable",		#atualizado o uso para essa versão por conta de ter mais recursos
 		#dcmd="zap.sh -daemon -host http://10.100.0.140 -port 8000 -config api.disablekey=true",
 		#dcmd="zap.sh --addoninstall soap",
 		#dcmd="zap.sh -daemon -host http://172.17.0.3 -config api.disablekey=true",
       dcmd="zap.sh -daemon -config api.disablekey=true",
-		volumes=["owasp_zap:/zap/wrk"])
+      volumes=["owasp_zap:/zap/wrk"])
    # complementação da configuração do OWASP ZAP
    owasp_zap.cmd('zap.sh --addoninstall soap')
 
