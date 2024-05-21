@@ -165,20 +165,20 @@ def topologia():
 #	sonar_cli.cmd ('apt install net-tools iputils-ping openssh-server openssl ca-certificates git -y')
 
 
-	info('*** Adicionando switches de rede\n')
-	s1 = net.addSwitch('s1', failMode="standalone")
+   info('*** Adicionando switches de rede\n')
+   s1 = net.addSwitch('s1', failMode="standalone")
 	#s2 = net.addSwitch('s2')
 
 	#info('*** Adicionando os hosts\n')
 	#h1 = net.addHost('h1', ip='10.100.0.2')
 	#h2 = net.addHost('h2', ip='10.100.0.20')
 
-	info('*** Criando os links\n')
+   info('*** Criando os links\n')
 	#net.addLink(h1, s1)
 	#net.addLink(h2, s1)
-	net.addLink(sonar, s1)
-	net.addLink(sonar_cli, s1)
-	net.addLink(owasp_zap, s1)
+   net.addLink(sonar, s1)
+   net.addLink(sonar_cli, s1)
+   net.addLink(owasp_zap, s1)
    net.addLink(db_dvwa, s1)
    net.addLink(dvwa, s1)
    net.addLink(appseg_db, s1)
@@ -186,16 +186,16 @@ def topologia():
 	#net.addLink(s1, s2, cls=TCLink, delay='100ms', bw=1)
 	#net.addLink(s1, bibpub)
 
-	info('*** Iniciando a rede\n')
-	net.build()
+   info('*** Iniciando a rede\n')
+   net.build()
 #	net.addNAT().configDefault()
-	s1.start([])
+   s1.start([])
 
-	info('*** Executando CLI\n')
-	CLI(net)
+   info('*** Executando CLI\n')
+   CLI(net)
 
-	info('*** Parando a rede...')
-	net.stop()
+   info('*** Parando a rede...')
+   net.stop()
 
 
 #def config_sonar_cli(arquivo):
