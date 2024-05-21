@@ -28,7 +28,7 @@ def topologia():
 
    info('*** Adicionando os conteineres\n')
 	# Criar o container do SonarQube
-   sonar = net.addDocker('sonar', 
+   sonar = net.addDocker('sonar',
       ip='10.100.0.125', 
       cpu_shares=20,
       volumes=["sonar_data:/opt/sonarqube/data",
