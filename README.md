@@ -1,8 +1,18 @@
-# Configuração dos ambientes
+# Configuração do ambiente
 
-O ambiente da relização da prova de conceito da solução é composto de:
+O ambiente para realização da prova de conceito para a solução de segurança de software é composto dos seguintes componentes:
 
 1. Containetnet - para suportar as configurações das ferramentas de análise de segurança
+   
+   1.1. sonar -  servidor da ferramenta Sonar Qube, para análise estática do código fonte das aplicações (SAST)
+   
+   1.2. sonar_cli - é a máquina responsável pela intercomunicação da Aplicação de Análise de Segurança e o Sonar Qube, via linha de comando
+   
+   1.3. owasp_zap - servidor da ferramenta OWASP-ZAP, para análise dinâmica das apliações (DAST)
+
+   1.4. owasp_dc - servidor da ferramenta OWASP Dependency Check, para análise de dependência de bibliotecas de terceiros (SCA)
+
+
 2. Aplicação e banco de dados postgres - para disponibilização da API para integração dos resultados e controle de chamadas às ferramentas de análise de segurança
 
 

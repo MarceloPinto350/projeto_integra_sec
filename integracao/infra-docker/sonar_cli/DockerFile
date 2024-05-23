@@ -1,0 +1,16 @@
+FROM ubuntu:trusty
+
+WORKDIR /sonar_cli
+
+# Atualizar ambiente e instalar pacotes básicos
+RUN apt update && apt upgrade -y
+RUN apt install -y net-tools iputils-ping openssh-server openssl ca-certificates git zip unzip curl
+
+# Copiando o arquivo de instalação do SonarQube CLI para o container
+ADD sonar-scanner-cli-5.0.1.3006-linux.zip .
+
+# Instalando o SonarQube CLI no container
+RUN unzip sonar-scanner-cli-5.0.1.3006-linux.zip
+RUN mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner 
+RUN ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/bin/sonar-scanner
+

@@ -33,13 +33,34 @@ services:
   # sonarqube - para fazer verificação de código fonte (SAST)
   sonar:
     image: sonarqube:lts-community  
-    container_name: sonar-mandso
-    ports:
-      - "9000:9000"
+    container_name: sonar
     volumes:
       - sonar_data:/opt/sonarqube/data
       - sonar_extensions:/opt/sonarqube/extensions
       - sonar_logs:/opt/sonarqube/logs
+    ports:
+      - "9000:9000"
+
+  # SonarQube CLI - para fazer análise de código fonte atraves de linha de comando
+  sonar_cli:
+    build: ./sonar_cli/.
+    container_name: sonar_cli
+
+  # OWASP Dependency Check - para fazer verificação de dependências
+  owasp_dc:
+    image: owasp/dependency-check
+    container_name: owasp_dc
+    volumes:
+      - owasp-dc:/src
+    command: "--scan /src --format 'ALL' --out /src/report"
+
+  # OWASP ZAP - para fazer verificação de segurança DAST
+  owasp_zap:
+    #image="zaproxy/zap-bare:2.14.0",       # usando esta imagem para fins de teste, porque é mais leve (é muito restrita)
+    image: "zaproxy/zap-stable"
+    volumes: 
+      - owasp_zap:/zap/wrk
+    command: "zap.sh -daemon -config api.disablekey=true"
 
 volumes:
   postgres_data:
@@ -47,4 +68,5 @@ volumes:
   sonar_extensions:
   sonar_logs:
   owasp-dc:
+  owasp_zap:
 
