@@ -20,14 +20,15 @@ class TipoVarreduraSerializer(serializers.ModelSerializer):
       fields = '__all__'
 
 class SistemaVarreduraSerializer(serializers.ModelSerializer):
-   tiposvarredura = TipoVarreduraSerializer(many=True, read_only=True)  
+   #aplicacoes = TipoAplicacaoSerializer(many=True, read_only=True) 
+   #tipos_varredura = TipoVarreduraSerializer(many=True, read_only=True)  
+   tipos_varredura = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  
    class Meta:
       model = SistemaVarredura
       fields = (
-         'nome','descricao','url','usuario','senha',
-         'token','status','aplicacoes',
+        'id','nome','descricao','url','usuario','senha','token','status',
          # campo para serialização dos tipos de varredura
-         'tiposvarredura'
+         'aplicacoes','tipos_varredura'
       )
   
 class AplicacaoSerializer(serializers.ModelSerializer):
@@ -49,18 +50,19 @@ class AplicacaoSerializer(serializers.ModelSerializer):
          'senha_servico': {'write_only': True},
          'token_acesso': {'write_only': True},         
       }
+      cont_versoes = serializers.SerializerMethodField()
       model = Aplicacao
       fields = (
-         'nome','sigla','descricao','categoria','url_fonte',
+         'id','nome','sigla','descricao','categoria','url_fonte',
          'data_registro','data_atualizacao','data_descontinuacao',
          #'area_analista_liberacao','abrangencia','area_responsavel','gestor_negocial',
          #'essencial','estrategico','arquitetura','hospedagem',
          'tipo','url_acesso','aplicacao_pai',
          'usuario_servico','senha_servico','token_acesso',
          # campo para serialização de versões de aplicação
-         'versoes', 
+         'versoes' 
          # campo calculado para contagem de versões de aplicação
-         'cont_versoes'
+         #,'cont_versoes'
       )
       # validação de dados na serialização
       # o nome da função deve ser validate_<nome_campo>

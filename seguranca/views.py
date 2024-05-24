@@ -74,6 +74,8 @@ class ResultadosScanAPIView(generics.ListCreateAPIView):
 class ResultadoScanAPIView(generics.RetrieveUpdateDestroyAPIView):
    queryset = ResultadoScan.objects.all()
    serializer_class = ResultadoScanSerializer
+   
+
 
 
 """

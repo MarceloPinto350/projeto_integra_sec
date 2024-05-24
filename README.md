@@ -60,7 +60,38 @@ containernet> d1 ifconfig to see config of container d1
 
 
 
-## Instalação do container com o banco de dados da aplicação AppSeg
+## Configuração do ambiente das aplicações
+
+
+SonarQube
+
+1. Instalar o SonarQube e Sonar_CLI
+2. Acessar usando ambiente através a url<IPserver>:9000
+3. Informar usuário e senha: admin/admin
+4. indicar nova senha @dm1n e confirmar
+5. Clicar em adicionar manualmente o projeto
+   5.1. Indique o no do projeto
+   5.2. Indique a chave única para o projeto no sonarqube
+   5.3 Indique o nome da branch principal do projeto
+   5.4 Clique no botão Set Up
+6. Concastr nas APIs:
+api/authentication/login (POST)
+Parâmetros:
+   login 
+   password
+api/authentication/logout (POST)
+api/hostspots/search (GET)
+   pode ser passado vários paâmetros, mas opcionais
+api/hotspots/show
+Parâmero:
+   hostspot
+api/issues/<varias opções>
+api/projetc_analyses/<varias opções>
+api/user_tokens
+
+
+Serão clonadas as 
+
 
 Executar o comando para criação da imagem:
 ```shell

@@ -204,7 +204,7 @@ class VersaoAplicacao(models.Model):
    data_lancamento = models.DateField()
    descricao = models.TextField()
    situacao = models.CharField(default="EM DESENVOLVIMENTO",max_length=20,null=False,choices=SITUACAO_SW_CHOICES)
-   varreduras = models.ManyToManyField('SistemaVarredura', related_name='versoes', blank=True)   
+   sistema_varreduras = models.ManyToManyField('SistemaVarredura', related_name='versoes', blank=True)   
    def __str__(self):
         return f"{self.aplicacao.nome} v{self.numero_versao}"
    class Meta:    
@@ -320,6 +320,7 @@ class TipoVarredura(models.Model):
    """
    nome = models.CharField("Nome",max_length=50, unique=True,null=False)
    descricao = models.TextField("Descrição",max_length=1000)
+   sistemas_varredura = models.ManyToManyField('SistemaVarredura', related_name='tipos_varredura', blank=True)
    class Meta:
       db_table = "tb_tipo_varredura"
       verbose_name = 'Tipo de Varredura'
@@ -346,6 +347,7 @@ class SistemaVarredura(models.Model):
       senha: Senha do sistema de varredura.
       token: Token do sistema de varredura.
       status: Status do sistema de varredura.
+      tipos_varreduras: Tipos de varreduras relacionados ao sistema.
       aplicacoes: Aplicações relacionadas ao sistema de varredura.
    """
    nome = models.CharField("Nome",max_length=100, unique=True,null=False)
@@ -356,6 +358,7 @@ class SistemaVarredura(models.Model):
    senha = models.CharField("Senha",max_length=50,null=True,blank=True)
    token = models.CharField("Token",max_length=1000,null=True,blank=True)
    status = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_ATIVO_CHOICES,default='ATIVO') 
+   tipos_varreduras = models.ManyToManyField(TipoVarredura, related_name='sistema_varredura', blank=True)
    aplicacoes = models.ManyToManyField(VersaoAplicacao, related_name='sistemas_varredura', blank=True)
    class Meta:   
       db_table = "tb_sistema_varredura"

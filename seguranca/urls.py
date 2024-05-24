@@ -39,5 +39,6 @@ urlpatterns = [
       path('resultadosscan/', ResultadosScanAPIView.as_view(), name='resultadosscan'),
       path('resultadosscan/<int:pk>/', ResultadoScanAPIView.as_view(), name='resultadoscan'),
 
+      
 
 ]
