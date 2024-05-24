@@ -31,19 +31,19 @@ def topologia():
       volumes=["sonar_data:/opt/sonarqube/data",
          "sonar_extensions:/opt/sonarqube/extensions",
          "sonar_logs:/opt/sonarqube/logs"],
-      dimage="sonarqube:lts-community")
+      dimage="ramonfontes/sonarqube:lts-community")
 
    # Criar o container do sonar em modo CLI
    sonar_cli = net.addDocker('sonar_cli',
       ip='10.100.0.120',
       cpu_shares=20, privileged=True,
       volumes=["app:/app"],
-      dimage='ubuntu:trusty')
+      dimage='ramonfontes/ubuntu:trusty')
 
    owasp_zap = net.addDocker('owasp_zap', 
       ip='10.100.0.140',
       cpu_shares=20, privileged=True,
-      dimage="zaproxy/zap-stable",		#atualizado o uso para essa versão por conta de ter mais recursos
+      dimage="ramonfontes/zaproxy",		#atualizado o uso para essa versão por conta de ter mais recursos
       dcmd="zap.sh -daemon -config api.disablekey=true",
       volumes=["owasp_zap:/zap/wrk"])
    # complementação da configuração do OWASP ZAP
@@ -51,7 +51,7 @@ def topologia():
 
    db_dvwa = net.addDocker('db_dvwa',
       ip='10.100.0.145', privileged=True,
-      dimage="mariadb:11",
+      dimage="ramonfontes/mariadb:11",
       environment={'MYSQL_ROOT_PASSWORD':'dvwa','MYSQL_DATABASE':'dvwa','MYSQL_USER':'dvwa','MYSQL_PASSWORD':'p@ssw0rd'}, 
       volumes=["dvwa_db:/var/lib/mysql"])
    
@@ -60,13 +60,13 @@ def topologia():
       ip='10.100.0.150',
       port='4280:80', privileged=True,
       cpu_shares=20,
-      dimage="ghcr.io/digininja/dvwa:latest",
+      dimage="ramonfontes/dvwa:latest",
       environment={'DB_SERVER':"db_dvwa"})
       
    # Banco de dados da aplicação de segurança APPSEG
    appseg_db = net.addDocker('appseg_db',
       ip='10.100.0.155',
-      dimage="postgres:alpine", privileged=True,
+      dimage="ramonfontes/postgres:alpine", privileged=True,
       environment={'POSTGRES_DB':'appseg',
          'POSTGRES_USER':'postgres',
          'POSTGRES_PASSWORD':'postgres',
@@ -78,7 +78,7 @@ def topologia():
       ip='10.100.0.160',
       port='8000:8000', privileged=True,
       cpu_shares=20,
-      dimage="python:3.10",
+      dimage="ramonfontes/python:3.10",
       environment={'POSTGRES_HOST':'appseg_db',
          'POSTRGES_PORT':'5432',
          'POSTGRES_DB':'appseg',
