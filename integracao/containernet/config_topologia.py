@@ -1,12 +1,11 @@
 #!/usr/bin/python
 """
-Este é um script para subir o sonarqube no containernet, com as configurações necessárias
+Este é um script para subir os componentes da arquitetura da solução no Containernet, com as configurações necessárias
 
 alterar linha https://github.com/ramonfontes/containernet/blob/master/containernet/node.py#L304 para cmd = ['docker', 'exec', '-it', '-u', '0, '%s' % self.did, 'env', 'PS1=' + chr(127),
-
 alterar linha https://github.com/ramonfontes/containernet/blob/master/containernet/node.py#L307 para cmd = ['docker', 'exec', '-it', '-u', '0, '%s.%s' % (self.dnameprefix, self.name), 'env', 'PS1=' + chr(127),
-
 Após isso, executar "sudo make install" no diretório raiz do containernet.
+
 """
 from containernet.cli import CLI
 #from containernet.link import TCLink

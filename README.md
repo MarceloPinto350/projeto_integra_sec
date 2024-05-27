@@ -18,30 +18,184 @@ O ambiente para realização da prova de conceito para a solução de segurança
 
 
 
-## Instalação do Containernet:
+## Configuração do ambiente
 
-1. Criar uma VM Ubuntu 22.04 server, limpa, com os pacotes mínimos
 
-   Usuário: cnet
-   Senha: cnet
+### Criar uma VM Ubuntu 22.04 server
+1. Requisitos:
+   * A configuração do Ubuntu Server deverá ser com os pacotes mínimos (minimal server) e OpenSSH Server instalado
+      * Hostname: containernet (sugestão)
+      * Usuário padrão: docker (sugestão)
+      * Senha: docker (sugestão)    
+   * Memmória: 4Gb
+   * Processadores: 4
+   * Armazenamento: 25Gb
+   * Rede: Placa em modo Bridge
 
-2. Executar os comandos abaixo para proceder a instalação e os testes do containernet em bare metal:
+### Instalação do Containernet
+
+Para configuração do Containernet se deve acessar a máquina virtual através de SSH e proceder os seguintes passos para atualização do servidor e instalação do a:
+
 ```shell
-# Instalar ansible
-~$ sudo apt install git ansible -y
+# Atualizar as configurações da máquina e intalar o Git e o Ansible
+~$ sudo apt update && sudo apt upgrade -y && sudo apt install vim nano git ansible -y
 
-# Clonar e instalar o containernet
+# Clonar e instalar o containernet 
 ~$ git clone https://github.com/ramonfontes/containernet.git
+
+# Proceder a instalação do containernet
 ~$ cd containernet
 ~/containernet$ sudo util/install.sh -W
+# Confirmar eventuais necessidades de reinicialização de serviços
 
-# Executar os comandos abaixo par testar se a instalação do containernet
+# Ajustar configuração do containernet, para integração do ambiente, conforme indicado:
+# alterar linha containernet/node.py#L304 para:
+# cmd = ['docker', 'exec', '-it', '-u', '0', '%s' % self.did, 'env', 'PS1=' + chr(127),
+#alterar linha containernet/node.py#L307 para:
+# cmd = ['docker', 'exec', '-it', '-u', '0', '%s.%s' % (self.dnameprefix, self.name), 'env', 'PS1=' + chr(127),
+~/containernet$ nano containernet/node.py
+
+#Após isso, executar "sudo make install" no diretório raiz do containernet.
+~/containernet$ sudo make install
+
+# Executar os comandos abaixo para testar se a instalação do containernet
 ~/containernet$ cd containernet
 ~/containernet/containernet$ sudo python examples/containernet_example.py
 containernet> d1 ifconfig 
 ```
 
-3. Clonar a imagem da aplicação DAMN VULNERABLE WEB APPLICATION (DVWA) que será usada para testes. 
+### Configuração da do ambiente para teste de segurança de aplicações
+A configuração da topologia está configurada no Containernet, devendo-se usar o script em python para que a configuração seja realilzada.
+
+Código para geração da topologia no Containernet
+```python
+#!/usr/bin/python
+"""
+Este é um script para subir os componentes da arquitetura da solução no Containernet, com as configurações necessárias
+"""
+from containernet.cli import CLI
+#from containernet.link import TCLink
+from containernet.net import Containernet
+from mininet.node import Controller
+from mininet.log import info, setLogLevel
+
+import subprocess, os
+
+
+def topologia():
+   "Criando uma rede..."
+   net = Containernet(controller=Controller, ipBase='10.100.0.0/24')
+   #setLogLevel('info')
+   #net = Containernet(controller=Controller)
+
+   info('*** Adicionando os conteineres\n')
+	# Criar o container do SonarQube
+   sonar = net.addDocker('sonar',
+      ip='10.100.0.125', 
+      cpu_shares=20, privileged=True,
+      volumes=["sonar_data:/opt/sonarqube/data",
+         "sonar_extensions:/opt/sonarqube/extensions",
+         "sonar_logs:/opt/sonarqube/logs"],
+      dimage="ramonfontes/sonarqube:lts-community")
+
+   # Criar o container do sonar em modo CLI
+   sonar_cli = net.addDocker('sonar_cli',
+      ip='10.100.0.120',
+      cpu_shares=20, privileged=True,
+      volumes=["app:/app"],
+      dimage='ramonfontes/ubuntu:trusty')
+
+   owasp_zap = net.addDocker('owasp_zap', 
+      ip='10.100.0.140',
+      cpu_shares=20, privileged=True,
+      dimage="ramonfontes/zaproxy",		#atualizado o uso para essa versão por conta de ter mais recursos
+      dcmd="zap.sh -daemon -config api.disablekey=true",
+      volumes=["owasp_zap:/zap/wrk"])
+   # complementação da configuração do OWASP ZAP
+   owasp_zap.cmd('zap.sh --addoninstall soap')
+
+   db_dvwa = net.addDocker('db_dvwa',
+      ip='10.100.0.145', privileged=True,
+      dimage="ramonfontes/mariadb:11",
+      environment={'MYSQL_ROOT_PASSWORD':'dvwa','MYSQL_DATABASE':'dvwa','MYSQL_USER':'dvwa','MYSQL_PASSWORD':'p@ssw0rd'}, 
+      volumes=["dvwa_db:/var/lib/mysql"])
+   
+   # Aplicação de teste DVWA
+   dvwa = net.addDocker('dvwa',
+      ip='10.100.0.150',
+      port='4280:80', privileged=True,
+      cpu_shares=20,
+      #dimage="ramonfontes/dvwa:latest",
+      # para tentar corrigir erro de IP e file not found no repositório indicado acima
+      dimage="marcelopinto350/dvwa:latest",
+      environment={'DB_SERVER':"db_dvwa"})
+      
+   # Banco de dados da aplicação de segurança APPSEG
+   appseg_db = net.addDocker('appseg_db',
+      ip='10.100.0.155',
+      #dimage="ramonfontes/postgres:alpine", privileged=True,
+      # para substituir imagem acima para corrigir erro de IP
+      dimage="marcelopinto350/postgres:alpine", privileged=True,
+      environment={'POSTGRES_DB':'appseg',
+         'POSTGRES_USER':'postgres',
+         'POSTGRES_PASSWORD':'postgres',
+         'POSTGRES_PORT':'5432'},
+      volumes=["pg_data:/var/lib/postgresql/data"])
+   
+   # Aplicação de segurança APPSEG
+   appseg = net.addDocker('appseg',
+      ip='10.100.0.160',
+      port='8000:8000', privileged=True,
+      cpu_shares=20,
+      #dimage="ramonfontes/python:3.10",
+      # para corrigir erro de IP e na aplicação ac
+      dimage="marcelopinto350/appseg:alfa",
+      environment={'POSTGRES_HOST':'appseg_db',
+         'POSTRGES_PORT':'5432',
+         'POSTGRES_DB':'appseg',
+         'POSTGRES_USER':'postgres',
+         'POSTGRES_PASSWORD':'postgres'},
+      volumes=["appseg:/appseg"])
+
+   info('*** Adicionando switches de rede\n')
+   s1 = net.addSwitch('s1', failMode="standalone")
+
+   info('*** Criando os links\n')
+   net.addLink(sonar, s1)
+   net.addLink(sonar_cli, s1)
+   net.addLink(owasp_zap, s1)
+   net.addLink(db_dvwa, s1)
+   net.addLink(dvwa, s1)
+   net.addLink(appseg_db, s1)
+
+   info('*** Iniciando a rede\n')
+   net.build()
+   s1.start([])
+
+   info('*** Executando CLI\n')
+   CLI(net)
+
+   info('*** Parando a rede...')
+   net.stop()
+
+if __name__ == '__main__':
+   setLogLevel('info')
+   topologia()
+```
+
+1. Clonar o arquivo e executar o scrip python
+ ```shell
+# Copiar o arquivo config_topologia.py
+~$ mkdir app
+~$ cd app
+~/app$ nano config_topologia.py
+# Colar o código deisponível acima e salvar o arquivo
+
+# Executar 
+~/app$ sudo python config_topologia.py
+ ```
+
+Clonar a imagem da aplicação DAMN VULNERABLE WEB APPLICATION (DVWA) que será usada para testes. 
 
 ```shell
 # 
