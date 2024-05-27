@@ -47,7 +47,7 @@ Para configuração do Containernet se deve acessar a máquina virtual através 
 ~$ cd containernet
 ~/containernet$ sudo util/install.sh -W
 # Confirmar eventuais necessidades de reinicialização de serviços
-
+# ajustado erro no trecho '-u', '0, '%s... (sem fechamento das aspas no 0)
 # Ajustar configuração do containernet, para integração do ambiente, conforme indicado:
 # alterar linha containernet/node.py#L304 para:
 # cmd = ['docker', 'exec', '-it', '-u', '0', '%s' % self.did, 'env', 'PS1=' + chr(127),
