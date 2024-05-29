@@ -126,7 +126,7 @@ def topologia():
       port='4280:80', privileged=True,
       cpu_shares=20,
       #dimage="ramonfontes/dvwa:latest",
-      # para tentar corrigir erro de IP e file not found no repositório indicado acima
+      # para tentar corrigir erro de IP e 404 file not found no repositório indicado acima
       dimage="marcelopinto350/dvwa:latest",
       environment={'DB_SERVER':"db_dvwa"})
       
@@ -148,7 +148,7 @@ def topologia():
       port='8000:8000', privileged=True,
       cpu_shares=20,
       #dimage="ramonfontes/python:3.10",
-      # para corrigir erro de IP e na aplicação ac
+      # para corrigir erro de IP e na aplicação appseg
       dimage="marcelopinto350/appseg:alfa",
       environment={'POSTGRES_HOST':'appseg_db',
          'POSTRGES_PORT':'5432',

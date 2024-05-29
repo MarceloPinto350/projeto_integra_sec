@@ -54,7 +54,7 @@ services:
     depends_on:
       - postgres
     environment:
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: pg_appseg
       POSTGRES_DB: appseg
       POSTGRES_PORT: 5432
       POSTGRES_USER: postgres

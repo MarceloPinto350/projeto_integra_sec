@@ -59,13 +59,15 @@ def topologia():
       ip='10.100.0.150',
       port='4280:80', privileged=True,
       cpu_shares=20,
-      dimage="ramonfontes/dvwa:latest",
+      #dimage="ramonfontes/dvwa:latest",
+      dimage="marcelopinto350/dvwa:latest",
       environment={'DB_SERVER':"db_dvwa"})
       
    # Banco de dados da aplicação de segurança APPSEG
    appseg_db = net.addDocker('appseg_db',
       ip='10.100.0.155',
-      dimage="ramonfontes/postgres:alpine", privileged=True,
+      #dimage="ramonfontes/postgres:alpine", privileged=True,
+      dimage="marcelopinto350/postgres:alpine", privileged=True,
       environment={'POSTGRES_DB':'appseg',
          'POSTGRES_USER':'postgres',
          'POSTGRES_PASSWORD':'postgres',
@@ -77,7 +79,8 @@ def topologia():
       ip='10.100.0.160',
       port='8000:8000', privileged=True,
       cpu_shares=20,
-      dimage="ramonfontes/python:3.10",
+      #dimage="ramonfontes/python:3.10",
+      dimage="marcelopinto350/appseg:alfa",
       environment={'POSTGRES_HOST':'appseg_db',
          'POSTRGES_PORT':'5432',
          'POSTGRES_DB':'appseg',

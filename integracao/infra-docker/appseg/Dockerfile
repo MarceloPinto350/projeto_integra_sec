@@ -6,7 +6,8 @@ WORKDIR /appseg
 # Atualizando a instalando as dependências do SO
 RUN apt-get update && apt-get upgrade -y 
 RUN apt-get install -y linux-headers net-tools apt-transport-https \
-   ca-certificates curl openssh-server openssl postgresql-client 
+   ca-certificates curl openssh-server openssl postgresql-client \
+   iproute2 net-tools
 
 # Instalando asconfigurações para o Python
 RUN pip install -U pip setuptools 

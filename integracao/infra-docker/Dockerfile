@@ -6,7 +6,7 @@ WORKDIR /app
 # Instalando as dependências do SO
 RUN apt-get update && apt-get upgrade -y && apt-get install -y net-tools \
    apt-transport-https ca-certificates curl openssh-server openssl \
-   postgresql-client 
+   postgresql-client proute2
 
 # Instalando as configurações para o Python
 RUN pip install -U pip setuptools 

@@ -14,7 +14,7 @@ nova_aplicacao = {
    
 }
 
-resultado = requests.post(url_base_aplicacoes, headers=headears, data=nova_aplicacao)  
+resultado = requests.post(url_base_aplicacoes, headers=headers, data=nova_aplicacao)  
 #print(resultado.status_code)
 assert resultado.status_code == 201
 
