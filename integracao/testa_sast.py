@@ -1,7 +1,8 @@
+import docker.errors
+import requests,docker,subprocess
 import requests #, seguranca.sast_scanner
 # fixando para acesso com autenticação via token de umm usuário específico
 headers = {'Authorization':'Token f0ee4a32f947f00cc06202ee306b5524fe1f3590'}
-
 
 url_base_aplicacoes = 'http://localhost:8000/api/v2/aplicacoes/'
 url_base_versoes = 'http://localhost:8000/api/v2/versoes/'
@@ -16,8 +17,9 @@ nova_aplicacao = {
 }
 
 #resultado = requests.post(url_base_aplicacoes, headers=headers, data=nova_aplicacao)  
+#resultado = requests.post(url_base_aplicacoes, headers=headers, data=nova_aplicacao)  
 #print(resultado.status_code)
-#assert resultado.status_code == 201
+##assert resultado.status_code == 201
 
 # passos 
 # 1º ) buscar as ferramentas de varredura que fazem SAST
@@ -34,6 +36,6 @@ sistemas_varredura = requests.get(url_base_sistemas_varredura) #, headers=header
 print(sistemas_varredura.json())  
 
 
-versoes = requests.get('http://locahost:8000/api/v2/versoes/', headers=headers)
+#versoes = requests.get('http://locahost:8000/api/v2/versoes/', headers=headers)
 
-print(versoes.json())  
+#print(versoes.json())  
