@@ -25,7 +25,7 @@ def sonarQube_scan(ferramenta_url, aplicacao):
     #assert resultado.status_code == 201
     
     # Conectar ao SonarQube via CLI /api/authentication/login
-    projeto = requests.get(url_projetos, headers=headers data=f"projects=[{aplicacao}]")
+    projeto = requests.get(url_projetos, headers=headers, data=f"projects=[{aplicacao}]")
     print(projeto.json())
     
     sonar_cli =   docker.from_env()
