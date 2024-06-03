@@ -67,7 +67,8 @@ containernet> d1 ifconfig
 ### Configuração da do ambiente para teste de segurança de aplicações
 A configuração da topologia está configurada no Containernet, devendo-se usar o script em python para que a configuração seja realilzada.
 
-Código para geração da topologia no Containernet
+Código para geração da topologia no Containernet está no arquivo config_topologia.py, abaixo transcrito:
+
 ```python
 #!/usr/bin/python
 """
@@ -183,6 +184,7 @@ if __name__ == '__main__':
    topologia()
 ```
 
+
 1. Clonar o arquivo e executar o scrip python
  ```shell
 # Copiar o arquivo config_topologia.py
@@ -191,15 +193,53 @@ if __name__ == '__main__':
 ~/app$ nano config_topologia.py
 # Colar o código deisponível acima e salvar o arquivo
 
-# Executar 
+# Executar o script para gerar a configuração inicial dos aplicativos
 ~/app$ sudo python config_topologia.py
  ```
 
-Clonar a imagem da aplicação DAMN VULNERABLE WEB APPLICATION (DVWA) que será usada para testes. 
-
+2. Configurar o acesso ao banco de dados
+Acessar o docker correspondente ao banco de dados da aplicação appseg_db e rodar a inicialização do bando de dados postgres 
 ```shell
-# 
-~$ sudo apt install git ansible -y
+# Executar o bash no docker do BD postgres da aplicação apseg
+~$ docker exec -i mn.appseg_db bash
+appseg_db:/# docker-ensure-initdb.sh
+appseg_db:/# su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'
+
+```
+
+3. Configurar o acesso ao Sonarqube
+```shell
+# executar o bash no docker do sonar
+~$ docker exec -i mn.sonar bash
+sonarqube@sonar:/opt/sonarqube$ docker/entrypoint.sh &
+
+```
+Acessar a aplicação pela navegador através do link <url>:<port>, por exemplo, 192.168.0.15:32785
+3.1. Informar usuário e senha: admin/admin
+3.2. indicar nova senha @dm1n e confirmar
+3.3. Clicar em adicionar manualmente o projeto
+   3.3.1. Indique o no do projeto
+   3.3.2. Indique a chave única para o projeto no sonarqube
+   3.3.3 Indique o nome da branch principal do projeto, por exemplo, master
+   3.3.4 Clique no botão Set Up
+3.4. Na página de configuração da integração da aplicação cliue em *Other CI*
+   3.4.1 Clique no botão *Generate* para gerar um token para a aplicação e copie para cadastro no appseg, por exemplo, sqp_bd4affac00ce57c87e24b65544df7bbe821c2235.
+
+
+4. configurar o acesso à linha de comando do Sonar (Sona_CLI)
+Para ter acesso ao SonarCLI pela aplicação é necessário configurar uma chave de acesso para SSH da máquina da aplicação para a o container docker
+4.1. Gerar a chave SSH, caso ainda não exista
+```shell
+~$ cd .ssh
+~/.ssh$ ls
+# Execute o comando abaixo, confirme o arquivo e deixe a senha em branco para gerar a chave
+~/.ssh$ ssh-keygen -t rsa -b 4096
+# copiar a chave pública para a outra máquina conforme o exemplo (ssh-copy-id usuario_remote@endereço_IP_remoto)
+~/.ssh$ ssh-copy-id docker@192.168.0.15
+
+```
+
+
 
 # Clonar e instalar o containernet
 ~$ git clone https://github.com/ramonfontes/containernet.git
@@ -217,17 +257,7 @@ containernet> d1 ifconfig to see config of container d1
 ## Configuração do ambiente das aplicações
 
 
-SonarQube
 
-1. Instalar o SonarQube e Sonar_CLI
-2. Acessar usando ambiente através a url<IPserver>:9000
-3. Informar usuário e senha: admin/admin
-4. indicar nova senha @dm1n e confirmar
-5. Clicar em adicionar manualmente o projeto
-   5.1. Indique o no do projeto
-   5.2. Indique a chave única para o projeto no sonarqube
-   5.3 Indique o nome da branch principal do projeto
-   5.4 Clique no botão Set Up
 6. Concastr nas APIs:
 api/authentication/login (POST)
 Parâmetros:

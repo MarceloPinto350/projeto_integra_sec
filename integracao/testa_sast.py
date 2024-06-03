@@ -1,6 +1,8 @@
 import docker.errors
 import requests,docker,subprocess
 import requests #, seguranca.sast_scanner
+import paramiko    # para acessar o servidor docker
+#from docker import DockerClient
 # fixando para acesso com autenticação via token de umm usuário específico
 headers = {'Authorization':'Token f0ee4a32f947f00cc06202ee306b5524fe1f3590'}
 
@@ -8,6 +10,11 @@ url_base_aplicacoes = 'http://localhost:8000/api/v2/aplicacoes/'
 url_base_versoes = 'http://localhost:8000/api/v2/versoes/'
 url_base_sistemas_varredura = 'http://localhost:8000/api/v2/sistemasvarredura/'
 
+sonar_host = 'http://192.168.0.15:32785'
+sonar_api = f'{sonar_host}/api'
+docker_server = 'tcp://192.168.0.15:1081'
+dvwa_fonte = 'https://github.com/digininja/DVWA.git'
+sonar_dvwa_token = 'sqp_bd4affac00ce57c87e24b65544df7bbe821c2235'
 
 nova_aplicacao = {
    "nome": "Aplicação 3",
@@ -15,12 +22,6 @@ nova_aplicacao = {
    "tipo": "1"
    
 }
-
-
-url_base_aplicacoes = 'http://localhost:8000/api/v2/aplicacoes/'
-url_base_versoes = 'http://localhost:8000/api/v2/versoes/'
-sonar_api = 'http://192.168.0.3:9000/api'
-docker_server = 'tcp://192.168.0.3:1081'
 
 sonar = requests.get(f'{sonar_api}/system/status')
 print(sonar.status_code)
@@ -41,7 +42,7 @@ nova_aplicacao = {
    "project": "dvwa"
 }
 try:
-    app = requests.get(f'{sonar_api}/projects/search',data={'projects':'dvwa'})
+    app = requests.get(f'{sonar_api}/projects/search',data={'projects':['dvwa']})
     print(app.json())
 except Exception as e:
     print(f'Erro ao buscar a aplicação: {e}')
@@ -53,17 +54,45 @@ except Exception as e:
          print(f'Erro ao criar o projeto: {e}')
 print()
 
+ssh = paramiko.SSHClient()
+
+def execute_ssh (comando):
+   ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+   ssh.connect(hostname='192.168.0.15', username='docker', password='docker')
+   stdin,stdout,stderr = ssh.exec_command(comando)
+   stdin.close()
+   result = stdout.read()
+   return result 
+
 # executar o scan do projeto via sonar_cli no container
+#comando = f"ssh docker@192.168.0.15 docker exec -it mn.sonar_cli bash -c 'cd /app && rm -rf DVWA && git clone {dvwa_fonte}'"
+comando = f"docker exec -it mn.sonar_cli bash -c 'cd /app && rm -rf DVWA && git clone {dvwa_fonte}'"
+comando = f'cd /app && rm -rf DVWA && git clone {dvwa_fonte}'
+print (comando)
 try:
-    #cliente_docker = docker.DockerClient(base_url=docker_server)
-    #print(cliente_docker.containers.list())
-    #sonar_cli = cliente_docker.containers.get('sonar_cli')
-    #sonar_cli.run('sonar-scanner -Dsonar.projectKey=projeto1 -Dsonar.sources=. -Dsonar.host.url=http://localhost:9000 -Dsonar.login=3c3c7d7c4b6f8c5c8c6c5c4c5c6c8c5c7
-    #print (sonar_cli.run('ps -ef'))
-    comando = 'ssh docker@192.168.0.3 docker exec sonar_cli sonar-scanner -Dsonar.projectKey=dvwa -Dsonar.sources=. -Dsonar.host.url=http://192.168.0.3:9000 -Dsonar.token=squ_fea9f59e34e27c3d7283eb8d468d137440cdbaae'
-    subprocess.run(comando, shell=True, check=True)
-except docker.errors.DockerException as e:
-    print(f'Erro ao acessar o servidor Docker: {e}')
+    ssh_result = execute_ssh(comando)
+    print (ssh_result)
+    cliente = docker.DockerClient.from_env(base_url=docker_server, container='mn.sonar_cli', cmd=comando)   
+    try: 
+       cont = cliente.containers.get ('mn.sonar_cli')   
+       cliente ('mn.sonar_cli', comando)
+    except docker.errors.NotFound as e1:
+    #    container = cliente.containers.get('mn.sonar_cli')
+    #    container. (f'cd /app && rm -rf DVWA && git clone {dvwa_fonte}')
+    #except docker.errors.APIError as e1:
+       print(f'Erro ao acessar o servidor Docker: {e1}')
+    
+    #subprocess.run(comando, shell=False, check=True)
+    #subprocess.run("ssh docker@192.168.0.15 docker exec -it mn.sonar_cli ls", shell=False, check=True)
+    #comando = "ssh docker@192.168.0.15 docker exec -it mn.sonar_cli bash -c 'sonar-scanner -Dsonar.projectKey=dvwa"
+    comando = "docker exec -it mn.sonar_cli bash -c 'sonar-scanner-cli -Dsonar.projectKey=dvwa"
+    comando = comando + f" -Dsonar.sources=./app/DVWA -Dsonar.host.url={sonar_host} -Dsonar.token={sonar_dvwa_token}'"
+    print (comando)
+    #ssh_result = execute_ssh(comando)
+    #print (ssh_result)
+    #subprocess.run(comando, shell=True, check=True)
+except paramiko.SSHException as e:
+    print(f'Erro ao executar o comando via SSH: {e}')
 
 
 nova_aplicacao = {
@@ -78,12 +107,6 @@ nova_aplicacao = {
 #assert resultado.status_code == 201
 
 
-
-
-
-
-
-
 #resultado = requests.post(url_base_aplicacoes, headers=headers, data=nova_aplicacao)  
 #resultado = requests.post(url_base_aplicacoes, headers=headers, data=nova_aplicacao)  
 #print(resultado.status_code)
@@ -96,12 +119,12 @@ nova_aplicacao = {
 # 4º ) obter os resultados da varredura
 # 5º ) armazenar os resultados da varredura
 
-tipo_varredura = 'SAST'
-tipos_varredura = requests.get('http://locahost:8000/api/v2/tiposvarredura') #, headers=headers)  
-print(tipos_varredura.json())
+#tipo_varredura = 'SAST'
+#tipos_varredura = requests.get('http://locahost:8000/api/v2/tiposvarredura') #, headers=headers)  
+#print(tipos_varredura.json())
 
-sistemas_varredura = requests.get(url_base_sistemas_varredura) #, headers=headers)
-print(sistemas_varredura.json())  
+#sistemas_varredura = requests.get(url_base_sistemas_varredura) #, headers=headers)
+#print(sistemas_varredura.json())  
 
 
 #versoes = requests.get('http://locahost:8000/api/v2/versoes/', headers=headers)

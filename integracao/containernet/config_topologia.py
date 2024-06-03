@@ -123,8 +123,17 @@ def topologia():
    # complementação das configurações e execuções posteriores 
    #Executar o comando para o postgres a 1ª vez: 
    #appseg_db.cmdPrint("su postgres -c 'initdb -D /var/lib/postgresql/data'")
-   appseg_db.cmdPrint("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
+   #docker-ensure-initdb.sh
+   #appseg_db.cmdPrint("docker-ensure-initdb.sh")      # somente a primeira vez
+   # inicializar o postgresql
+   appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
+   # incializar o sonarqube
+   sonar.cmd("su - sonarqube -c '/opt/sonarqube/docker/entrypoint.sh'")
+   # incializar o owasp zap
    owasp_zap.cmd('zap.sh --addoninstall soap')
+   
+   # gerar a estrutura de banco dados da aplicação APPSEG
+   appseg.cmd('python3 /appseg/manage.py migrate')
 
 
    info('*** Executando CLI\n')
