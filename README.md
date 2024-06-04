@@ -202,6 +202,7 @@ Acessar o docker correspondente ao banco de dados da aplicação appseg_db e rod
 ```shell
 # Executar o bash no docker do BD postgres da aplicação apseg
 ~$ docker exec -i mn.appseg_db bash
+# na primeira vez executar esse comando 
 appseg_db:/# docker-ensure-initdb.sh
 appseg_db:/# su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'
 

@@ -128,7 +128,7 @@ def topologia():
    # inicializar o postgresql
    appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
    # incializar o sonarqube
-   sonar.cmd("su - sonarqube -c '/opt/sonarqube/docker/entrypoint.sh'")
+   sonar.cmd("su sonarqube -c 'docker/entrypoint.sh &'")
    # incializar o owasp zap
    owasp_zap.cmd('zap.sh --addoninstall soap')
    
