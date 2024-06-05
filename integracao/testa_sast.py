@@ -1,60 +1,20 @@
-import docker.errors
-import requests,docker,subprocess
-import requests #, seguranca.sast_scanner
-import paramiko    # para acessar o servidor docker
+import requests, docker, docker.errors, subprocess, paramiko    # para acessar o servidor docker
 #from docker import DockerClient
 # fixando para acesso com autenticação via token de umm usuário específico
 headers = {'Authorization':'Token squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'}
 
-url_base_aplicacoes = 'http://localhost:8000/api/v2/aplicacoes/'
-url_base_versoes = 'http://localhost:8000/api/v2/versoes/'
-url_base_sistemas_varredura = 'http://localhost:8000/api/v2/sistemasvarredura/'
+#url_base_aplicacoes = 'http://localhost:8000/api/v2/aplicacoes/'
+#url_base_versoes = 'http://localhost:8000/api/v2/versoes/'
+#url_base_sistemas_varredura = 'http://localhost:8000/api/v2/sistemasvarredura/'
 
 sonar_host = 'http://192.168.0.9:32768'
 sonar_api = f'{sonar_host}/api'
-docker_server = 'tcp://192.168.0.9:1081'
+docker_server = 'http://192.168.0.9:2375'
 dvwa_fonte = 'https://github.com/digininja/DVWA.git'
 sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
 #sonar_dvwa_token = 'sqp_bd4affac00ce57c87e24b65544df7bbe821c2235'   #admin
 
-nova_aplicacao = {
-   "nome": "Aplicação 3",
-   "descricao": "Descrição da aplicação 3",
-   "tipo": "1"
-   
-}
-
-sonar = requests.get(f'{sonar_api}/system/status')
-print(sonar.status_code)
-print(sonar.json())
-print("Autenticando no SonarQube...")
-# Autenticar no SonarQube
-try:
-    sonar_auth = requests.post(f'{sonar_api}/authentication/login', data={'login':'mmpinto','password':'@dm1n'})
-    print(sonar_auth.status_code)
-    print('Autenticado!')
-except Exception as e:
-    print(f'Erro ao autenticar no SonarQube: {e}')
-print()
-
-# Verificar se a aplicação DVWA já está cadastrada no SonarQube
-nova_aplicacao = {
-   "name": "Damn Vulnerable Web Application",
-   "project": "dvwa"
-}
-try:
-    app = requests.get(f'{sonar_api}/projects/search',data={'q':'dvwa'})
-    print(app.json())
-except Exception as e:
-    print(f'Não encontrou a aplicação: {e}')
-    # incluir o projeto no sonar
-#    try:
-#        app = requests.post(f'{sonar_api}/projects/create', data=nova_aplicacao)
-#        print(app.status_code)
-#    except Exception as e:
-#         print(f'Erro ao criar o projeto: {e}')
-print()
-
+# CONECTAR NO SERVIDOR DOCKER VIA SSH
 # define a conexão SSH
 ssh = paramiko.SSHClient()
 def execute_ssh (comando):
@@ -64,31 +24,122 @@ def execute_ssh (comando):
    stdin.close()
    result = stdout.read()
    return result 
-
-# executar o scan do projeto via sonar_cli no container
-print("Executando teste do ssh...")
+# executar teste no servidor docker via SSH
+print("Executando teste do ssh no servidor docker...")
 try:
     ssh_result = execute_ssh("docker ps")
-    print (ssh_result)
+    if "sonar_cli" in str(ssh_result):
+        print("Container sonar_cli encontrado!")
+    else:
+        print("Container sonar_cli não encontrado!")
 except paramiko.SSHException as e:
     print(f'Erro ao executar o comando via SSH: {e}')
 print()
 
-
-# executar o scan do projeto via sonar_cli no container
-#comando = f"ssh docker@192.168.0.15 docker exec -it mn.sonar_cli bash -c 'cd /app && rm -rf DVWA && git clone {dvwa_fonte}'"
-comando = f"docker exec -it mn.sonar_cli bash -c 'cd /app && rm -rf DVWA && git clone {dvwa_fonte}'"
-#comando = f'cd /app && rm -rf DVWA && git clone {dvwa_fonte}'
-print ("preparando dados para o comando remoto...")
+# criar uma configuração para acesso ao docker pelo próprio python
+print("Conectando ao servidor Docker pelo próprio Python...")
+cliente = docker.from_env ()
 try:
-    ssh_result = execute_ssh(comando)
-    ssh_result = execute_ssh('docker sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss')
-    print (ssh_result)
-except paramiko.SSHException as e:
-    print(f'Erro ao executar o comando remoto: {e}')
+    for container in cliente.containers.list():
+        print(container.name)
+except docker.errors.APIError as e:
+    print(f'Erro ao acessar o servidor Docker: {e}')   
 print()
 
 #try:
+#    cliente = docker.from_env()
+#    print("Conexão com o servidor Docker realizada com sucesso!!")
+#except docker.errors.APIError as e:
+#    print(f'Erro ao acessar o servidor Docker: {e}')
+#print(f"Versão da API: {cliente.api_version}") 
+#print(cliente.info.())   
+
+#resposta = requests.post(f'{docker_server}/v1.24/auth',
+#            data={'username':'docker','password':'docker','serveraddress':{docker_server}})  
+#print(resposta.status_code)
+
+#resposta = requests.get(f'http://192.168.0.9:2375/v1.24/containers/json?all=1')
+#print(resposta.status_code)
+
+#print(cliente.containers.list(filters='name=mn.sonar_cli'))
+
+
+# 1º passo: clonar na máquina do Sonar_CLI a imagem da aplicação a ser varrida
+comando = f"docker exec -it mn.sonar_cli bash -c 'cd /app && rm -rf DVWA && git clone {dvwa_fonte}'"
+print ("Preparando para varredura...")
+print (f"Comando: {comando}")        
+try:
+    container = cliente.containers.get('mn.sonar_cli')
+    print ("Comando de preparação executado com sucesso!!")
+except docker.errors.NotFound as e:
+    print(f'Erro ao acessar o servidor Docker: {e}')
+#try:  
+#    ssh_result = execute_ssh(comando)
+#    print ("Comando de preparação executado com sucesso!!")
+#except paramiko.SSHException as e:
+#    print(f'Erro ao executar o comando remoto: {e}')
+print()
+
+# 2º passo: executar a varredura da aplicação
+print ("Executando o scan do projeto...")
+comando = "ssh docker@192.168.0.9 docker exec -it mn.sonar_cli bash -c 'sonar-scanner -Dsonar.projectKey=dvwa"
+comando = comando + f" -Dsonar.sources=DVWA -Dsonar.host.url={sonar_host} -Dsonar.token={sonar_dvwa_token}"
+comando = comando + f" -Dsonar.login=mmpinto -Dsonar.password=@dm1n'"
+print (f"Comando: {comando}")
+try:
+    ssh_result = execute_ssh(comando)
+    print ("Varredura executada com sucesso!!")
+except paramiko.SSHException as e:
+    print(f'Erro ao executar o comando remoto: {e}')
+
+
+
+
+
+
+
+#nova_aplicacao = {
+#   "nome": "Aplicação 3",
+#   "descricao": "Descrição da aplicação 3",
+#   "tipo": "1"
+#   
+#}
+
+sonar = requests.get(f'{sonar_api}/system/status')
+print(sonar.status_code)
+print(sonar.json())
+
+print("Autenticando no SonarQube...")
+# Autenticar no SonarQube
+auth = ('mmpinto','@dm1n')  
+try:
+    sonar_auth = requests.post(f'{sonar_api}/authentication/login', auth=auth, headers=headers) # data={'login':'mmpinto','password':'@dm1n'})
+    print(sonar_auth.status_code)
+    print(sonar_auth.json())
+except Exception as e:
+    print(f'Erro ao autenticar no SonarQube: {e}')
+print()
+
+# Verificar se a aplicação DVWA já está cadastrada no SonarQube
+#nova_aplicacao = {
+#   "name": "Damn Vulnerable Web Application",
+#   "project": "dvwa"
+#}
+# Consultar a aplicação DVWA no sonarqube
+try:
+    app = requests.get(f'{sonar_api}/projects/search?q=dvwa') #',data={'q':'dvwa'})
+    print(app.json())
+except Exception as e:
+    print(f'Não encontrou a aplicação: {e}')
+    # incluir o projeto no sonar
+#    try:
+#        app = requests.post(f'{sonar_api}/projects/create', data=nova_aplicacao)
+#        print(app.status_code)
+#    except Exception as e:
+#         print(f'Erro ao criar o projeto: {e}')
+#print()
+
+    
     #ssh_result = execute_ssh(comando)
     #print (ssh_result)
     #cliente = docker.DockerClient.from_env(base_url=docker_server, container='mn.sonar_cli', cmd=comando)   
@@ -124,10 +175,23 @@ nova_aplicacao = {
    
 }
 
+# buscar resultados de varredura
+print("Buscando resultados de varredura...")
+try:
+    resultado = requests.get(f"{sonar_api}/project_analyses/search?projetc=dvwa", headers=headers)  
+    print(resultado.status_code)
+except Exception as e:
+    print(f'Erro ao buscar resultados de varredura: {e}')
+
+#acesso = ('mmpinto','@dm1n')
+#resultado = requests.get(f"{sonar_api}/projects/dvwa/reports", auth=acesso ,headers=headers)  
+print(resultado.status_code)
+#print(resultado.json())
+
+
 #resultado = requests.post(url_base_aplicacoes, headers=headers, data=nova_aplicacao)  
 #print(resultado.status_code)
 #assert resultado.status_code == 201
-
 
 #resultado = requests.post(url_base_aplicacoes, headers=headers, data=nova_aplicacao)  
 #resultado = requests.post(url_base_aplicacoes, headers=headers, data=nova_aplicacao)  

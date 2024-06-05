@@ -61,7 +61,7 @@ def topologia():
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_dc:/src"])
 
    # Criar o container do BD da aplicação de teste DVWA
-   dvwa_db = net.addDocker('db_dvwa',
+   dvwa_db = net.addDocker('dvwa_db',
       ip='10.100.0.140', privileged=True,
       dimage="ramonfontes/mariadb:11",
       environment={'DISPLAY':":0",'MYSQL_ROOT_PASSWORD':'dvwa','MYSQL_DATABASE':'dvwa','MYSQL_USER':'dvwa','MYSQL_PASSWORD':'p@ssw0rd'}, 
