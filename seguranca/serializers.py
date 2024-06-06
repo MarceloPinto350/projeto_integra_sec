@@ -77,7 +77,6 @@ class AplicacaoSerializer(serializers.ModelSerializer):
             return 0
          return contagem
       
-
       
 class ResultadoScanSerializer(serializers.ModelSerializer):
    class Meta:

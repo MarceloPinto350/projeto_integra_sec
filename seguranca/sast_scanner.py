@@ -6,7 +6,6 @@ import requests, docker
 #import owaspZap
 
 
-
 # Define o métodos para iniciar e obter os resultados da varredura para o SonarQube
 def sonarQube_scan(ferramenta_url, aplicacao):
     #headers = {'Authorization':'Token f0ee4a32f947f00cc06202ee306b5524fe1f3590'}

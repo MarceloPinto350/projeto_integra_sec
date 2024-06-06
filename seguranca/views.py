@@ -14,6 +14,7 @@ from .serializers import (TipoAplicacaoSerializer, AplicacaoSerializer,
    TipoVarreduraSerializer, SistemaVarreduraSerializer
 )
 from .permissions import EhSuperUsuario
+from integracao import sonar_result
 
 
 """
@@ -145,3 +146,34 @@ class ResultadoScanViewSet(viewsets.ModelViewSet):
    queryset = ResultadoScan.objects.all()
    serializer_class = ResultadoScanSerializer
    
+
+# Classe para ceber os dados de webhooks
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .serializers import SonarDataSerializer
+
+class SonarWebhookView(APIView):
+   def post(self, request):
+      # Check if the request has a JSON content type 
+      if request.content_type != 'application/json':
+         return Response({'error': 'Tipo de conteúdo deve ser application/json'}, status=400)
+
+      # Deserializar os dados obtidos no JSON
+      serializer = SonarDataSerializer(data=request.data)
+
+      # Validar ods dados
+      if not serializer.is_valid():
+         return Response(serializer.errors, status=400)
+
+      # Extrair dados serializados
+      data = serializer.validated_data
+      project_key = data['project_key']
+      metrics = data['metrics']
+      ratings = data['ratings']
+
+      # Processar o dado do SonarQube
+      sonar_result(project_key, metrics, ratings)
+
+      # Return success response
+      return Response({'message': 'Dados do SonarQube recebidos com sucesso'}, status=200)
+
