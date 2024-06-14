@@ -33,7 +33,7 @@ class AplicacaoAdmin(admin.ModelAdmin):
     
 @admin.register(VersaoAplicacao)
 class VersaoAplicacaoAdmin(admin.ModelAdmin):
-    list_display = ('aplicacao','numero_versao','data_lancamento','descricao','situacao')
+    list_display = ('aplicacao','nome_versao','data_lancamento','descricao','situacao')
     list_display_icons = True
     list_per_page = 10   
 

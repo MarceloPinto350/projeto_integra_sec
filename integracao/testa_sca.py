@@ -1,4 +1,4 @@
-import requests, docker, subprocess, paramiko    # para acessar o servidor docker
+import requests, docker, subprocess, paramiko,json     # para acessar o servidor docker
 #from docker import DockerClient
 
 #url_base_aplicacoes = 'http://localhost:8000/api/v2/aplicacoes/'
@@ -59,8 +59,9 @@ ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect(hostname='192.168.0.9', username='docker', password='docker')
 
-# 1º passo: clonar na máquina do Sonar_CLI a imagem da aplicação a ser varrida
-comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf DVWA && git clone {dvwa_fonte}'\n"
+# 1º passo: clonar na máquina do OWASP-DC a imagem da aplicação a ser varrida
+comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf DVWA && rm dependency-check-report.json"
+comando = f"{comando} && git clone {dvwa_fonte}'\n"
 print ("Preparando para varredura...")
 print (f"Comando: {comando}")        
 try:  
@@ -79,17 +80,16 @@ except paramiko.SSHException as e:
 print()
 
 # 2ª passo: criado webservice para receber os resultados da varredura do sonarqube via webhooks
-#path('resultadosscan/', ResultadosScanAPIView.as_view(), name='resultadosscan'),
-#path('resultadosscan/<int:pk>/', ResultadoScanAPIView.as_view(), name='resultadoscan'),
-#path('resultadosscan/', ResultadosScanAPIView.as_view({'post': 'create'}), name='resultadosscan'),
-
-
+comando = "docker exec mn.owasp_dc bash -c 'owasp-dependency-check --scan /src/ --format 'JSON' --out /src/report"
+comando = f"{comando} --nvdApiKey cd0c05ca-2b15-4034-9ae6-490fb505f439'"
+print("Executando o scan do projeto...")
+print(comando)
 # 3º passo: executar a varredura da aplicação
-print ("Executando o scan do projeto...")
-comando = "docker exec mn.sonar_cli bash -c 'sonar-scanner -X -Dsonar.projectKey=dvwa"
-comando = comando + f" -Dsonar.sources=app/DVWA -Dsonar.host.url={sonar_host} -Dsonar.token={sonar_dvwa_token}"
-comando = comando + f" -Dsonar.login=mmpinto -Dsonar.password=@dm1n'"
-print (f"Comando: {comando}")
+#print ("Executando o scan do projeto...")
+#comando = "docker exec mn.sonar_cli bash -c 'sonar-scanner -X -Dsonar.projectKey=dvwa"
+#comando = comando + f" -Dsonar.sources=app/DVWA -Dsonar.host.url={sonar_host} -Dsonar.token={sonar_dvwa_token}"
+#comando = comando + f" -Dsonar.login=mmpinto -Dsonar.password=@dm1n'"
+#print (f"Comando: {comando}")
 try:
     stdin,stdout,stderr = ssh.exec_command(comando)
     stdin.write('docker\n')

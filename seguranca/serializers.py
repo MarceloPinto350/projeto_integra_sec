@@ -88,3 +88,9 @@ class ResultadoScanSerializer(serializers.ModelSerializer):
          raise serializers.ValidationError('A data de resultado não pode ser maior que a data atual.')
       return data
    
+# classe para tratamento da serialização de resultados das varreduras
+class SonarResultSerializer(serializers.ModelSerializer):
+   resultado = serializers.JSONField()
+   class Meta:
+      model = ResultadoScan
+      fields = 'resultado'

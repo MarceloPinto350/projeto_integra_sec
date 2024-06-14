@@ -138,7 +138,7 @@ class Aplicacao(models.Model):
    categoria = models.TextField("Categoria",default="ADMINISTRATIVA",null=False,choices=CATEGORIA_CHOICES)
    #abrangencia = models.TextField("Abrangência",default="REGIONAL",null=False,choices=ABRANGENCIA_CHOICES)   
    url_fonte = models.URLField("URL Fonte",unique=True,max_length=500,null=False)
-   #area_responsavel = models.ForeignKey(AreaNegocial, verbose_name="Área responsável",on_delete=models.CASCADE,null=False)
+   area_responsavel = models.ForeignKey(AreaNegocial, verbose_name="Área responsável",on_delete=models.CASCADE,null=False)
    #gestor_negocial = models.ForeignKey(User, verbose_name="Gestor responsável",on_delete=models.CASCADE)
    data_registro = models.DateTimeField("Data cadastro", auto_now_add=True, null=False)
    data_atualizacao = models.DateTimeField(auto_now=True)
@@ -146,9 +146,9 @@ class Aplicacao(models.Model):
    #essencial = models.BooleanField("Essencial",default=True,null=False)
    #estrategico = models.BooleanField("Estratégico",default=False,null=False)
    #area_analista_liberacao = models.ForeignKey(AreaNegocial, verbose_name="Área analista liberação",on_delete=models.CASCADE)
-   #arquitetura = models.CharField("Arquitetura",max_length=20,default="WEB",null=False,choices=ARQUITETURA_CHOICES)
+   arquitetura = models.CharField("Arquitetura",max_length=20,default="WEB",null=False,choices=ARQUITETURA_CHOICES)
    tipo = models.ForeignKey(TipoAplicacao,on_delete=models.CASCADE,null=False)
-   #hospedagem = models.CharField("Hospedagem",max_length=20,default="LOCAL",null=False,choices=HOSPEDAGEM_CHOICES)
+   hospedagem = models.CharField("Hospedagem",max_length=20,default="LOCAL",null=False,choices=HOSPEDAGEM_CHOICES)
    url_acesso = models.URLField("URL Acesso",unique=True,max_length=500, null=False)                               
    aplicacao_pai = models.ForeignKey('self', verbose_name="Aplicação pai",on_delete=models.CASCADE,null=True, blank=True)
    usuario_servico = models.CharField("Usuário de serviço",max_length=50)
@@ -194,22 +194,22 @@ class VersaoAplicacao(models.Model):
    Define as versões das aplicações.
    Atributos:
       aplicacao: Aplicação à qual a versão pertence
-      numero_versao: Número da versão
+      nome_versao: Nome ou número da versão
       data_lancamento: Data de lançamento da versão
       descricao: Descrição da versão
-      sistuacao: Situação da versão  
+      situacao: Situação da versão  
    """
    aplicacao = models.ForeignKey(Aplicacao, related_name='versoes',on_delete=models.CASCADE, null=False)
-   numero_versao = models.CharField(max_length=50)
-   data_lancamento = models.DateField()
-   descricao = models.TextField()
-   situacao = models.CharField(default="EM DESENVOLVIMENTO",max_length=20,null=False,choices=SITUACAO_SW_CHOICES)
+   nome_versao = models.CharField("Versão",max_length=50)
+   data_lancamento = models.DateField("Data lançamento",null=False)
+   descricao = models.TextField("Descrição",max_length=1000,null=False)
+   situacao = models.CharField("Situação",default="EM DESENVOLVIMENTO",max_length=20,null=False,choices=SITUACAO_SW_CHOICES)
    sistema_varreduras = models.ManyToManyField('SistemaVarredura', related_name='versoes', blank=True)   
    def __str__(self):
-        return f"{self.aplicacao.nome} v{self.numero_versao}"
+        return f"{self.aplicacao.nome} v{self.nome_versao}"
    class Meta:    
       db_table = "tb_versao_aplicacao"
-      unique_together = ['aplicacao', 'numero_versao']
+      unique_together = ['aplicacao', 'nome_versao']
       verbose_name = 'Versão da Aplicação'
       verbose_name_plural = 'Versões da Aplicação'
       permissions = [
@@ -218,7 +218,7 @@ class VersaoAplicacao(models.Model):
          ("can_add_versao_aplicacao", "Can add versões aplicação"),
          ("can_delete_versao_aplicacao", "Can delete versões aplicação"),
          ]
-      ordering = ['aplicacao','numero_versao']
+      ordering = ['aplicacao','nome_versao']
 
 # Tipos de ativos de infraestrutura
 class TipoAtivoInfraestrutura(models.Model):
@@ -289,7 +289,7 @@ class ResultadoScan(models.Model):
    """
    Define o resultado da varredura de segurança.
    Atributos:
-      aplicacao: Aplicação à qual o resultado pertence.
+      aplicacao: Versão da aplicação à qual o resultado pertence.
       resultado: Resultado da varredura de segurança.
       data_resultado: Data do resultado da varredura.
    """

@@ -3,23 +3,17 @@
 O ambiente para realização da prova de conceito para a solução de segurança de software é composto dos seguintes componentes:
 
 1. Containetnet - para suportar as configurações das ferramentas de análise de segurança
-   
    1.1. sonar -  servidor da ferramenta Sonar Qube, para análise estática do código fonte das aplicações (SAST)
-   
    1.2. sonar_cli - é a máquina responsável pela intercomunicação da Aplicação de Análise de Segurança e o Sonar Qube, via linha de comando
-   
    1.3. owasp_zap - servidor da ferramenta OWASP-ZAP, para análise dinâmica das apliações (DAST)
-
    1.4. owasp_dc - servidor da ferramenta OWASP Dependency Check, para análise de dependência de bibliotecas de terceiros (SCA)
 
 
-2. Aplicação e banco de dados postgres - para disponibilização da API para integração dos resultados e controle de chamadas às ferramentas de análise de segurança
+2. Aplicação e banco de dados postgres - disponibilização da API para integração dos resultados e controle de chamadas às ferramentas de análise de segurança.
 
 
 
-
-## Configuração do ambiente
-
+## Preparação do ambiente
 
 ### Criar uma VM Ubuntu 22.04 server
 1. Requisitos:
@@ -34,7 +28,7 @@ O ambiente para realização da prova de conceito para a solução de segurança
 
 ### Instalação do Containernet
 
-Para configuração do Containernet se deve acessar a máquina virtual através de SSH e proceder os seguintes passos para atualização do servidor e instalação do a:
+Para configuração do Containernet se deve acessar a máquina virtual através de SSH e proceder os seguintes passos para atualização do servidor e instalação do ambiente:
 
 ```shell
 # Atualizar as configurações da máquina e intalar o Git e o Ansible
@@ -64,10 +58,8 @@ Para configuração do Containernet se deve acessar a máquina virtual através 
 containernet> d1 ifconfig 
 ```
 
-### Configuração da do ambiente para teste de segurança de aplicações
-A configuração da topologia está configurada no Containernet, devendo-se usar o script em python para que a configuração seja realilzada.
-
-Código para geração da topologia no Containernet está no arquivo config_topologia.py, abaixo transcrito:
+### Configuração do ambiente para teste de segurança de aplicações
+A configuração da topologia para o Containernet deverá feita através da execução do script em python, conforme o arquivo **config_topologia.py**, abaixo transcrito:
 
 ```python
 #!/usr/bin/python
@@ -92,71 +84,87 @@ def topologia():
    info('*** Adicionando os conteineres\n')
 	# Criar o container do SonarQube
    sonar = net.addDocker('sonar',
-      ip='10.100.0.125', 
+      ip='10.100.0.120', 
       cpu_shares=20, privileged=True,
-      volumes=["sonar_data:/opt/sonarqube/data",
+      environment={'DISPLAY':":0"},
+      volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw",
+         "sonar_data:/opt/sonarqube/data",
          "sonar_extensions:/opt/sonarqube/extensions",
          "sonar_logs:/opt/sonarqube/logs"],
       dimage="ramonfontes/sonarqube:lts-community")
 
    # Criar o container do sonar em modo CLI
    sonar_cli = net.addDocker('sonar_cli',
-      ip='10.100.0.120',
+      ip='10.100.0.125',
       cpu_shares=20, privileged=True,
-      volumes=["app:/app"],
+      environment={'DISPLAY':":0"},
+      volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","app:/app"],
       dimage='ramonfontes/ubuntu:trusty')
 
+   # Criar o container do OWASP ZAP
    owasp_zap = net.addDocker('owasp_zap', 
-      ip='10.100.0.140',
+      ip='10.100.0.130',
       cpu_shares=20, privileged=True,
-      dimage="ramonfontes/zaproxy",		#atualizado o uso para essa versão por conta de ter mais recursos
+      environment={'DISPLAY':":0"},
+      dimage="ramonfontes/zaproxy",
       dcmd="zap.sh -daemon -config api.disablekey=true",
-      volumes=["owasp_zap:/zap/wrk"])
-   # complementação da configuração do OWASP ZAP
-   owasp_zap.cmd('zap.sh --addoninstall soap')
+      volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_zap:/zap/wrk"])
 
-   db_dvwa = net.addDocker('db_dvwa',
-      ip='10.100.0.145', privileged=True,
+   # Criar o container do Owasp dependency-check
+#   owasp_dc = net.addDocker('owasp_dc',
+#      ip='10.100.0.135',
+#      cpu_shares=20, privileged=True,
+#      environment={'DISPLAY':":0"},
+#      dimage="owasp/dependency-check",
+#      dcmd="--scan /src --format 'ALL' --out /src/report",
+#      volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_dc:/src"])
+
+   # Criar o container da aplicação de teste DVWA
+   dvwa_db = net.addDocker('dvwa_db',
+      ip='10.100.0.140', privileged=True,
       dimage="ramonfontes/mariadb:11",
-      environment={'MYSQL_ROOT_PASSWORD':'dvwa','MYSQL_DATABASE':'dvwa','MYSQL_USER':'dvwa','MYSQL_PASSWORD':'p@ssw0rd'}, 
-      volumes=["dvwa_db:/var/lib/mysql"])
+      environment={'DISPLAY':":0",'MYSQL_ROOT_PASSWORD':'dvwa','MYSQL_DATABASE':'dvwa','MYSQL_USER':'dvwa','MYSQL_PASSWORD':'p@ssw0rd'}, 
+      volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","dvwa_db:/var/lib/mysql"])
    
    # Aplicação de teste DVWA
    dvwa = net.addDocker('dvwa',
-      ip='10.100.0.150',
+      ip='10.100.0.145',
       port='4280:80', privileged=True,
       cpu_shares=20,
       #dimage="ramonfontes/dvwa:latest",
       # para tentar corrigir erro de IP e 404 file not found no repositório indicado acima
       dimage="marcelopinto350/dvwa:latest",
-      environment={'DB_SERVER':"db_dvwa"})
+      volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","dvwa:/var/www/html"],
+      environment={'DISPLAY':":0",'DB_SERVER':"db_dvwa"})
       
    # Banco de dados da aplicação de segurança APPSEG
    appseg_db = net.addDocker('appseg_db',
-      ip='10.100.0.155',
+      ip='10.100.0.150',
       #dimage="ramonfontes/postgres:alpine", privileged=True,
       # para substituir imagem acima para corrigir erro de IP
       dimage="marcelopinto350/postgres:alpine", privileged=True,
-      environment={'POSTGRES_DB':'appseg',
+      environment={'DISPLAY':":0",
+         'POSTGRES_DB':'appseg',
          'POSTGRES_USER':'postgres',
          'POSTGRES_PASSWORD':'postgres',
          'POSTGRES_PORT':'5432'},
-      volumes=["pg_data:/var/lib/postgresql/data"])
+      volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","pg_data:/var/lib/postgresql/data"])
    
    # Aplicação de segurança APPSEG
    appseg = net.addDocker('appseg',
-      ip='10.100.0.160',
+      ip='10.100.0.155',
       port='8000:8000', privileged=True,
       cpu_shares=20,
       #dimage="ramonfontes/python:3.10",
       # para corrigir erro de IP e na aplicação appseg
       dimage="marcelopinto350/appseg:alfa",
-      environment={'POSTGRES_HOST':'appseg_db',
+      environment={'DISPLAY':":0",
+         'POSTGRES_HOST':'appseg_db',
          'POSTRGES_PORT':'5432',
          'POSTGRES_DB':'appseg',
          'POSTGRES_USER':'postgres',
          'POSTGRES_PASSWORD':'postgres'},
-      volumes=["appseg:/appseg"])
+      volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","appseg:/appseg"])
 
    info('*** Adicionando switches de rede\n')
    s1 = net.addSwitch('s1', failMode="standalone")
@@ -165,13 +173,28 @@ def topologia():
    net.addLink(sonar, s1)
    net.addLink(sonar_cli, s1)
    net.addLink(owasp_zap, s1)
-   net.addLink(db_dvwa, s1)
+#  net.addLink(owasp_dc, s1)
+   net.addLink(dvwa_db, s1)
    net.addLink(dvwa, s1)
    net.addLink(appseg_db, s1)
 
    info('*** Iniciando a rede\n')
    net.build()
    s1.start([])
+
+   # complementação das configurações e execuções posteriores 
+   #Executar o comando para o postgres a 1ª vez: 
+   #appseg_db.cmdPrint("su postgres -c 'initdb -D /var/lib/postgresql/data'")
+   #appseg_db.cmdPrint("docker-ensure-initdb.sh")      # somente a primeira vez
+   # inicializar o postgresql
+   appseg_db.cmdPrint("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
+   # incializar o sonarqube
+   sonar.cmd("su sonarqube -c 'docker/entrypoint.sh &'")
+   # incializar o owasp zap
+   owasp_zap.cmd('zap.sh --addoninstall soap')
+   # gerar a estrutura de banco dados da aplicação APPSEG
+   appseg.cmd('python3 /appseg/manage.py migrate')      # somente a primeira execução
+   
 
    info('*** Executando CLI\n')
    CLI(net)
@@ -184,8 +207,9 @@ if __name__ == '__main__':
    topologia()
 ```
 
+Para finalização da configuração do ambiente, proceder as execução dos passos a seguir:
 
-1. Clonar o arquivo e executar o scrip python
+1. Clonar o arquivo e executar o script python
  ```shell
 # Copiar o arquivo config_topologia.py
 ~$ mkdir app
@@ -223,13 +247,13 @@ Acessar a aplicação pela navegador através do link <url>:<port>, por exemplo,
    3.3.2. Indique a chave única para o projeto no sonarqube
    3.3.3 Indique o nome da branch principal do projeto, por exemplo, master
    3.3.4 Clique no botão Set Up
-3.4. Na página de configuração da integração da aplicação cliue em *Other CI*
+3.4. Na página de configuração da integração da aplicação clique em *Other CI*
    3.4.1 Clique no botão *Generate* para gerar um token para a aplicação e copie para cadastro no appseg, por exemplo, sqp_bd4affac00ce57c87e24b65544df7bbe821c2235.
 
 
-4. configurar o acesso à linha de comando do Sonar (Sona_CLI)
-Para ter acesso ao SonarCLI pela aplicação é necessário configurar uma chave de acesso para SSH da máquina da aplicação para a o container docker
-4.1. Gerar a chave SSH, caso ainda não exista
+4. Configurar o acesso à linha de comando do Sonar (Sonar_CLI)
+Para ter acesso ao SonarCLI pela aplicação APPSEG é necessário configurar uma chave de acesso para SSH da máquina da aplicação para a o container docker
+4.1. Gerar a chave SSH na máquina onde a aplicação está sendo executada, caso ainda não exista
 ```shell
 ~$ cd .ssh
 ~/.ssh$ ls
@@ -240,18 +264,32 @@ Para ter acesso ao SonarCLI pela aplicação é necessário configurar uma chave
 
 ```
 
+5. Configurações da aplicação APPSEG
 
-
-# Clonar e instalar o containernet
-~$ git clone https://github.com/ramonfontes/containernet.git
-~$ cd containernet
-~/containernet$ sudo util/install.sh -W
-
-# Executar os comandos abaixo par testar se a instalação do containernet
-~/containernet$ cd containernet
-~/containernet/containernet$ sudo python examples/containernet_example.py
-containernet> d1 ifconfig to see config of container d1
+5.1. Setar o usuário administrador da aplicação
+a) Conectar no servidor e entrar na pasta da aplicação, em seguida executar o comando:
+```shell
+appseg $ python manage.py createsuperuser
 ```
+$ 
+Informar o usuário, e-mail e senha para o administrador da aplicação.
+
+5.2. Inicializar o banco de dados da aplicação
+
+
+5.2. Gerar token de autenticação do(s) usuário(s) que irá(ão) acessar os serviços web
+a) Acessar a aplicação pelo navegador de sua preferência, por exemplo, 192.160.0.24:8000/admin
+b) Informar usuário e senha de acesso;
+c) Selecionar a opção **Tokens >> + Adicionar**;
+d) Selecionar o usuário e clicar no botão **Salvar**;
+e) Caso queira, é possível clique no ícone **+** ao lado da caixa de seleção de usuário para adicionar novos usuários.
+
+
+
+
+
+
+
 
 
 
@@ -259,14 +297,14 @@ containernet> d1 ifconfig to see config of container d1
 
 
 
-6. Concastr nas APIs:
+6. Acesso às APIs do SonarQube:
 api/authentication/login (POST)
 Parâmetros:
    login 
    password
 api/authentication/logout (POST)
 api/hostspots/search (GET)
-   pode ser passado vários paâmetros, mas opcionais
+   pode ser passado vários parâmetros, mas opcionais
 api/hotspots/show
 Parâmero:
    hostspot
@@ -275,8 +313,7 @@ api/projetc_analyses/<varias opções>
 api/user_tokens
 
 
-Serão clonadas as 
-
+Outros comandos:
 
 Executar o comando para criação da imagem:
 ```shell

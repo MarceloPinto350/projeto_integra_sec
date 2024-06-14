@@ -57,7 +57,7 @@ def topologia():
       cpu_shares=20, privileged=True,
       environment={'DISPLAY':":0"},
       dimage="owasp/dependency-check",
-      dcmd="--scan /src --format 'ALL' --out /src/report",
+      dcmd="--scan /src --format 'JSON' --out /src/report",
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_dc:/src"])
 
    # Criar o container do BD da aplicação de teste DVWA

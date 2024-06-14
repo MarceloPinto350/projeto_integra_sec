@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-^q&m4yv8-&yrz&)e(mh=&2r3+(_c3091y%0p6#p7dprs3a6(n3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["192.168.0.22"]
 
 
 # Application definition
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken', # para permitir autenticação via tokentokn
     # configurações para a aplicação de segurança
     'seguranca', 
+    #'sonar_data',
 ]
 
 MIDDLEWARE = [
@@ -96,7 +97,7 @@ DATABASES = {
         'NAME': 'appseg',       #os.getenv('POSTGRES_DB'),
         'USER': 'postgres',     #os.getenv('POSTGRES_USER'),
         'PASSWORD': 'postgres', #os.getenv('POSTGRES_PASSWORD'),
-        'PORT': '32771'          #os.getenv('POSTGRES_PORT')
+        'PORT': '32781'          #os.getenv('POSTGRES_PORT')
     }    
 }
 
@@ -154,19 +155,20 @@ REST_FRAMEWORK = {
     ],  
     # CONFIGURAÇÕES DE SEGURANÇA DE NÍVEL GLOBAL
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',    # para permitir leitura sem autenticação
-        #'rest_framework.permissions.IsAuthenticated', # para permitir autenticação em todas as rotas
+        #'rest_framework.permissions.IsAuthenticatedOrReadOnly',    # para permitir leitura sem autenticação
+        #'rest_framework.permissions.IsAuthenticated',              # para permitir autenticação em todas as rotas
+        'rest_framework.permissions.AllowAny',                     # para permitir acesso sem autenticação em todas as rotas
     ],
     # definindo a paginação padrão para 2 registros por página
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 2,
+    'PAGE_SIZE': 5,
     # configurando o limite global de requisições por segundo para a API
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
     ],
     "DEFAULT_THROTTLE_RATES": { # Pode ser limitado por dia, segundo, hora etc e também por IP, usuário ou grupo)
-        'anon': '5/minute',     # 5 requisições por minuto para usuários anônimos
-        'user': '8/minute',   # 100 requisições por minuto para usuários autenticados
+        'anon': '6/minute',     # 6 requisições por minuto para usuários anônimos
+        'user': '100/minute',   # 100 requisições por minuto para usuários autenticados
     }
 }

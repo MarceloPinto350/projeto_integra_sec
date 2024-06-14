@@ -2,6 +2,8 @@ from django.urls import path
 
 from rest_framework.routers import SimpleRouter
 
+#from sonar_data.views import SonarResultViewSet
+
 from .views import (
       TipoAplicacaoAPIView, TiposAplicacaoAPIView, 
       AplicacaoAPIView, AplicacoesAPIView,
@@ -11,6 +13,7 @@ from .views import (
       AplicacaoViewSet, 
       VersaoViewSet, 
       ResultadoScanViewSet,
+      ResultadoViewSet,
       TipoVarreduraViewSet, 
       SistemaVarreduraViewSet)   
 
@@ -20,6 +23,7 @@ router.register('tiposaplicacao',TipoAplicacaoViewSet)
 router.register('aplicacoes',AplicacaoViewSet)
 router.register('versoes',VersaoViewSet)
 router.register('resultadosscan',ResultadoScanViewSet)
+#router.register('results',ResultadoViewSet, basename='results')
 router.register('tiposvarredura',TipoVarreduraViewSet)
 router.register('sistemasvarredura',SistemaVarreduraViewSet)      
 
@@ -38,7 +42,11 @@ urlpatterns = [
       
       path('resultadosscan/', ResultadosScanAPIView.as_view(), name='resultadosscan'),
       path('resultadosscan/<int:pk>/', ResultadoScanAPIView.as_view(), name='resultadoscan'),
-
       
+      path('resultados/', ResultadoViewSet.as_view({'post':'post'}), name='resultados'),
 
 ]
+
+
+
+
