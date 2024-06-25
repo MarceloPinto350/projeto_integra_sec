@@ -148,6 +148,7 @@ class ResultadoScanViewSet(viewsets.ModelViewSet):
    queryset = ResultadoScan.objects.all()
    serializer_class = ResultadoScanSerializer
    
+<<<<<<< HEAD
 class ResultadoViewSet(viewsets.ViewSet):
    def post(self, request):
       # validar se o valor recebido é um JSON
@@ -157,10 +158,21 @@ class ResultadoViewSet(viewsets.ViewSet):
       resultado = sonar_result.processa_resultado(request.data)
       # validar o serializer e salvar dados no BD
       serializer =  ResultadoScanSerializer(data=resultado)
+=======
+   def create(self, request, *args, **kwargs):
+      # receber dados do SonarQube
+      dados = request.data
+      
+      #validar e salvar dados no BD
+      serializer =  ResultadoScanSerializer(data=dados)
+>>>>>>> 6acba307edf35a65b2dde3a7eab7f8f77f2f9041
       if serializer.is_valid():
          serializer.save()
          return Response(serializer.data, status=201)
       else:
          return Response(serializer.errors, status=400)
+<<<<<<< HEAD
       """_summary_
       """
+=======
+>>>>>>> 6acba307edf35a65b2dde3a7eab7f8f77f2f9041

@@ -42,6 +42,11 @@ urlpatterns = [
       
       path('resultadosscan/', ResultadosScanAPIView.as_view(), name='resultadosscan'),
       path('resultadosscan/<int:pk>/', ResultadoScanAPIView.as_view(), name='resultadoscan'),
+<<<<<<< HEAD
+=======
+      path('resultadosscan/', ResultadosScanAPIView.as_view({'post': 'create'}), name='resultadosscan'),
+
+>>>>>>> 6acba307edf35a65b2dde3a7eab7f8f77f2f9041
       
       path('resultados/', ResultadoViewSet.as_view({'post':'post'}), name='resultados'),
 
