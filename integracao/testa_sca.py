@@ -61,8 +61,7 @@ ssh.connect(hostname='192.168.0.9', username='docker', password='docker')
 
 
 # 1º passo: clonar na máquina do OWASP-DC a imagem da aplicação a ser varrida
-comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf DVWA && rm dependency-check-report.json"
-comando = f"{comando} && git clone {dvwa_fonte}'\n"
+comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf DVWA && rm dependency-check-report.json && git clone {dvwa_fonte}'\n"
 print ("Preparando para varredura...")
 print (f"Comando: {comando}")        
 try:  
