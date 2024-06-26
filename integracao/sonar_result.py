@@ -73,7 +73,6 @@ url_base_aplicacoes = 'http://192.168.0.22:8000/api/v2/aplicacoes/'
 #   }
 # }
 
-<<<<<<< HEAD
 def processa_resultado(novo_resultado):
   try:
     data_execucao = novo_resultado['analysedAt']
@@ -98,8 +97,6 @@ def processa_resultado(novo_resultado):
           break
     else:
       return(apps.status_code)  
-=======
->>>>>>> 6acba307edf35a65b2dde3a7eab7f8f77f2f9041
 
     string_resultado={
       "aplicacao": versao_id,

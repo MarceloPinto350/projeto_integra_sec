@@ -59,6 +59,7 @@ ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect(hostname='192.168.0.9', username='docker', password='docker')
 
+
 # 1º passo: clonar na máquina do OWASP-DC a imagem da aplicação a ser varrida
 comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf DVWA && rm dependency-check-report.json"
 comando = f"{comando} && git clone {dvwa_fonte}'\n"
@@ -80,7 +81,7 @@ except paramiko.SSHException as e:
 print()
 
 # 2ª passo: criado webservice para receber os resultados da varredura do sonarqube via webhooks
-comando = "docker exec mn.owasp_dc bash -c 'owasp-dependency-check --scan /src/ --format 'JSON' --out /src/report"
+comando = "docker exec mn.owasp_dc bash -c '/bin/owasp-dependency-check --scan /src/ --format 'JSON' --out /src/report"
 comando = f"{comando} --nvdApiKey cd0c05ca-2b15-4034-9ae6-490fb505f439'"
 print("Executando o scan do projeto...")
 print(comando)
