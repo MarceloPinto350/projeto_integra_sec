@@ -97,7 +97,7 @@ DATABASES = {
         'NAME': 'appseg',       #os.getenv('POSTGRES_DB'),
         'USER': 'postgres',     #os.getenv('POSTGRES_USER'),
         'PASSWORD': 'postgres', #os.getenv('POSTGRES_PASSWORD'),
-        'PORT': '32781'          #os.getenv('POSTGRES_PORT')
+        'PORT': '32771'          #os.getenv('POSTGRES_PORT')
     }    
 }
 

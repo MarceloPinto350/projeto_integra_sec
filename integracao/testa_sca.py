@@ -61,7 +61,7 @@ ssh.connect(hostname='192.168.0.9', username='docker', password='docker')
 
 
 # 1º passo: clonar na máquina do OWASP-DC a imagem da aplicação a ser varrida
-comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf DVWA && rm dependency-check-report.json && git clone {dvwa_fonte}'\n"
+comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf DVWA && rm -f dependency-check-report.json && git clone {dvwa_fonte}'\n"
 print ("Preparando para varredura...")
 print (f"Comando: {comando}")        
 try:  
@@ -71,40 +71,61 @@ try:
     stdin.close()
     print(stdout.readlines())
     print(stderr.readlines())    
-    if "Cloning into 'DVWA'" in stderr.readlines():
-        print("Repositório clonado com sucesso!")
-    else:
+    if "err" in stderr.readlines():
         print("Erro ao clonar o repositório!")
+    else:
+        print("Repositório clonado com sucesso!")
 except paramiko.SSHException as e:
     print(f'Erro ao executar o comando remoto: {e}')
 print()
 
 # 2ª passo: criado webservice para receber os resultados da varredura do sonarqube via webhooks
-comando = "docker exec mn.owasp_dc bash -c '/bin/owasp-dependency-check --scan /src/ --format 'JSON' --out /src/report"
+comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --scan /src/DVWA --format JSON --out /src/report"
 comando = f"{comando} --nvdApiKey cd0c05ca-2b15-4034-9ae6-490fb505f439'"
 print("Executando o scan do projeto...")
 print(comando)
-# 3º passo: executar a varredura da aplicação
-#print ("Executando o scan do projeto...")
-#comando = "docker exec mn.sonar_cli bash -c 'sonar-scanner -X -Dsonar.projectKey=dvwa"
-#comando = comando + f" -Dsonar.sources=app/DVWA -Dsonar.host.url={sonar_host} -Dsonar.token={sonar_dvwa_token}"
-#comando = comando + f" -Dsonar.login=mmpinto -Dsonar.password=@dm1n'"
-#print (f"Comando: {comando}")
 try:
     stdin,stdout,stderr = ssh.exec_command(comando)
     stdin.write('docker\n')
     stdin.flush()    
     stdin.close()
     print(stdout.readlines())
-    if 'EXECUTION FAILURE' in stdout.readlines():
+    if 'Analysis Complete' in stdout.readlines():
+        print("Análise realizada com sucesso!")        
+    else:
         print("Erro na execução do comando!")   
-    elif 'ANALYSIS SUCCESSFUL' in stdout.readlines():
-        print("Análise realizada com sucesso!")
     print(stderr.readlines())
 except paramiko.SSHException as e:
     print(f'Erro ao executar o comando remoto: {e}')
 print()
 
+# 3º passo: coletar o resultado da varredura
+comando = "docker inspect volume owasp_dc"
+print(comando)
+try:
+    stdin,stdout,stderr = ssh.exec_command(comando)
+    stdin.write('docker\n')
+    stdin.flush()    
+    stdin.close()
+    print(stdout.readlines())
+    if 'owasp_dc' in stdout.readlines():
+        print("Análise realizada com sucesso!")
+        dados = json.loads(stdout.readlines())
+        print(dados['Mounts'][0]['Source'] + '/report/dependency-check-report.json')
+        #relatorio = dados['Mounts'][0]['Source'] + '/report/dependency-check-report.json'
+    elif 'Error' in stdout.readlines():
+        print("Erro na execução do comando!")   
+    print(stderr.readlines())
+except paramiko.SSHException as e:
+    print(f'Erro ao executar o comando remoto: {e}')
+print()
+
+#sftp = ssh.open_sftp()
+#with sftp.open('/src/report/dependency-check-report.json','r') as arq:
+#    dados_json = arq.read()
+    
+#dados = json.loads(dados_json)
+#print(dados)
 
 #try:
 #    container = cliente.containers.get('mn.sonar_cli')
