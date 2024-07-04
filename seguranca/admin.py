@@ -21,12 +21,14 @@ class AreaNegocialAdmin (admin.ModelAdmin):
 
 @admin.register(Aplicacao)
 class AplicacaoAdmin(admin.ModelAdmin):
-    list_display = ('nome','sigla','descricao','categoria','url_fonte',
-                    'data_registro','data_atualizacao','data_descontinuacao',
+    list_display = ('nome','sigla', #'descricao',
+                    'categoria','url_fonte',
+                    #'data_registro','data_atualizacao',
+                    'data_descontinuacao',
                     #'area_analista_liberacao','abrangencia','area_responsavel','gestor_negocial',
                     #'essencial','estrategico','arquitetura','hospedagem',
-                    'tipo','url_acesso','aplicacao_pai',
-                    'usuario_servico','senha_servico','token_acesso'                 
+                    'tipo','url_acesso','aplicacao_pai','usuario_servico'
+                    #,'senha_servico','token_acesso'                 
                     )
     list_display_icons = True
     list_per_page = 5
@@ -46,7 +48,9 @@ class TipoAtivoInfraestruturaAdmin(admin.ModelAdmin):
 @admin.register(AtivoInfraestrutura)
 class AtivoInfraestruturaAdmin(admin.ModelAdmin):
     list_display = ('nome','descricao','tipo','url_localizacao','endereco_ip','porta_acesso',
-                    'usuario_acesso','senha_acesso','token_acesso','status')
+                    'usuario_acesso',
+                    #'senha_acesso','token_acesso',
+                    'status')
     list_display_icons = True
     list_per_page = 10
     
@@ -58,6 +62,6 @@ class TipoVarreduraAdmin(admin.ModelAdmin):
     
 @admin.register(SistemaVarredura)
 class SistemaVarreduraAdmin(admin.ModelAdmin):
-    list_display = ('nome','descricao','tipo','url','usuario','senha','token','status')
+    list_display = ('nome','descricao','url','usuario','status')
     list_display_icons = True
     list_per_page = 10

@@ -4,6 +4,7 @@ from django.db.models import Count
 
 from .models import Aplicacao, ResultadoScan, TipoAplicacao, VersaoAplicacao, TipoVarredura, SistemaVarredura
 
+from  django.utils import timezone   
 class TipoAplicacaoSerializer(serializers.ModelSerializer):
    class Meta:
       model = TipoAplicacao
@@ -56,9 +57,8 @@ class AplicacaoSerializer(serializers.ModelSerializer):
          'id','nome','sigla','descricao','categoria','url_fonte',
          'data_registro','data_atualizacao','data_descontinuacao',
          #'area_analista_liberacao','abrangencia','area_responsavel','gestor_negocial',
-         #'essencial','estrategico','arquitetura','hospedagem',
-         'tipo','url_acesso','aplicacao_pai',
-         'usuario_servico','senha_servico','token_acesso',
+         #'essencial','estrategico','arquitetura','hospedagem','tipo',
+         'url_acesso','aplicacao_pai','usuario_servico','senha_servico','token_acesso',
          # campo para serialização de versões de aplicação
          'versoes' 
          # campo calculado para contagem de versões de aplicação

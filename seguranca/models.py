@@ -292,10 +292,12 @@ class ResultadoScan(models.Model):
       aplicacao: Versão da aplicação à qual o resultado pertence.
       resultado: Resultado da varredura de segurança.
       data_resultado: Data do resultado da varredura.
+      sistema_varredura: Indica de qual sistema de varredura o resultado foi obtido.
    """
    aplicacao = models.ForeignKey(VersaoAplicacao, verbose_name="Aplicação",on_delete=models.CASCADE, null=False)
    resultado = models.JSONField("Resultado",null=False)
    data_resultado = models.DateTimeField("Data da análise",auto_now=True,null=False)
+   sistema_varredura =  models.CharField("Sistema de varrredura",max_length=50)
    class Meta:
       db_table = "tb_resultado_scan"
       verbose_name = 'Resultado da Varredura'
@@ -306,7 +308,7 @@ class ResultadoScan(models.Model):
          ("can_add_resultado_scan", "Can add resultados scan"),
          ("can_delete_resultado_scan", "Can delete resultados scan"),
          ]
-      ordering = ['aplicacao','data_resultado']
+      ordering = ['aplicacao','-data_resultado']
       #para colocar a ordenação em ordem decrescente usar o sinal de menos antes do campo
    def __str__(self):
       return f"Resultado da varredura de {self.aplicacao.nome}"
@@ -320,7 +322,7 @@ class TipoVarredura(models.Model):
    """
    nome = models.CharField("Nome",max_length=50, unique=True,null=False)
    descricao = models.TextField("Descrição",max_length=1000)
-   sistemas_varredura = models.ManyToManyField('SistemaVarredura', related_name='tipos_varredura', blank=True)
+   #sistemas_varredura = models.ManyToManyField('SistemaVarredura', related_name='tipos_varredura', blank=True)
    class Meta:
       db_table = "tb_tipo_varredura"
       verbose_name = 'Tipo de Varredura'
@@ -341,18 +343,17 @@ class SistemaVarredura(models.Model):
    Atributos:
       nome: Nome do sistema de varredura.
       descricao: Descrição do sistema de varredura.
-      tipo: Tipo do sistema de varredura.
       url: URL do sistema de varredura.
       usuario: Usuário do sistema de varredura.
       senha: Senha do sistema de varredura.
       token: Token do sistema de varredura.
       status: Status do sistema de varredura.
-      tipos_varreduras: Tipos de varreduras relacionados ao sistema.
+      tipos_varreduras: Tipos de sistema de varredura relacionados ao sistema.
       aplicacoes: Aplicações relacionadas ao sistema de varredura.
    """
    nome = models.CharField("Nome",max_length=100, unique=True,null=False)
    descricao = models.TextField("Descrição",max_length=1000)
-   tipo = models.ForeignKey(TipoVarredura, verbose_name="Tipo de Varredura",on_delete=models.CASCADE,null=False)
+   #tipo = models.ForeignKey(TipoVarredura, verbose_name="Tipo de Varredura",on_delete=models.CASCADE,null=False)
    url = models.URLField("URL",max_length=200,null=False)
    usuario = models.CharField("Usuário",max_length=50,null=True,blank=True)
    senha = models.CharField("Senha",max_length=50,null=True,blank=True)
@@ -370,6 +371,6 @@ class SistemaVarredura(models.Model):
          ("can_add_sistema_varredura", "Can add sistemas varredura"),
          ("can_delete_sistema_varredura", "Can delete sistemas varredura"),
          ]
-      ordering = ['tipo','nome']
+      ordering = ['nome']
    def __str__(self):
       return self.nome
