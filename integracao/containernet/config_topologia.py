@@ -56,7 +56,7 @@ def topologia():
       ip='10.100.0.135',
       cpu_shares=20, privileged=True,
       environment={'DISPLAY':":0"},
-      dimage="owasp/dependency-check",
+      dimage="marcelopinto350/owasp-dependency-check:9.2",
       dcmd="--scan /src --format 'JSON' --out /src/report",
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_dc:/src"])
 
