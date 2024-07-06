@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/v2/', include(router.urls)), # inclui as rotas da aplicação de segurança conforme definido no roteador
     path('admin/', admin.site.urls),
     path('auth/', include('rest_framework.urls')),    
+    
 ]
