@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-^q&m4yv8-&yrz&)e(mh=&2r3+(_c3091y%0p6#p7dprs3a6(n3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["192.168.0.22"]
+ALLOWED_HOSTS = ["192.168.0.22","192.168.0.4"]
 
 
 # Application definition
@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'integracao.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': '192.168.0.9',  # os.getenv('POSTGRES_HOST'),
+        'HOST': '192.168.0.3',  # os.getenv('POSTGRES_HOST'),
         'NAME': 'appseg',       #os.getenv('POSTGRES_DB'),
         'USER': 'postgres',     #os.getenv('POSTGRES_USER'),
         'PASSWORD': 'postgres', #os.getenv('POSTGRES_PASSWORD'),

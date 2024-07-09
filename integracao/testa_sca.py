@@ -5,6 +5,7 @@ import requests, docker, subprocess, paramiko,json     # para acessar o servidor
 #url_base_versoes = 'http://localhost:8000/api/v2/versoes/'
 #url_base_sistemas_varredura = 'http://localhost:8000/api/v2/sistemasvarredura/'
 
+docker_host = '192.168.0.3'
 sonar_host = 'http://192.168.0.9:32768'
 sonar_api = f'{sonar_host}/api'
 docker_server = 'http://192.168.0.9:2375'
@@ -57,7 +58,7 @@ sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
 ssh = paramiko.SSHClient()
 #def execute_ssh (comando):
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-ssh.connect(hostname='192.168.0.9', username='docker', password='docker')
+ssh.connect(hostname=docker_host, username='docker', password='docker')
 
 
 # 1º passo: clonar na máquina do OWASP-DC a imagem da aplicação a ser varrida
@@ -79,7 +80,8 @@ except paramiko.SSHException as e:
     print(f'Erro ao executar o comando remoto: {e}')
 print()
 
-# 2ª passo: criado webservice para receber os resultados da varredura do sonarqube via webhooks
+# 2ª passo: rodar o scanner do owasp_dc via CLI
+
 comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --scan /src/DVWA --format JSON --out /src/report"
 comando = f"{comando} --nvdApiKey cd0c05ca-2b15-4034-9ae6-490fb505f439'"
 print("Executando o scan do projeto...")
@@ -100,7 +102,7 @@ except paramiko.SSHException as e:
 print()
 
 # 3º passo: coletar o resultado da varredura
-comando = "docker inspect volume owasp_dc"
+comando = "docker inspect owasp_dc"
 print(comando)
 try:
     stdin,stdout,stderr = ssh.exec_command(comando)
