@@ -374,3 +374,16 @@ class SistemaVarredura(models.Model):
       ordering = ['nome']
    def __str__(self):
       return self.nome
+   @classmethod
+   def get_by_nome(cls,nome):
+      """ 
+      Recupera a instância da classe pelo nome do sistema de varredura.
+      Argumento: 
+         nome (str): nome do sistema de varredura.
+      Retorna:
+         Instância da classe SistemaVarredura ou None, caso não exista.
+      """
+      try:
+         return cls.objects.get(nome=nome)
+      except cls.DoesNotExist:
+         return None

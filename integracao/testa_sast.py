@@ -1,15 +1,17 @@
 import requests, docker, subprocess, paramiko    # para acessar o servidor docker
 #from docker import DockerClient
+import logging
 
 #url_base_aplicacoes = 'http://localhost:8000/api/v2/aplicacoes/'
 #url_base_versoes = 'http://localhost:8000/api/v2/versoes/'
 #url_base_sistemas_varredura = 'http://localhost:8000/api/v2/sistemasvarredura/'
 
+logger = logging.getLogger(__name__)
 sonar_host = 'http://192.168.0.9:32768'
 sonar_api = f'{sonar_host}/api'
 docker_server = 'http://192.168.0.9:2375'
 dvwa_fonte = 'https://github.com/MarceloPinto350/DVWA.git'
-sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
+sonar_dvwa_token = 'squ_957a47e469662baf4ccfaed36337b9e02670dbee'   # mmpinto
 #sonar_dvwa_token = 'sqp_bd4affac00ce57c87e24b65544df7bbe821c2235'   #admin
 
 # executar teste no servidor docker via SSH
@@ -68,14 +70,13 @@ try:
     stdin.write('docker\n')
     stdin.flush()    
     stdin.close()
-    print(stdout.readlines())
-    print(stderr.readlines())    
-    if "Cloning into 'DVWA'" in stderr.readlines():
-        print("Repositório clonado com sucesso!")
-    else:
-        print("Erro ao clonar o repositório!")
+    #print(f"stdout: {stdout.readlines()}")
+    #print(f"stderr: {stderr.readlines()}")  
+    if stderr.readlines() != "[]":
+        logger.error (stderr.readlines())
 except paramiko.SSHException as e:
     print(f'Erro ao executar o comando remoto: {e}')
+    logger.error (f'Erro ao executar o comando remoto: {e}')
 print()
 
 # 2ª passo: criado webservice para receber os resultados da varredura do sonarqube via webhooks
@@ -95,14 +96,13 @@ try:
     stdin.write('docker\n')
     stdin.flush()    
     stdin.close()
-    print(stdout.readlines())
-    if 'EXECUTION FAILURE' in stdout.readlines():
-        print("Erro na execução do comando!")   
-    elif 'ANALYSIS SUCCESSFUL' in stdout.readlines():
-        print("Análise realizada com sucesso!")
-    print(stderr.readlines())
+    #print(f"stdout: {stdout.readlines()}")
+    #print(f"stderr: {stderr.readlines()}")  
+    if stderr.readlines() != "[]":
+        logger.error (stderr.readlines())
 except paramiko.SSHException as e:
     print(f'Erro ao executar o comando remoto: {e}')
+    logger.error (f'Erro ao executar o comando remoto: {e}')
 print()
 
 

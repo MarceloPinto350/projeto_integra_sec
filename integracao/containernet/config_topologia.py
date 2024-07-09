@@ -57,7 +57,7 @@ def topologia():
       cpu_shares=20, privileged=True,
       environment={'DISPLAY':":0"},
       dimage="marcelopinto350/owasp-dependency-check:9.2",
-      dcmd="--scan /src --format 'JSON' --out /src/report",
+      #dcmd="--scan /src --format 'JSON' --out /src/report",
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_dc:/src"])
 
    # Criar o container do BD da aplicação de teste DVWA
@@ -129,13 +129,16 @@ def topologia():
    appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
    # incializar o sonarqube
    sonar.cmd("su sonarqube -c 'docker/entrypoint.sh &'")
+   # configurar o owasp_dc
+   owasp_dc.cmd('echo export _JAVA_OPTION="Xmx2g" >> ~/.bashrc')
    # incializar o owasp zap
    owasp_zap.cmd('zap.sh --addoninstall soap')
-   
+   # rodar a aplicação de teste DVWA
+   dvwa.cmd('service apache2 start')   
    # gerar a estrutura de banco dados da aplicação APPSEG
-   appseg.cmd('python3 /appseg/manage.py migrate')
+   #appseg.cmd('python3 /appseg/manage.py migrate')
 
-
+ 
    info('*** Executando CLI\n')
    CLI(net)
 

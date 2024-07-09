@@ -1,6 +1,9 @@
+from django.shortcuts import render
 from rest_framework import generics 
 from rest_framework.generics import get_object_or_404
+from rest_framework import status
 
+from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.decorators import action 
 from rest_framework.response import Response
@@ -15,8 +18,9 @@ from .serializers import (TipoAplicacaoSerializer, AplicacaoSerializer,
 )
 from .permissions import EhSuperUsuario
 
-import jsonpath
-from integracao import sonar_result
+#import jsonpath
+from integracao import varredura_result
+
 
 
 """
@@ -77,8 +81,6 @@ class ResultadosScanAPIView(generics.ListCreateAPIView):
 class ResultadoScanAPIView(generics.RetrieveUpdateDestroyAPIView):
    queryset = ResultadoScan.objects.all()
    serializer_class = ResultadoScanSerializer
-   
-
 
 
 """
@@ -154,7 +156,7 @@ class ResultadoViewSet(viewsets.ViewSet):
       #serializer =  ResultadoViewSet(data=request.data)
       #serializer.is_valid(raise_exception=True)
       # recebe dados do SonarQube e envia para processamento
-      resultado = sonar_result.processa_resultado(request.data)
+      resultado = varredura_result.processa_resultado(request.data)
       # validar o serializer e salvar dados no BD
       serializer =  ResultadoScanSerializer(data=resultado)
       if serializer.is_valid():
@@ -164,3 +166,19 @@ class ResultadoViewSet(viewsets.ViewSet):
          return Response(serializer.errors, status=400)
       """_summary_
       """
+
+def index(request):
+   """
+   View function para a página inicial
+   """
+   num_aplicacoes = Aplicacao.objects.all().count()
+   num_varreduras = ResultadoScan.objects.all().count()
+   
+   context = { 
+      'num_aplicacoes': num_aplicacoes,
+      'num_varreduras': num_varreduras,          
+   }
+   
+   return render(request, index.htm, context=context)
+   
+   

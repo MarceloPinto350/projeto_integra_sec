@@ -1,3 +1,4 @@
+from django import views
 from django.urls import path
 
 from rest_framework.routers import SimpleRouter
@@ -45,6 +46,8 @@ urlpatterns = [
       
       path('resultados/', ResultadoViewSet.as_view({'post':'post'}), name='resultados'),
 
+      #exit
+      # path('',views.index,name='index'),
 ]
 
 
