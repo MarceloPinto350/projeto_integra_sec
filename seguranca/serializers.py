@@ -2,7 +2,9 @@ from rest_framework import serializers
 
 from django.db.models import Count
 
-from .models import Aplicacao, ResultadoScan, TipoAplicacao, VersaoAplicacao, TipoVarredura, SistemaVarredura
+from .models import (TipoAplicacao, AreaNegocial, Aplicacao, VersaoAplicacao, TipoAtivoInfraestrutura, 
+                     AtivoInfraestrutura, ResultadoScan, TipoVarredura, SistemaVarredura, 
+                     TipoModeloDocumento, ModeloDocumento)
 
 from  django.utils import timezone   
 class TipoAplicacaoSerializer(serializers.ModelSerializer):
@@ -10,28 +12,11 @@ class TipoAplicacaoSerializer(serializers.ModelSerializer):
       model = TipoAplicacao
       fields = '__all__'
 
-class VersaoAplicacaoSerializer(serializers.ModelSerializer):
+class AreaNegocialSerializer(serializers.ModelSerializer):
    class Meta:
-      model = VersaoAplicacao
+      model = AreaNegocial
       fields = '__all__'
 
-class TipoVarreduraSerializer(serializers.ModelSerializer):  
-   class Meta:
-      model = TipoVarredura
-      fields = '__all__'
-
-class SistemaVarreduraSerializer(serializers.ModelSerializer):
-   #aplicacoes = TipoAplicacaoSerializer(many=True, read_only=True) 
-   #tipos_varredura = TipoVarreduraSerializer(many=True, read_only=True)  
-   tipos_varredura = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  
-   class Meta:
-      model = SistemaVarredura
-      fields = (
-        'id','nome','descricao','url','usuario','senha','token','status',
-         # campo para serialização dos tipos de varredura
-         'aplicacoes','tipos_varredura'
-      )
-  
 class AplicacaoSerializer(serializers.ModelSerializer):
    # usando Nested Relatioship: Ruim para muitos registros, pois pode sobrecarregar a API
    #versoes = VersaoAplicacaoSerializer(many=True, read_only=True,) 
@@ -76,8 +61,22 @@ class AplicacaoSerializer(serializers.ModelSerializer):
          if contagem is None:
             return 0
          return contagem
-      
-      
+            
+class VersaoAplicacaoSerializer(serializers.ModelSerializer):
+   class Meta:
+      model = VersaoAplicacao
+      fields = '__all__'
+
+class TipoAtivoInfraestruturaSerializer(serializers.ModelSerializer):   
+   class Meta:
+      model = TipoAtivoInfraestrutura
+      fields = '__all__'    
+   
+class AtivoInfraestruturaSerializer(serializers.ModelSerializer): 
+   class Meta:
+      model = AtivoInfraestrutura
+      fields = '__all__'
+
 class ResultadoScanSerializer(serializers.ModelSerializer):
    class Meta:
       model = ResultadoScan
@@ -86,8 +85,36 @@ class ResultadoScanSerializer(serializers.ModelSerializer):
    def validate_data_resultado (self, data):
       if data > timezone.now():
          raise serializers.ValidationError('A data de resultado não pode ser maior que a data atual.')
-      return data
-   
+      return data 
+      
+class TipoVarreduraSerializer(serializers.ModelSerializer):  
+   class Meta:
+      model = TipoVarredura
+      fields = '__all__'
+
+class SistemaVarreduraSerializer(serializers.ModelSerializer):
+   #aplicacoes = TipoAplicacaoSerializer(many=True, read_only=True) 
+   #tipos_varredura = TipoVarreduraSerializer(many=True, read_only=True)  
+   tipos_varredura = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  
+   class Meta:
+      model = SistemaVarredura
+      fields = (
+        'id','nome','descricao','url','usuario','senha','token','status',
+         # campo para serialização dos tipos de varredura
+         'aplicacoes','tipos_varredura'
+      )
+  
+# classes para manipulação de modelos de documentos
+class TipoModeloDocumentoSerializer(serializers.ModelSerializer):
+   class Meta:
+      model = TipoModeloDocumento
+      fields = '__all__'
+      
+class ModeloDocumentoSerializer(serializers.ModelSerializer):
+   class Meta:
+      model = ModeloDocumento
+      fields = '__all__'          
+        
 # classe para tratamento da serialização de resultados das varreduras
 class SonarResultSerializer(serializers.ModelSerializer):
    resultado = serializers.JSONField()

@@ -312,6 +312,9 @@ class ResultadoScan(models.Model):
       #para colocar a ordenação em ordem decrescente usar o sinal de menos antes do campo
    def __str__(self):
       return f"Resultado da varredura de {self.aplicacao.nome}"
+   def get_ultimo_resultado(self):
+      """Retorna o último resultado da varredura."""
+      return ResultadoScan.objects.filter(aplicacao=self.aplicacao).latest('data_resultado')
 
 class TipoVarredura(models.Model):
    """
@@ -387,3 +390,60 @@ class SistemaVarredura(models.Model):
          return cls.objects.get(nome=nome)
       except cls.DoesNotExist:
          return None
+
+
+# Classes relacionadas aos documentos
+class TipoModeloDocumento(models.Model):
+   """
+   Define os tipos de modelos de documentos.
+   Atributos:
+      nome: Nome do tipo de modelo de documento.
+      descricao: Descrição do tipo de modelo de documento.
+   """
+   nome = models.CharField("Nome",max_length=10, unique=True,null=False)
+   descricao = models.TextField("Descrição",max_length=1000)
+   
+   class Meta:
+      db_table = "tb_tipo_modelo_documento"
+      verbose_name = 'Tipo de Modelo de Documento'
+      verbose_name_plural = 'Tipos de Modelo de Documento'
+      permissions = [
+         ("can_view_tipo_modelo_documento", "Can view tipos modelo documento"),
+         ("can_change_tipo_modelo_documento", "Can change tipos modelo documento"),
+         ("can_add_tipo_modelo_documento", "Can add tipos modelo documento"),
+         ("can_delete_tipo_modelo_documento", "Can delete tipos modelo documento"),
+         ]
+      ordering = ['nome']
+   def __str__(self):
+      return self.nome
+   
+class ModeloDocumento(models.Model):
+   """
+   Define os modelos de documentos.
+   Atributos:
+      nome: Nome do modelo de documento.
+      descricao: Descrição do modelo de documento.
+      tipo: Tipo do modelo de documento.
+      data_registro: Data de registro do modelo de documento.
+      data_modificacao: Data de modificação do modelo de documento.
+      status: Status do modelo de documento.
+   """
+   nome = models.CharField("Nome",max_length=100, unique=True,null=False)
+   descricao = models.TextField("Descrição",max_length=1000)
+   tipo = models.ForeignKey(TipoModeloDocumento, verbose_name="Tipo de Modelo",on_delete=models.CASCADE,null=False)
+   data_registro = models.DateTimeField("Data Registro",auto_now_add=True,null=False)
+   data_modificacao = models.DateTimeField("Data Modificação",auto_now=True,null=False)
+   status = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_ATIVO_CHOICES,default='ATIVO') 
+   class Meta:
+      db_table = "tb_modelo_documento"
+      verbose_name = 'Modelo de Documento'
+      verbose_name_plural = 'Modelos de Documento'
+      permissions = [
+         ("can_view_modelo_documento", "Can view modelos documento"),
+         ("can_change_modelo_documento", "Can change modelos documento"),
+         ("can_add_modelo_documento", "Can add modelos documento"),
+         ("can_delete_modelo_documento", "Can delete modelos documento"),
+         ]
+      ordering = ['nome']
+   def __str__(self):
+      return self.nome  
