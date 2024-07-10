@@ -164,8 +164,7 @@ class ResultadoViewSet(viewsets.ViewSet):
          return Response(serializer.data, status=201)
       else:
          return Response(serializer.errors, status=400)
-      """_summary_
-      """
+      
 
 def index(request):
    """

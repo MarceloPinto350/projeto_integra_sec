@@ -1,0 +1,20 @@
+<script setup lang="ts">
+import HelloWorld from '@/components/HelloWorld.vue';
+</script>
+
+<template>
+    <div class="home-view">
+        <img alt="Vue logo" src="../assets/logo.png" />
+        <HelloWorld msg="Welcome to Your Vue.js App" />
+    </div>
+</template>
+
+<script>
+    import HelloWorld from '@/components/HelloWorld.vue';
+    export default {
+        name: 'HomeView',
+        components: {
+            HelloWorld,
+        },
+    };
+</script>

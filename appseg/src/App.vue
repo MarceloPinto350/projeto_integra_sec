@@ -30,6 +30,10 @@
       <i>
         <slot name="logo">IMG</slot>
       </i>
+      <div id="nav">
+        <router-link to="/">Home</router-link> |
+        <router-link to="/about">About</router-link>
+      </div>
       <div class="app-title">Aplicação de apoio à Segurança</div>
       <div class="usr_info">
         <router-link v-if="!isLoggedIn" to="http://192.168.0.22/admin/login">Login</router-link>
@@ -49,15 +53,15 @@
             <li class="menu_group" >
               <span class="menu_group_title">Administração</span>
               <ul>
-                <li><router-link to="http://192.168.0.22/admin">Administração - Default</router-link></li>
-                <li><router-link to="http://192.168.0.22/admin/password_change">Trocar senha</router-link></li>
+                <li><router-link to="./src/TipoAplicacao">Tipos de aplicação</router-link></li>
+                <!--<li><router-link to="http://192.168.0.22/admin/password_change">Trocar senha</router-link></li>-->
               </ul>
             </li>
             <li>
               <span class="menu-group-title">Segurança das aplicações</span>
               <ul>
-                <li><router-link to="/applications">Aplicações</router-link></li>
-                <li><router-link to="/scans">Varreduras</router-link></li>
+                <li>Aplicações</li>
+                <li>Varreduras</li>
               </ul>
             </li>
           </ul>

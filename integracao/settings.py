@@ -17,20 +17,28 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 
+from corsheaders.defaults import default_headers    # para permitir acesso de qualquer origem
+#import environ # para carregar variáveis de ambiente precisa instalar o pacote pip install django-environ
+#env = environ.Env()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
+# ler o arquivo .env local para carregar as variáveis de ambiente
+#environ.Env.read_env()
+#DEBUG = env('DEBUG')
+#SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-^q&m4yv8-&yrz&)e(mh=&2r3+(_c3091y%0p6#p7dprs3a6(n3'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["192.168.0.22,10.100.0.155","192.168.0.4"]
+
+ALLOWED_HOSTS = ["192.168.0.22","10.100.0.155","192.168.0.4","localhost","127.0.0.1"]
 
 
 # Application definition
@@ -46,6 +54,7 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework',
     'rest_framework.authtoken', # para permitir autenticação via tokentokn
+    'corsheaders', # para permitir acesso de qualquer origem
     # configurações para a aplicação de segurança
     'seguranca', 
     #'sonar_data',
@@ -55,10 +64,28 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    
+    'corsheaders.middleware.CorsMiddleware', # para permitir acesso de qualquer origem
+    
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+]
+
+CORS_ALLOWED_ORIGINS = [
+    # permitir configurar o acesso de qualquer origem
+    "http://localhost:8000",
+    "http://192.168.0.22:8000",
+    "http://10.100.0.155:8000",
+    "http://10.100.0.155:8000",
+    "http://192.168.0.4:8000",
+    
+]
+
+CORS_ALLOWED_HEADERS = list(default_headers) + [
+    'contenttype',
 ]
 
 ROOT_URLCONF = 'integracao.urls'
@@ -93,11 +120,11 @@ WSGI_APPLICATION = 'integracao.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': '192.168.0.3',  # os.getenv('POSTGRES_HOST'),
+        'HOST': '192.168.0.9',  # os.getenv('POSTGRES_HOST'),
         'NAME': 'appseg',       #os.getenv('POSTGRES_DB'),
         'USER': 'postgres',     #os.getenv('POSTGRES_USER'),
         'PASSWORD': 'postgres', #os.getenv('POSTGRES_PASSWORD'),
-        'PORT': '32771'          #os.getenv('POSTGRES_PORT')
+        'PORT': '32775'         #os.getenv('POSTGRES_PORT')
     }    
 }
 
@@ -138,8 +165,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIT_ROOT = os.path.join (BASE_DIR, 'staticfiles')
-MEDIA_URL = 'media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = 'midia/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'midia')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
