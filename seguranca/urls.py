@@ -1,4 +1,4 @@
-from django import views
+#from django import views
 from django.urls import path
 
 from rest_framework.routers import SimpleRouter

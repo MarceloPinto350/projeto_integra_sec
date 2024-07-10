@@ -23,8 +23,9 @@ urlpatterns = [
     path('api/v1/', include('seguranca.urls')), # inclui as rotas da aplicação de segurança
     path('api/v2/', include(router.urls)), # inclui as rotas da aplicação de segurança conforme definido no roteador
     path('admin/', admin.site.urls),
-    path('auth/', include('rest_framework.urls')),   
-    path('', include(router.urls)), 
+    #path('auth/', include('rest_framework.urls')),   
+    #path('', include('seguranca.urls')), 
+    
     
     #path('appseg',views.index,name='index'),
     

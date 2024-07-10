@@ -1,4 +1,38 @@
+<template>
+  <div id="app">
+    <Navbar/>
+    <img alt="Vue logo" src="./assets/logo.svg" />
+    <HelloWorld msg="Welcome to Your Vue.js App" />
+  </div>
+</template>
+    
 <script>
+  import HelloWorld from './components/HelloWorld.vue';
+  import Navbar from './components/Navbar.vue';
+  import TipoAplicacao from './components/TipoAplicacao.vue';
+
+  export default {
+    name: 'App',
+    components: {
+      HelloWorld,
+      Navbar,
+      TipoAplicacao,
+    },
+  };
+</script>
+
+<style>
+  #app {
+    font-family: Avenir, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: center;
+    color: #2c3e50;
+    margin-top: 60px;
+  }
+</style>
+
+<!-- <script>
   //import AboutView  from './views/AboutView.vue';
   //import HomeView   from './views/HomeView.vue';  
   //import TipoAplicacao from './views/TipoAplicacao.vue';
@@ -26,9 +60,9 @@
   //    };
   //  },
   };
-</script>
+</script> -->
 
-<template>
+<!-- <template>
   <div class="app-container">
     <header class="app-header">
       <div class="app-title">
@@ -57,9 +91,9 @@
             <li class="menu_group" >
               <span class="menu_group_title">Administração</span>
               <ul>
-                <li><router-link to="tipoaplicacao">Tipos de aplicação</router-link></li>
+                <li><router-link to="tipoaplicacao">Tipos de aplicação</router-link></li>-->
                 <!--<li><router-link to="http://192.168.0.22/admin/password_change">Trocar senha</router-link></li>-->
-              </ul>
+<!--              </ul>
             </li>
             <li>
               <span class="menu-group-title">Segurança das aplicações</span>
@@ -148,4 +182,4 @@
     padding: 20px;
     color:black
   }
-</style>
+</style> -->

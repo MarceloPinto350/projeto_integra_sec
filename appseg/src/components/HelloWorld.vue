@@ -15,6 +15,9 @@ defineProps({
       <a href="https://vitejs.dev/" target="_blank" rel="noopener">Vite</a> +
       <a href="https://vuejs.org/" target="_blank" rel="noopener">Vue 3</a>.
     </h3>
+    <p>
+      <p>Este é um projeto feito com <a href="https://www.djangoprojetc.com/" target="_blank">Django</a> e <a href="https://vuejs.org/" target="_blank">VueJS</a>.</p>
+    </p>
   </div>
 </template>
 

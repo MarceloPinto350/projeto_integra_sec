@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.http import JsonResponse
+
 from rest_framework import generics 
 from rest_framework.generics import get_object_or_404
 from rest_framework import status
@@ -11,7 +13,7 @@ from rest_framework import mixins
 
 from rest_framework import permissions 
 
-from .models import TipoAplicacao, Aplicacao, ResultadoScan, VersaoAplicacao, TipoVarredura, SistemaVarredura
+from .models import TipoAplicacao, Aplicacao, ResultadoScan, VersaoAplicacao, TipoVarredura, SistemaVarredura, User
 from .serializers import (TipoAplicacaoSerializer, AplicacaoSerializer,
    ResultadoScanSerializer, VersaoAplicacaoSerializer, 
    TipoVarreduraSerializer, SistemaVarreduraSerializer
@@ -180,4 +182,16 @@ def index(request):
    
    return render(request, index.htm, context=context)
    
+   
+def api_users (request):
+   """
+   View function para a página de usuários
+   """
+   users = User.objects.all()
+   data = [
+      {'username': user.username}
+      for user in users
+   ]
+   response = {'data': data}
+   return JsonResponse(response)
    
