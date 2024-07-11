@@ -176,6 +176,9 @@ class Aplicacao(models.Model):
          return aplicacao_seguranca
       else:
          return None
+   def ultima_versao(self):
+      """Retorna a última versão da aplicação."""
+      return VersaoAplicacao.objects.filter(aplicacao=self).latest('data_lancamento')
    class Meta:
       db_table = "tb_aplicacao"
       verbose_name = 'Aplicação'

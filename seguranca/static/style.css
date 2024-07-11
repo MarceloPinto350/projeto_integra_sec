@@ -1,0 +1,20 @@
+li a {
+    color: blue;
+}
+
+body {
+    .imageCover {
+        background: linear-gradient() #ffffff url("icone-engine.png") no-repeat fixed center;
+        background-color: aquamarine;
+        background-position: center; 
+        color:black;
+        background-size: cover;
+    }
+}
+
+.boxLinGrad {
+    background-image: linear-gradient(white, rgb(187, 248, 228));
+    background-size: auto;
+}
+    
+    

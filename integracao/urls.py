@@ -27,6 +27,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     #path('auth/', include('rest_framework.urls')),   
     #path('', include('seguranca.urls')), 
-    path('appseg/',include('seguranca.urls')),
+    path('',include('seguranca.urls')),
+    
     
 ]

@@ -1,0 +1,22 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'style.css' %}">
+
+<form action="{% url 'appdetail' aplicacao.id %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="aplicacao_id" value="{{ aplicacao.id }}">
+    <fieldset>
+        <legend><h1>{{ aplicacao.nome }}</h1></legend>
+        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+        
+        Descrição: <input type="models.TextField" name="descricao" value="{{ aplicacao.descricao }}" length=100><br>
+        Sigla: <input type="models.TextField" name="sigla" value="{{ aplicacao.sigla }}" length=20><br>
+        URL Fonte: <input type="models.TextField" name="url_fonte" value="{{ aplicacao.url_fonte }}"  length=100><br>
+        Área responsável: <input type="models.TextField" name="area_responsavel" value="{{ aplicacao.area_responsavel }}"  length=100><br>
+        Dada cadastro: <input type="models.DateTimeField" name="data_registro" value="{{ aplicacao.data_registro }} readonly"  length=25><br>
+
+    </fieldset>
+    <input type="submit" value="Varrer">
+</form>
+
+

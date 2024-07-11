@@ -1,9 +1,20 @@
-{% if aplicacao_list %}
-    <ul>
-        {% for aplicacao in aplicacao_list %}
-            <li> <a href="/api/v2/aplicacoes/{{ aplicacao.id}}">{{ aplicacao.nome }}</a></li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>Nenhuma aplicação disponível.</p>
-{% endif %}
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'style.css' %}">
+<body>
+    <div class="boxLinGrad">
+        <p class="paragrafo"> 
+            <h1>Aplicações</h1>
+        </p>
+        {% if aplicacao_list %}
+            <ul class='b'>
+                {% for aplicacao in aplicacao_list %}
+                    <!--<li> <a href="/api/v2/aplicacoes/{{ aplicacao.id}}">{{ aplicacao.nome }}</a></li> -->
+                    <li> <a href="{% url 'appdetail' aplicacao.id %}">{{ aplicacao.nome }}</a></li> 
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Nenhuma aplicação disponível.</p>
+        {% endif %}
+    </div>
+</body>

@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.template import loader
+from django.views import generic 
 
 from rest_framework import generics 
 from rest_framework.generics import get_object_or_404
@@ -176,7 +177,61 @@ class ModeloDocumentoViewSet(viewsets.ModelViewSet):
    permissions_classes = (permissions.DjangoModelPermissions, )
    queryset = ModeloDocumento.objects.all()
    serializer_class = ModeloDocumento
+
+####   
+# visões das páginas web 
+####
+def index(request):
+   """
+   View function para a página inicial
+   """
+   aplicacao_list = Aplicacao.objects.order_by("nome")[:5]
+   #num_varreduras = ResultadoScan.objects.all().count()
+   #num_ativos = AtivoInfraestrutura.objects.all().count()
+   template = loader.get_template("index.html")
    
+   context = { 
+      "aplicacao_list": aplicacao_list,
+   }  
+   return HttpResponse(template.render(context,request))
+   
+def appdetail(request, aplicacao_id):
+   """
+   View function para a página de detalhes de uma aplicação
+   """
+   aplicacao = get_object_or_404(Aplicacao, pk=aplicacao_id)
+   return render(request, 'appdetail.html', {'aplicacao': aplicacao})
+
+def api_users (request):
+   """
+   View function para a página de usuários
+   """
+   users = User.objects.all()
+   data = [
+      {'username': user.username}
+      for user in users
+   ]
+   response = {'data': data}
+   return JsonResponse(response)
+   
+# classe genérica para listar e criar novos registros de tipos de aplicação
+class IndexView(generic.ListView):  
+   template_name = 'index.html'
+   context_object_name = 'aplicacao_list'
+   
+   def get_queryset(self):
+      """Retorna todas as aplicações."""
+      return Aplicacao.objects.order_by("nome")
+
+class DetailView(generic.DetailView):
+   model = Aplicacao
+   template_name = 'appdetail.html'
+ 
+#### 
+# visões para chamadas de APIs para processamento das varreduras
+####
+# Webhook para chamada da API pelo SonarQube
+#path('resultados/', ResultadoViewSet.as_view({'post':'post'}), name='resultados'),
 class ResultadoViewSet(viewsets.ViewSet):
    def post(self, request):
       # validar se o valor recebido é um JSON
@@ -193,31 +248,22 @@ class ResultadoViewSet(viewsets.ViewSet):
          return Response(serializer.errors, status=400)
       
 
-def index(request):
+ 
+# classe que deverá ser utilizada para a página de varredura das aplicações  
+class VarrerViewSet(viewsets.ViewSet):
+   def varrer(self, Aplicacao):
+      print(f"Varrendo aplicação {Aplicacao.nome}")
+      ultima_versao = Aplicacao.ultima_versao()
+      print(f"Última versão: {ultima_versao.nome_versao}")
+      resultado = varredura_result.processa_resultado(request.data)
+      # validar o serializer e salvar dados no BD
+      serializer =  ResultadoScanSerializer(data=resultado)
+      if serializer.is_valid():
+         serializer.save()
+         return Response(serializer.data, status=201)
+      else:
+         return Response(serializer.errors, status=400)
    """
-   View function para a página inicial
+   View function para a página de varredura
    """
-   aplicacao_list = Aplicacao.objects.order_by("nome")[:5]
-   #num_varreduras = ResultadoScan.objects.all().count()
-   #num_ativos = AtivoInfraestrutura.objects.all().count()
-   template = loader.get_template("index.html")
-   
-   context = { 
-      "aplicacao_list": aplicacao_list,
-   }
-   
-   return HttpResponse(template.render(context,request))
-   
-   
-def api_users (request):
-   """
-   View function para a página de usuários
-   """
-   users = User.objects.all()
-   data = [
-      {'username': user.username}
-      for user in users
-   ]
-   response = {'data': data}
-   return JsonResponse(response)
    
