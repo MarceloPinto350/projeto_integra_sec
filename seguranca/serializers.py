@@ -3,8 +3,7 @@ from rest_framework import serializers
 from django.db.models import Count
 
 from .models import (TipoAplicacao, AreaNegocial, Aplicacao, VersaoAplicacao, TipoAtivoInfraestrutura, 
-                     AtivoInfraestrutura, ResultadoScan, TipoVarredura, SistemaVarredura, 
-                     TipoModeloDocumento, ModeloDocumento)
+   AtivoInfraestrutura, ResultadoScan, TipoVarredura, SistemaVarredura, TipoModeloDocumento, ModeloDocumento)
 
 from  django.utils import timezone   
 class TipoAplicacaoSerializer(serializers.ModelSerializer):

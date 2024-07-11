@@ -1,6 +1,8 @@
 #from django import views
 from django.urls import path
 
+from . import views
+
 from rest_framework.routers import SimpleRouter
 
 #from sonar_data.views import SonarResultViewSet
@@ -9,24 +11,26 @@ from .views import (
       TipoAplicacaoAPIView, TiposAplicacaoAPIView, 
       AplicacaoAPIView, AplicacoesAPIView,
       VersaoAPIView, VersoesAPIView, 
-      ResultadoScanAPIView, ResultadosScanAPIView,
-      TipoAplicacaoViewSet, 
-      AplicacaoViewSet, 
-      VersaoViewSet, 
-      ResultadoScanViewSet,
-      ResultadoViewSet,
-      TipoVarreduraViewSet, 
-      SistemaVarreduraViewSet)   
+      ResultadoScanAPIView,ResultadosScanAPIView,
+      TipoAplicacaoViewSet,AreaNegocialViewSet,AplicacaoViewSet,
+      VersaoViewSet,TipoAtivoInfraestruturaViewSet,AtivoInfraestruturaViewSet,
+      ResultadoScanViewSet,ResultadoViewSet,TipoVarreduraViewSet,
+      SistemaVarreduraViewSet,TipoModeloDocumentoViewSet,ModeloDocumentoViewSet)   
 
 # definindo o roteador para facilitar a referencia das APIs
 router = SimpleRouter()
 router.register('tiposaplicacao',TipoAplicacaoViewSet)
+router.register('areasnegociais',AreaNegocialViewSet)
 router.register('aplicacoes',AplicacaoViewSet)
 router.register('versoes',VersaoViewSet)
+router.register('versoes',TipoAtivoInfraestruturaViewSet)
+router.register('versoes',AtivoInfraestruturaViewSet)
 router.register('resultadosscan',ResultadoScanViewSet)
 #router.register('results',ResultadoViewSet, basename='results')
 router.register('tiposvarredura',TipoVarreduraViewSet)
 router.register('sistemasvarredura',SistemaVarreduraViewSet)      
+router.register('versoes',TipoModeloDocumentoViewSet)
+router.register('versoes',ModeloDocumentoViewSet)
 
 # define as rotas para as APIs
 urlpatterns = [
@@ -47,7 +51,7 @@ urlpatterns = [
       path('resultados/', ResultadoViewSet.as_view({'post':'post'}), name='resultados'),
 
       #exit
-      # path('',views.index,name='index'),
+      path('',views.index,name='index'),
 ]
 
 

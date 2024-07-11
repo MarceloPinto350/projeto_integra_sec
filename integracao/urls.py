@@ -17,7 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from seguranca.urls import router
+
+from seguranca.urls import router, urlpatterns
+
 
 urlpatterns = [
     path('api/v1/', include('seguranca.urls')), # inclui as rotas da aplicação de segurança
@@ -25,8 +27,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     #path('auth/', include('rest_framework.urls')),   
     #path('', include('seguranca.urls')), 
-    
-    
-    #path('appseg',views.index,name='index'),
+    path('appseg/',include('seguranca.urls')),
     
 ]

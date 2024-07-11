@@ -1,11 +1,12 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from django.template import loader
 
 from rest_framework import generics 
 from rest_framework.generics import get_object_or_404
 from rest_framework import status
 
-from rest_framework.views import APIView
+#from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.decorators import action 
 from rest_framework.response import Response
@@ -13,10 +14,11 @@ from rest_framework import mixins
 
 from rest_framework import permissions 
 
-from .models import TipoAplicacao, Aplicacao, ResultadoScan, VersaoAplicacao, TipoVarredura, SistemaVarredura, User
-from .serializers import (TipoAplicacaoSerializer, AplicacaoSerializer,
-   ResultadoScanSerializer, VersaoAplicacaoSerializer, 
-   TipoVarreduraSerializer, SistemaVarreduraSerializer
+from .models import (TipoAplicacao, AreaNegocial, Aplicacao, VersaoAplicacao, TipoAtivoInfraestrutura, User,
+   AtivoInfraestrutura, ResultadoScan, TipoVarredura, SistemaVarredura, TipoModeloDocumento, ModeloDocumento)
+from .serializers import (TipoAplicacaoSerializer, AreaNegocialSerializer, AplicacaoSerializer, VersaoAplicacaoSerializer,
+   TipoAtivoInfraestruturaSerializer, AtivoInfraestruturaSerializer, ResultadoScanSerializer, TipoVarreduraSerializer, 
+   VersaoAplicacaoSerializer, SistemaVarreduraSerializer, TipoModeloDocumentoSerializer, ModeloDocumentoSerializer
 )
 from .permissions import EhSuperUsuario
 
@@ -87,6 +89,7 @@ class ResultadoScanAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 """
 API Versão 2.0
+Utilizando viewsets para criar uma API REST por ter maior flexibilidade e facilidade de uso
 """
 
 class TipoAplicacaoViewSet(viewsets.ModelViewSet):
@@ -96,6 +99,10 @@ class TipoAplicacaoViewSet(viewsets.ModelViewSet):
    )
    queryset = TipoAplicacao.objects.all()
    serializer_class = TipoAplicacaoSerializer
+   
+class AreaNegocialViewSet(viewsets.ModelViewSet):
+   queryset = AreaNegocial.objects.all()
+   serializer_class = AreaNegocialSerializer
    
 class AplicacaoViewSet(viewsets.ModelViewSet):
    queryset = Aplicacao.objects.all()
@@ -118,7 +125,6 @@ class AplicacaoViewSet(viewsets.ModelViewSet):
       #serializer = VersaoAplicacaoSerializer(aplicacao.versoes.all(), many=True) 
       return Response(serializer.data)
    # 
-   
 """
 # comentado para mostrar a mesma coisa feita através do uso de mixins para modificar conportamento padrão
 # a ser utilizado conforme a necessidades
@@ -126,9 +132,10 @@ class VersaoViewSet(viewsets.ModelViewSet):
    queryset = VersaoAplicacao.objects.all()
    serializer_class = VersaoAplicacaoSerializer
 """
+
 class VersaoViewSet( 
    # caso queira não disponibilizar todas as ações, pode-se comentar a que vc deseja bloquear
-   mixins.ListModelMixin,
+   mixins.ListModelMixin, 
    mixins.CreateModelMixin,
    mixins.RetrieveModelMixin,
    mixins.UpdateModelMixin,
@@ -139,6 +146,19 @@ class VersaoViewSet(
    queryset = VersaoAplicacao.objects.all()
    serializer_class = VersaoAplicacaoSerializer
 
+class TipoAtivoInfraestruturaViewSet(viewsets.ModelViewSet):   
+   queryset = TipoAtivoInfraestrutura.objects.all()
+   serializer_class = TipoAtivoInfraestruturaSerializer
+   
+class AtivoInfraestruturaViewSet(viewsets.ModelViewSet):
+   permissions_classes = (permissions.DjangoModelPermissions, )
+   queryset = AtivoInfraestrutura.objects.all()
+   serializer_class = AtivoInfraestruturaSerializer
+class ResultadoScanViewSet(viewsets.ModelViewSet):
+   permissions_classes = (permissions.DjangoModelPermissions, )
+   queryset = ResultadoScan.objects.all()
+   serializer_class = ResultadoScanSerializer
+   
 class TipoVarreduraViewSet(viewsets.ModelViewSet):
    queryset = TipoVarredura.objects.all()
    serializer_class = TipoVarreduraSerializer
@@ -148,9 +168,14 @@ class SistemaVarreduraViewSet(viewsets.ModelViewSet):
    queryset = SistemaVarredura.objects.all()
    serializer_class = SistemaVarreduraSerializer
 
-class ResultadoScanViewSet(viewsets.ModelViewSet):
-   queryset = ResultadoScan.objects.all()
-   serializer_class = ResultadoScanSerializer
+class TipoModeloDocumentoViewSet(viewsets.ModelViewSet):
+   queryset = TipoModeloDocumento.objects.all()
+   serializer_class = TipoModeloDocumentoSerializer
+   
+class ModeloDocumentoViewSet(viewsets.ModelViewSet):
+   permissions_classes = (permissions.DjangoModelPermissions, )
+   queryset = ModeloDocumento.objects.all()
+   serializer_class = ModeloDocumento
    
 class ResultadoViewSet(viewsets.ViewSet):
    def post(self, request):
@@ -172,15 +197,16 @@ def index(request):
    """
    View function para a página inicial
    """
-   num_aplicacoes = Aplicacao.objects.all().count()
-   num_varreduras = ResultadoScan.objects.all().count()
+   aplicacao_list = Aplicacao.objects.order_by("nome")[:5]
+   #num_varreduras = ResultadoScan.objects.all().count()
+   #num_ativos = AtivoInfraestrutura.objects.all().count()
+   template = loader.get_template("index.html")
    
    context = { 
-      'num_aplicacoes': num_aplicacoes,
-      'num_varreduras': num_varreduras,          
+      "aplicacao_list": aplicacao_list,
    }
    
-   return render(request, index.htm, context=context)
+   return HttpResponse(template.render(context,request))
    
    
 def api_users (request):
