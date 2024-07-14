@@ -24,8 +24,8 @@ from .serializers import (TipoAplicacaoSerializer, AreaNegocialSerializer, Aplic
 from .permissions import EhSuperUsuario
 
 #import jsonpath
-from integracao import varredura_result
-
+#from integracao import varredura_result
+from seguranca.utils import varredura_result, realiza_varredura
 
 
 """
@@ -251,17 +251,26 @@ class ResultadoViewSet(viewsets.ViewSet):
  
 # classe que deverá ser utilizada para a página de varredura das aplicações  
 class VarrerViewSet(viewsets.ViewSet):
-   def varrer(self, Aplicacao):
-      print(f"Varrendo aplicação {Aplicacao.nome}")
-      ultima_versao = Aplicacao.ultima_versao()
+   def post(self, request):
+      aplicacao = Aplicacao.objects.get(pk=request.data['aplicacao'])
+      print(f"Varrendo aplicação {aplicacao.nome}")
+      ultima_versao = aplicacao.ultima_versao()
       print(f"Última versão: {ultima_versao.nome_versao}")
-      resultado = varredura_result.processa_resultado(request.data)
+      
+      resultado = {
+         "Aplicacao": aplicacao.nome,
+         "Versao": ultima_versao.nome_versao
+      }
       # validar o serializer e salvar dados no BD
-      serializer =  ResultadoScanSerializer(data=resultado)
-      if serializer.is_valid():
-         serializer.save()
+      
+      serializer =  serializer(data=resultado)
+      try:
+         realiza_varredura()
+         
+      #if serializer.is_valid():
          return Response(serializer.data, status=201)
-      else:
+      #else:
+      except Exception as e:
          return Response(serializer.errors, status=400)
    """
    View function para a página de varredura

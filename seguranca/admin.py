@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import TipoAplicacao, AreaNegocial, Aplicacao, VersaoAplicacao, TipoAtivoInfraestrutura, AtivoInfraestrutura, TipoVarredura,SistemaVarredura
+from .models import (TipoAplicacao, AreaNegocial, Aplicacao, VersaoAplicacao, 
+    TipoAtivoInfraestrutura, AtivoInfraestrutura, TipoVarredura,SistemaVarredura)
 
 #class CustomAdminSite(admin.AdminSite):
 #    site_header = 'Sistema de integração de segurança de aplicações - SISAP'

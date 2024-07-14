@@ -11,8 +11,12 @@ sonar_host = 'http://192.168.0.9:32768'
 sonar_api = f'{sonar_host}/api'
 docker_server = 'http://192.168.0.9:2375'
 dvwa_fonte = 'https://github.com/MarceloPinto350/DVWA.git'
-sonar_dvwa_token = 'squ_957a47e469662baf4ccfaed36337b9e02670dbee'   # mmpinto
+sonar_dvwa_token = 'squ_957a47e469662baf4ccfaed36337b9e02670dbee'   # mmpinto 12m1ª
 #sonar_dvwa_token = 'sqp_bd4affac00ce57c87e24b65544df7bbe821c2235'   #admin
+#token do SonarQube do usuário admin: squ_a3e1f7c8e3e969915b9bc4eb76c466717949a059
+#token sonarQube do usuário mmpinto: squ_8e2c4df166d3f1e628ef57b8d0e373364552e84c #2ª
+
+
 
 # executar teste no servidor docker via SSH
 #print("Executando teste do ssh no servidor docker...")
@@ -59,6 +63,7 @@ sonar_dvwa_token = 'squ_957a47e469662baf4ccfaed36337b9e02670dbee'   # mmpinto
 ssh = paramiko.SSHClient()
 #def execute_ssh (comando):
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
 ssh.connect(hostname='192.168.0.9', username='docker', password='docker')
 
 # 1º passo: clonar na máquina do Sonar_CLI a imagem da aplicação a ser varrida

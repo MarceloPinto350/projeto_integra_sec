@@ -14,7 +14,7 @@ from .views import (
       ResultadoScanAPIView,ResultadosScanAPIView,
       TipoAplicacaoViewSet,AreaNegocialViewSet,AplicacaoViewSet,
       VersaoViewSet,TipoAtivoInfraestruturaViewSet,AtivoInfraestruturaViewSet,
-      ResultadoScanViewSet,ResultadoViewSet,TipoVarreduraViewSet,
+      ResultadoScanViewSet,ResultadoViewSet,TipoVarreduraViewSet,VarrerViewSet,
       SistemaVarreduraViewSet,TipoModeloDocumentoViewSet,ModeloDocumentoViewSet)   
 
 # definindo o roteador para facilitar a referencia das APIs
@@ -49,6 +49,7 @@ urlpatterns = [
       #path('resultadosscan/<int:pk>/', ResultadoScanAPIView.as_view(), name='resultadoscan'),
       
       path('resultados/', ResultadoViewSet.as_view({'post':'post'}), name='resultados'),
+      path('varrer/', VarrerViewSet.as_view({'post':'post'}), name='varrer'),
 
       # Visões das aplicações
       #path('aplicacoes/', views.index, name='index'),
