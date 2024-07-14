@@ -48,7 +48,7 @@ def topologia():
       cpu_shares=20, privileged=True,
       environment={'DISPLAY':":0"},
       dimage="ramonfontes/zaproxy",		#atualizado o uso para essa versão por conta de ter mais recursos
-      dcmd="zap.sh -daemon -config api.disablekey=true",
+      #dcmd="zap.sh -daemon -config api.disablekey=true",
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_zap:/zap/wrk"])
    
    # Criar o container do Owasp dependency-check
@@ -126,13 +126,15 @@ def topologia():
    #docker-ensure-initdb.sh
    #appseg_db.cmdPrint("docker-ensure-initdb.sh")      # somente a primeira vez
    # inicializar o postgresql
-   appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
+   #appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
    # incializar o sonarqube
    sonar.cmd("su sonarqube -c 'docker/entrypoint.sh &'")
    # configurar o owasp_dc
-   owasp_dc.cmd('echo export _JAVA_OPTION="Xmx2g" >> ~/.bashrc')
+   owasp_dc.cmd('echo export JAVA_OPTION="Xmx2g" >> ~/.bashrc')
    # incializar o owasp zap
    owasp_zap.cmd('zap.sh --addoninstall soap')
+   # subir o BD da aplicação de teste DVWA
+   dvwa_db.cmd('service mariadb start')
    # rodar a aplicação de teste DVWA
    dvwa.cmd('service apache2 start')   
    # gerar a estrutura de banco dados da aplicação APPSEG

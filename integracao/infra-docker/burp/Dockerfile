@@ -1,10 +1,7 @@
 FROM owasp/burp-suite-community
 
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    curl \
-    gnupg2 \
-    lsb-release
+RUN apt-get update && apt-get install -y ca-certificates \
+    curl gnupg2 lsb-release iproute2 net-tools
 
 # Instalar o Java 11
 RUN apt-get install -y openjdk-11-jdk
