@@ -126,7 +126,7 @@ def topologia():
    #docker-ensure-initdb.sh
    #appseg_db.cmdPrint("docker-ensure-initdb.sh")      # somente a primeira vez
    # inicializar o postgresql
-   #appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
+   appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
    # incializar o sonarqube
    sonar.cmd("su sonarqube -c 'docker/entrypoint.sh &'")
    # configurar o owasp_dc

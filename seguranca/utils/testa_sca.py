@@ -16,6 +16,9 @@ dvwa_fonte = 'https://github.com/MarceloPinto350/DVWA.git'
 sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
 #sonar_dvwa_token = 'sqp_bd4affac00ce57c87e24b65544df7bbe821c2235'   #admin
 
+#NVD API Key: 480fab96-3816-4ea8-be1f-cce19cdf026d  
+
+
 # executar teste no servidor docker via SSH
 #print("Executando teste do ssh no servidor docker...")
 #try:
@@ -82,8 +85,8 @@ print('-')
 
 # 2ª passo: rodar o scanner do owasp_dc via CLI
 
-comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --scan /src/DVWA --format JSON --out /src/report"
-comando = f"{comando} --nvdApiKey cd0c05ca-2b15-4034-9ae6-490fb505f439'"
+comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --scan /src/DVWA --format JSON --out /src/report -n"
+#comando = f"{comando} --nvdApiKey cd0c05ca-2b15-4034-9ae6-490fb505f439'"
 print("Executando o scan do projeto...")
 print(comando)
 try:

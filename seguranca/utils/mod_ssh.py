@@ -1,5 +1,9 @@
 import paramiko
 import paramiko.ssh_exception    
+import json 
+import logging
+
+#from fabric import Connection,SerialGroup
 #import requests, docker, subprocess, paramiko    # para acessar o servidor docker
 
 # sonar_host = 'http://192.168.0.9:32768'
@@ -9,51 +13,115 @@ import paramiko.ssh_exception
 # sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
 #sonar_dvwa_token = 'sqp_bd4affac00ce57c87e24b65544df7bbe821c2235'   #admin
 
+# configurar o log
+logger = logging.getLogger(__name__)
 
-def connect_ssh (host, user, password):
-    # define a conexão SSH
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+# parâmetros de conexão SSH
+ssh_connect = paramiko.SSHClient()
+ssh_connect.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                     
+def conecta_ssh(host, usuario, senha):    
     try:
-        ssh.connect(hostname=host, username=user, password=password)
+        ssh_connect.connect(hostname=host, username=usuario, password=senha)
+        return True
     except paramiko.ssh_exception.AuthenticationException as e:
-        print(f'Erro ao conectar via SSH: {e}')
-    return ssh
+        #print(f'Erro ao conectar via SSH: {e}')
+        logger.error(f'Erro ao autenticarno SSH: {e}')  
+        return False
+    except paramiko.ssh_exception.NoValidConnectionsError as e1:
+        logger.error(f'Erro ao tentar conectar no SSH: {e1}')  
+        return  False
+    except paramiko.ssh_exception.SSHException as e2:
+        logger.error(f'Erro ao tentar conectar no SSH: {e2}')  
+        return  False
 
-
-def exec_ssh (ssh, comando):
+def exec_comando_ssh(comando):
     try:
-        stdin,stdout,stderr = ssh.exec_command(comando)
+        stdin,stdout,stderr = ssh_connect.exec_command(comando)
         stdin.write('docker\n')
         stdin.flush()    
         stdin.close()
-        print(stdout.readlines())
-        print('--')
-        print(stderr.readlines())
-        print('---')
-        if "Erro" in stderr.readlines():
-            print(f"Erro ao executar o comando {comando}!")
-        else:
-            print(f"Comando {comando} realizado com sucesso!")
+        retorno = {
+            "stdout": stdout.readlines(),
+            "stderr": stderr.readlines()
+        }
     except paramiko.SSHException as e:
-        print(f'Erro ao executar o comando remoto {comando}: {e}')
-    return stdout.readlines()
-       
-try:
-    clientessh = connect_ssh('192.168.0.9', 'docker', 'docker')
+        #print(f'Erro ao executar o comando remoto {comando}: {e}')
+        logger.error(f'Erro ao executar o comando remoto {comando}: {e}')
+        retorno = {
+            "stdout": None,
+            "stderr": None
+        }
+    return retorno
 
-    # executar teste no servidor docker via SSH
-    try:  
-        ssh_result = exec_ssh(clientessh, "docker ps")  
-        if "sonar_cli" in str(ssh_result):
-            print("Container sonar_cli encontrado!")
+def retorna_stout_ssh(comando, tipo):
+    try:
+        stdin,stdout,stderr = ssh_connect.exec_command(comando)
+        stdin.write('docker\n')
+        stdin.flush()    
+        stdin.close()
+        resultado = stdout.readlines()
+        # for linha in resultado:
+        #     print (linha);
+        #print(resultado[0])
+        
+        if tipo=='JSON':
+            retorno = json.loads(resultado[0])
+        #elif tipo=='XML':
+        #    retorno = stdout.readlines()
         else:
-            print("Container sonar_cli não encontrado!")
+            retorno = resultado
     except paramiko.SSHException as e:
-        print(f'Erro ao executar o comando via SSH: {e}')    
-    print()
-except:
-    print(f'Erro ao conectar via SSH. Verifique se o servidor está ativo!')
+        #print(f'Erro ao executar o comando remoto {comando}: {e}')
+        logger.error(f'Erro ao executar o comando remoto {comando}: {e}')
+        retorno = None
+    return retorno
+    
+
+def testa():
+    if conecta_ssh('192.168.0.13', 'docker', 'docker'):
+        resultado = exec_comando_ssh("docker inspect owasp_dc")  
+        #for val in resultado["stdout"]:
+        #    print(val)
+        
+        # localizar o valor do campo "Mountpoint" no resultado da inspeção do container (docker inspect owasp_dc)
+        print(resultado["stdout"][5])
+        # filtrar o valor do campo "Mountpoint" no resultado da inspeção do container (docker inspect owasp_dc)
+        caminho = ((resultado["stdout"][5].split(':')[1].strip().replace('"','')).replace(',',''))+'/src/report'
+        #print((resultado["stdout"][5].split(':')[1].strip().replace('"','')).replace(',',''))
+        print(caminho)  
+        
+        resultado = exec_comando_ssh("docker exec mn.owasp_dc bash -c 'cat /src/report/dependency-check-report.json'")
+        print(resultado.keys())     
+        #print(resultado["stdout"][0])
+        print("*-*-*-*-*")
+        resultado = retorna_stout_ssh("docker exec mn.owasp_dc bash -c 'cat /src/report/dependency-check-report.json'", 'JSON')
+        
+        print (resultado.keys())
+        print (resultado)
+        #for valor in resultado.items[0].itens():
+        #    print(valor[0])
+        
+    else: 
+        print('Não foi possível conectar no docker via SSH')    
+
+host='192.168.0.13'
+comando = 'hostname'
+
+print(f'Testando conexão SSH com o host {host}... {conecta_ssh(host,"docker","docker")}')
+print(f"Testando execução de comando SSH no host {host}... {exec_comando_ssh('docker exec mn.owasp_dc uname -s')}")
+
+#print('---')
+#host='192.168.0.19'
+
+#print(f'Testando conexão SSH com o host {host}... {conecta_ssh(host,"docker","docker")}')
+#print(f'Testando execução de comando SSH no host {host}... {exec_comando_ssh(comando)}')      
+
+print('--- ----')
+testa()
+
+ssh_connect.close()
+
 
 # 1º passo: clonar na máquina do Sonar_CLI a imagem da aplicação a ser varrida
 # comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf DVWA && git clone {dvwa_fonte}'\n"
