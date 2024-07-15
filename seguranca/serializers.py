@@ -3,7 +3,8 @@ from rest_framework import serializers
 from django.db.models import Count
 
 from .models import (TipoAplicacao, AreaNegocial, Aplicacao, VersaoAplicacao, TipoAtivoInfraestrutura, 
-   AtivoInfraestrutura, ResultadoScan, TipoVarredura, SistemaVarredura, TipoModeloDocumento, ModeloDocumento)
+   AtivoInfraestrutura, ResultadoScan, TipoVarredura, SistemaVarredura, TipoModeloDocumento, ModeloDocumento,
+   Rede, BancoDados, Servidor, Servico)
 
 from  django.utils import timezone   
 class TipoAplicacaoSerializer(serializers.ModelSerializer):
@@ -60,6 +61,8 @@ class AplicacaoSerializer(serializers.ModelSerializer):
          if contagem is None:
             return 0
          return contagem
+      def ultima_versao(self, obj):
+         return obj.versoes.last()
             
 class VersaoAplicacaoSerializer(serializers.ModelSerializer):
    class Meta:
@@ -85,7 +88,8 @@ class ResultadoScanSerializer(serializers.ModelSerializer):
       if data > timezone.now():
          raise serializers.ValidationError('A data de resultado não pode ser maior que a data atual.')
       return data 
-      
+
+# classes para manipulação de modelos de varredura      
 class TipoVarreduraSerializer(serializers.ModelSerializer):  
    class Meta:
       model = TipoVarredura
@@ -113,6 +117,28 @@ class ModeloDocumentoSerializer(serializers.ModelSerializer):
    class Meta:
       model = ModeloDocumento
       fields = '__all__'          
+   
+# classes para manipulação de ativos de infraestrutura
+class RedeSerializer(serializers.ModelSerializer):
+   class Meta:
+      model = Rede
+      fields = '__all__'
+
+class BancoDadosSerializer(serializers.ModelSerializer):
+   class Meta:
+      model = BancoDados
+      fields = '__all__'
+      
+class ServidorSerializer(serializers.ModelSerializer):
+   class Meta: 
+      model = Servidor
+      fields = '__all__'         
+
+class ServicoSerializer(serializers.ModelSerializer):
+   class Meta:
+      model = Servico
+      fields = '__all__'
+        
         
 # classe para tratamento da serialização de resultados das varreduras
 class SonarResultSerializer(serializers.ModelSerializer):

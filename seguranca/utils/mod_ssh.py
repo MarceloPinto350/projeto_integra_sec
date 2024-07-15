@@ -80,6 +80,11 @@ def retorna_stout_ssh(comando, tipo):
 
 def testa():
     if conecta_ssh('192.168.0.13', 'docker', 'docker'):
+        # testar comandos SSH...
+        comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --scan /src/DVWA --format ALL --out /src/report -n'"
+        
+        # validar o resultado
+        
         resultado = exec_comando_ssh("docker inspect owasp_dc")  
         #for val in resultado["stdout"]:
         #    print(val)
@@ -98,7 +103,7 @@ def testa():
         resultado = retorna_stout_ssh("docker exec mn.owasp_dc bash -c 'cat /src/report/dependency-check-report.json'", 'JSON')
         
         print (resultado.keys())
-        print (resultado)
+        print (json.loads(resultado))
         #for valor in resultado.items[0].itens():
         #    print(valor[0])
         
@@ -108,8 +113,8 @@ def testa():
 host='192.168.0.13'
 comando = 'hostname'
 
-print(f'Testando conexão SSH com o host {host}... {conecta_ssh(host,"docker","docker")}')
-print(f"Testando execução de comando SSH no host {host}... {exec_comando_ssh('docker exec mn.owasp_dc uname -s')}")
+#print(f'Testando conexão SSH com o host {host}... {conecta_ssh(host,"docker","docker")}')
+#print(f"Testando execução de comando SSH no host {host}... {exec_comando_ssh('docker exec mn.owasp_dc uname -s')}")
 
 #print('---')
 #host='192.168.0.19'

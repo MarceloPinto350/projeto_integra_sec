@@ -16,10 +16,13 @@ from rest_framework import mixins
 from rest_framework import permissions 
 
 from .models import (TipoAplicacao, AreaNegocial, Aplicacao, VersaoAplicacao, TipoAtivoInfraestrutura, User,
-   AtivoInfraestrutura, ResultadoScan, TipoVarredura, SistemaVarredura, TipoModeloDocumento, ModeloDocumento)
+   AtivoInfraestrutura, ResultadoScan, TipoVarredura, SistemaVarredura, TipoModeloDocumento, ModeloDocumento,
+   Rede, Servidor, BancoDados, Servico
+)
 from .serializers import (TipoAplicacaoSerializer, AreaNegocialSerializer, AplicacaoSerializer, VersaoAplicacaoSerializer,
    TipoAtivoInfraestruturaSerializer, AtivoInfraestruturaSerializer, ResultadoScanSerializer, TipoVarreduraSerializer, 
-   VersaoAplicacaoSerializer, SistemaVarreduraSerializer, TipoModeloDocumentoSerializer, ModeloDocumentoSerializer
+   VersaoAplicacaoSerializer, SistemaVarreduraSerializer, TipoModeloDocumentoSerializer, ModeloDocumentoSerializer,
+   RedeSerializer, ServidorSerializer, BancoDadosSerializer, ServicoSerializer   
 )
 from .permissions import EhSuperUsuario
 
@@ -125,14 +128,20 @@ class AplicacaoViewSet(viewsets.ModelViewSet):
       # observer que versoes é um campo relacionado conforme models.py
       #serializer = VersaoAplicacaoSerializer(aplicacao.versoes.all(), many=True) 
       return Response(serializer.data)
-   # 
-"""
+   # criando uma ação personalizada para listar última versão de uma aplicação
+   @action(detail=True, methods=['get'])
+   def ultima_versao(self, request, pk=None):
+      aplicacao = self.get_object()
+      ultima_versao = aplicacao.ultima_versao()
+      serializer = VersaoAplicacaoSerializer(ultima_versao)
+      return Response(serializer.data)
+
 # comentado para mostrar a mesma coisa feita através do uso de mixins para modificar conportamento padrão
 # a ser utilizado conforme a necessidades
-class VersaoViewSet(viewsets.ModelViewSet):
-   queryset = VersaoAplicacao.objects.all()
-   serializer_class = VersaoAplicacaoSerializer
-"""
+#class VersaoViewSet(viewsets.ModelViewSet):
+#   queryset = VersaoAplicacao.objects.all()
+#   serializer_class = VersaoAplicacaoSerializer
+
 
 class VersaoViewSet( 
    # caso queira não disponibilizar todas as ações, pode-se comentar a que vc deseja bloquear
@@ -155,6 +164,29 @@ class AtivoInfraestruturaViewSet(viewsets.ModelViewSet):
    permissions_classes = (permissions.DjangoModelPermissions, )
    queryset = AtivoInfraestrutura.objects.all()
    serializer_class = AtivoInfraestruturaSerializer
+
+
+# classes para manipulação dos ativos de inraestrutura]
+class RedeViewSet(viewsets.ModelViewSet):
+   permissions_classes = (permissions.DjangoModelPermissions, )
+   queryset = Rede.objects.all()
+   serializer_class = RedeSerializer
+
+class ServidorViewSet(viewsets.ModelViewSet):
+   permissions_classes = (permissions.DjangoModelPermissions, )
+   queryset = Servidor.objects.all()
+   serializer_class = ServidorSerializer
+   
+class BancoDadosViewSet(viewsets.ModelViewSet):  
+   permissions_classes = (permissions.DjangoModelPermissions, )
+   queryset = BancoDados.objects.all()
+   serializer_class = BancoDadosSerializer
+   
+class ServicoViewSet(viewsets.ModelViewSet):  
+   permissions_classes = (permissions.DjangoModelPermissions, )
+   queryset = Servico.objects.all()
+   serializer_class = ServicoSerializer      
+
 class ResultadoScanViewSet(viewsets.ModelViewSet):
    permissions_classes = (permissions.DjangoModelPermissions, )
    queryset = ResultadoScan.objects.all()
@@ -247,7 +279,6 @@ class ResultadoViewSet(viewsets.ViewSet):
       else:
          return Response(serializer.errors, status=400)
       
-
  
 # classe que deverá ser utilizada para a página de varredura das aplicações  
 class VarrerViewSet(viewsets.ViewSet):
