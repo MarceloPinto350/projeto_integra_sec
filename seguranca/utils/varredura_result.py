@@ -15,19 +15,21 @@ def get_sistema_varredura(resultado):
     retorno = "Outro"
   return (retorno)
   
-def processa_resultado(novo_resultado,aplicacao=None):
+def processa_resultado(novo_resultado,aplicacao="dvwa"):
   try:
     estrutura = novo_resultado.keys()
     ferramenta = ''
     if "qualityGate" in estrutura:
       ferramenta='SonarQube'
       data_execucao = novo_resultado['analysedAt']
+      aplicacao = novo_resultado['project']['key']  
     elif "scaninfo" in estrutura:
       if novo_resultado['scaninfo']['datasource'] == 'NVD API Last Modified':
         ferramenta='Owasp dependency-check'
         data_execucao = novo_resultado['projectInfo']['reportDate']
+        aplicacao = novo_resultado['projectInfo']['name']
     #data_execucao = novo_resultado['analysedAt'] if ferramenta == 'SonarQube' else novo_resultado['projectInfo']['reportDate']
-    aplicacao = novo_resultado['project']['key'] if aplicacao == None else aplicacao
+    #aplicacao = novo_resultado['project']['key'] if aplicacao == None
     #print(aplicacao)
     #print(data_execucao)
     apps = requests.get(url_base_aplicacoes) #, headers=headears)

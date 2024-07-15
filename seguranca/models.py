@@ -52,9 +52,59 @@ ABRANGENCIA_CHOICES = (
 
 SITUACAO_ATIVO_CHOICES = (
    ['ATIVO','Ativo'], 
-   ['DESATIVADO','Desativado'], 
+   ['INATIVO','Desativado'], 
    ['EM MANUTENÇÃO','Em manutenção'],
+   ['EM FALHA','Em falha'],
+   ['DESCONTINUADO','Descontinuado'],
 )
+TIPO_REDE_CHOICES = (
+   ['LAN','Local Area Network'],
+   ['WAN','Wide Area Network'],
+   ['WIFI','Rede sem fio'],
+   ['VPN','Rede Privada Virtual'],
+   ['DMZ','Zona Desmilitarizada'],
+   ['INTRANET','Intranet'],
+   ['EXTRANET','Extranet'],
+)
+TIPO_SERVIDOR_CHOICES = (
+   ['ARQUIVOS','Servidor de arquivos'],
+   ['WEB','Servidor Web'],
+   ['BANCO_DADOS','Servidor de Banco de Dados'],
+   ['APLICACAO','Servidor de Aplicação'],
+   ['CORREIO','Servidor de Correio'],
+   ['DNS','Servidor de DNS'],
+   ['PROXY','Servidor Proxy'],
+   ['FIREWALL','Servidor Firewall'],
+   ['MONITORAMENTO','Servidor de Monitoramento'],
+   ['BACKUP','Servidor de Backup'],
+   ['LOGS','Servidor de Logs'],
+   ['FTP','Servidor FTP'],
+   ['MIDIA','Servidor de Mídia'],
+   ['CLUSTER','Cluster'],
+   ['OUTRO','Outros'],
+)
+TIPO_BANCO_DADOS_CHOICES = (
+   ['ORACLE','Oracle'],
+   ['SQLSERVER','SQL Server'],
+   ['MYSQL','MySQL'],
+   ['POSTGRESQL','PostgreSQL'],
+   ['MONGODB','MongoDB'],
+   ['COUCHDB','CouchDB'],
+   ['REDIS','Redis'],
+   ['NEO4J','Neo4j'],
+   ['CASSANDRA','Cassandra'],
+   ['MARIADB','MariaDB'],
+   ['FIREBIRD','Firebird'],
+   ['DB2','DB2'],
+   ['SYBASE','Sybase'],
+   ['INFORMIX','Informix'],
+   ['SQLITE','SQLite'],
+   ['H2','H2'],
+   ['HSQLDB','HSQLDB'],
+   ['DERBY','Derby'],
+   ['OUTRO','Outro'],
+)
+   
 
 # definição das classes
 # Tipo de aplicação
@@ -154,6 +204,12 @@ class Aplicacao(models.Model):
    usuario_servico = models.CharField("Usuário de serviço",max_length=50)
    senha_servico = models.CharField("Senha de serviço",max_length=50)
    token_acesso = models.CharField("Token de acesso",max_length=1000, null=True,blank=True)   
+   # configurações de infrastrutura
+   bancos_dados = models.ManyToManyField('BancoDados', related_name='aplicacoes_banco_dados', blank=True)
+   servidores = models.ManyToManyField('Servidor', related_name='aplicacoes_servidor', blank=True)
+   servicos = models.ManyToManyField('Servico', related_name='aplicacoes_servico', blank=True)  
+   
+   
    def __str__(self):
       return self.nome     
    def get_modulos(self):
@@ -176,7 +232,7 @@ class Aplicacao(models.Model):
          return aplicacao_seguranca
       else:
          return None
-   def ultima_versao(self):
+   def get_ultima_versao(self):
       """Retorna a última versão da aplicação."""
       return VersaoAplicacao.objects.filter(aplicacao=self).latest('data_lancamento')
    class Meta:
@@ -223,71 +279,6 @@ class VersaoAplicacao(models.Model):
          ]
       ordering = ['aplicacao','nome_versao']
 
-# Tipos de ativos de infraestrutura
-class TipoAtivoInfraestrutura(models.Model):
-   """
-   Define os tipos de ativos de infraestrutura 
-   Podem ser classificados inicialmente em: servidor, cluster, switch, armazenamento, banco de dados etc.
-   Atributos:
-      nome: Nome do tipo de ativo de infraestrutura.
-      descricao: Descrição do tipo de ativo de infraestrutura.
-   """
-   nome = models.CharField(max_length=50, unique=True,null=False)
-   descricao = models.TextField(max_length=1000)
-   class Meta:
-      db_table = "tb_tipo_ativo_infraestrutura"
-      verbose_name = 'Tipo de Ativo de Infraestrutura'
-      verbose_name_plural = 'Tipos de Ativos de Infraestrutura'
-      permissions = [
-         ("can_view_tipo_ativo_infraestrutura", "Can view tipos ativos infraestrutura"),
-         ("can_change_tipo_ativo_infraestrutura", "Can change tipos ativos infraestrutura"),
-         ("can_add_tipo_ativo_infraestrutura", "Can add tipos ativos infraestrutura"),
-         ("can_delete_tipo_ativo_infraestrutura", "Can delete tipos ativos infraestrutura"),
-         ]
-      ordering = ['nome']
-   def __str__(self):
-      return self.nome
-
-# Ativos de infraestrutura
-class AtivoInfraestrutura(models.Model):
-   """
-   Define o ativo de infraestrutura.
-   Atributos:
-      nome: Nome do ativo de infraestrutura.
-      descricao: Descrição do ativo de infraestrutura.
-      tipo: Tipo do ativo de infraestrutura
-      url_localizacao: Endereço da localização do ativo.
-      endereco_ip: Endereço IP do ativo.
-      porta_acesso: Porta de acesso para conectar ao ativo.
-      usuario_acesso: Usuário de acesso ao ativo.s
-      senha_acesso: Senha de acesso ao ativo.
-      token_acesso: Token de acesso ao ativo.
-      status: Status do ativo.
-   """
-   nome = models.CharField("Nome",max_length=255,null=False, unique=True)
-   descricao = models.TextField("Descrição",max_length=1000, null=False)
-   tipo = models.ForeignKey(TipoAtivoInfraestrutura, verbose_name="Tipo de Ativo", on_delete=models.CASCADE, null=False)
-   url_localizacao = models.URLField("URL localização do ativo",max_length=200)
-   endereco_ip = models.GenericIPAddressField("Endereço IP",protocol="IPv4",null=False)
-   porta_acesso = models.IntegerField("Porta",null=False)
-   usuario_acesso = models.CharField("Usuário de serviço",max_length=50)
-   senha_acesso = models.CharField("Senha do usuário de serviço",max_length=50)
-   token_acesso = models.CharField("Token de acesso ao ativo",max_length=1000)
-   status = models.CharField("Situação do ativo",max_length=20, null=False, choices=SITUACAO_ATIVO_CHOICES)
-   class Meta:
-      db_table = "tb_ativo_infraestrutura"
-      verbose_name = 'Ativo de Infraestrutura'
-      verbose_name_plural = 'Ativos de Infraestrutura'
-      permissions = [
-         ("can_view_ativo_infraestrutura", "Can view ativos infraestrutura"),
-         ("can_change_ativo_infraestrutura", "Can change ativos infraestrutura"),
-         ("can_add_ativo_infraestrutura", "Can add ativos infraestrutura"),
-         ("can_delete_ativo_infraestrutura", "Can delete ativos infraestrutura"),
-         ]
-      ordering = ['tipo','nome']
-   def __str__(self):
-      return self.nome
-   
 class ResultadoScan(models.Model):
    """
    Define o resultado da varredura de segurança.
@@ -395,6 +386,254 @@ class SistemaVarredura(models.Model):
          return None
 
 
+# Classes relacionadas aos ativos de infraestrutura
+# Tipos de ativos de infraestrutura
+class TipoAtivoInfraestrutura(models.Model):
+   """
+   Define os tipos de ativos de infraestrutura 
+   São os ativos cadastrados inicialmente no sistema: servidor, cluster, switch, armazenamento, banco de dados etc.
+   Atributos:
+      nome: Nome do tipo de ativo de infraestrutura.
+      descricao: Descrição do tipo de ativo de infraestrutura.
+   """
+   nome = models.CharField(max_length=50, unique=True,null=False)
+   descricao = models.TextField(max_length=1000)
+   class Meta:
+      db_table = "tb_tipo_ativo_infraestrutura"
+      verbose_name = 'Tipo de Ativo de Infraestrutura'
+      verbose_name_plural = 'Tipos de Ativos de Infraestrutura'
+      permissions = [
+         ("can_view_tipo_ativo_infraestrutura", "Can view tipos ativos infraestrutura"),
+         ("can_change_tipo_ativo_infraestrutura", "Can change tipos ativos infraestrutura"),
+         ("can_add_tipo_ativo_infraestrutura", "Can add tipos ativos infraestrutura"),
+         ("can_delete_tipo_ativo_infraestrutura", "Can delete tipos ativos infraestrutura"),
+         ]
+      ordering = ['nome']
+   def __str__(self):
+      return self.nome
+
+# Ativos de infraestrutura
+class AtivoInfraestrutura(models.Model):
+   """
+   Define o ativo de infraestrutura.
+   Atributos:
+      nome: Nome do ativo de infraestrutura.
+      descricao: Descrição do ativo de infraestrutura.
+      tipo: Tipo do ativo de infraestrutura
+      url_localizacao: Endereço da localização do ativo.
+      endereco_ip: Endereço IP do ativo.
+      porta_acesso: Porta de acesso para conectar ao ativo.
+      usuario_acesso: Usuário de acesso ao ativo.s
+      senha_acesso: Senha de acesso ao ativo.
+      token_acesso: Token de acesso ao ativo.
+      status: Status do ativo.
+   """
+   nome = models.CharField("Nome",max_length=255,null=False, unique=True)
+   descricao = models.TextField("Descrição",max_length=1000, null=False)
+   tipo = models.ForeignKey(TipoAtivoInfraestrutura, verbose_name="Tipo de Ativo", on_delete=models.CASCADE, null=False)
+   url_localizacao = models.URLField("URL localização do ativo",max_length=200)
+   endereco_ip = models.GenericIPAddressField("Endereço IP",protocol="IPv4",null=False)
+   porta_acesso = models.IntegerField("Porta",null=False)
+   usuario_acesso = models.CharField("Usuário de serviço",max_length=50)
+   senha_acesso = models.CharField("Senha do usuário de serviço",max_length=50)
+   token_acesso = models.CharField("Token de acesso ao ativo",max_length=1000)
+   status = models.CharField("Situação do ativo",max_length=20, null=False, choices=SITUACAO_ATIVO_CHOICES)
+   class Meta:
+      db_table = "tb_ativo_infraestrutura"
+      verbose_name = 'Ativo de Infraestrutura'
+      verbose_name_plural = 'Ativos de Infraestrutura'
+      permissions = [
+         ("can_view_ativo_infraestrutura", "Can view ativos infraestrutura"),
+         ("can_change_ativo_infraestrutura", "Can change ativos infraestrutura"),
+         ("can_add_ativo_infraestrutura", "Can add ativos infraestrutura"),
+         ("can_delete_ativo_infraestrutura", "Can delete ativos infraestrutura"),
+         ]
+      ordering = ['tipo','nome']
+   def __str__(self):
+      return self.nome
+
+# Serviços de infraestrutura   
+class Servico(models.Model):
+   """
+   Define os serviços de infraestrutura.
+   Atributos:
+      nome: Nome do serviço.
+      descricao: Descrição do serviço.
+      protocolo: Protocolo do serviço.
+      url: URL do serviço.
+      usuario: Usuário de acesso ao serviço.
+      senha: Senha de acesso ao serviço.
+      servidor: Servidor ao qual o serviço está hospedado.
+      status: Status do serviço.
+      data_cadastro: Data de cadastro do serviço.
+      data_modificacao: Data de modificação do serviço.
+      aplicacoes: Aplicações que utilizam o serviço.
+   """
+   nome = models.CharField("Nome",max_length=50, unique=True,null=False)
+   descricao = models.TextField("Descrição",max_length=500,null=False)
+   protocolo = models.CharField("Protocolo de serviço",max_length=50,null=False)
+   url = models.URLField("URL",max_length=200)
+   usuario = models.CharField("Usuário",max_length=50)
+   senha = models.CharField("Senha",max_length=50)
+   servidor = models.ForeignKey('Servidor', verbose_name="Servidor",on_delete=models.CASCADE,null=False) 
+   status = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_ATIVO_CHOICES, default='ATIVO')
+   data_cadastro = models.DateTimeField("Data Cadastro",auto_now_add=True,null=False)  
+   data_modificacao = models.DateTimeField("Data Modificação",auto_now=True,null=False) 
+   aplicacoes = models.ManyToManyField('Aplicacao', related_name='servico_aplicacoes', blank=True)  
+   class Meta:
+      db_table = "tb_servico"
+      verbose_name = 'Serviço'
+      verbose_name_plural = 'Serviços'
+      permissions = [
+         ("can_view_servico", "Can view serviços"),
+         ("can_change_servico", "Can change serviços"),
+         ("can_add_servico", "Can add serviços"),
+         ("can_delete_servico", "Can delete serviços"),
+         ]
+      ordering = ['nome']
+   def __str__(self):
+      return self.nome      
+
+# Servidores de infraestrutura   
+class Servidor(models.Model):
+   """
+   Define os servidores de infraestrutura.
+   Atributos:
+      nome: Nome do servidor.
+      descricao: Descrição do servidor.
+      tipo: Tipo do servidor.
+      ip: Endereço IP do servidor.
+      sistema_operacional: Sistema operacional do servidor.
+      arquitetura: Arquitetura do servidor.
+      processador: Processador do servidor.
+      memoria: Memória do servidor.
+      disco: Disco do servidor.
+      status: Status do servidor.
+      data_cadastro: Data de cadastro do servidor.
+      data_modificacao: Data de modificação do servidor.
+      rede: Rede à qual o servidor está conectado.
+      servicos: Serviços hospedados no servidor.
+      aplicacoes: Aplicações hospedadas no servidor.
+   """
+   nome = models.CharField("Nome",max_length=50, unique=True,null=False)
+   descricao = models.TextField("Descrição",max_length=500)
+   tipo = models.CharField("Tipo de servidor",max_length=50,choices=TIPO_SERVIDOR_CHOICES,null=False)
+   ip = models.GenericIPAddressField("Endereço IP",protocol="IPv4",null=False)
+   sistema_operacional = models.CharField("Sistema Operacional",max_length=50,null=False)
+   arquitetura = models.CharField("Arquitetura",max_length=50,null=False)
+   processador = models.CharField("Processador",max_length=50,null=False)
+   memoria = models.CharField("Memória",max_length=50,null=False)
+   disco = models.CharField("Disco",max_length=50,null=False)
+   status = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_ATIVO_CHOICES,default='ATIVO')
+   data_cadastro = models.DateTimeField("Data Cadastro",auto_now_add=True,null=False)  
+   data_modificacao = models.DateTimeField("Data Modificação",auto_now=True,null=False)   
+   #redes = models.ManyToManyRel(Rede, related_name='servidor_redes', blank=True)
+   #rede = models.ForeignKey(Rede, verbose_name="Rede",on_delete=models.CASCADE,null=False)   
+   servicos = models.ManyToManyField(Servico, related_name='servidor_servicos', blank=True)
+   aplicacoes = models.ManyToManyField(Aplicacao, related_name='servidor_aplicacoes', blank=True)
+   class Meta:
+      db_table = "tb_servidor"
+      verbose_name = 'Servidor'
+      verbose_name_plural = 'Servidores'
+      permissions = [
+         ("can_view_servidor", "Can view servidores"),
+         ("can_change_servidor", "Can change servidores"),
+         ("can_add_servidor", "Can add servidores"),
+         ("can_delete_servidor", "Can delete servidores"),
+         ]
+      ordering = ['nome']
+   def __str__(self):
+      return self.nome
+
+# Redes de infraestrutura      
+class Rede(models.Model):  
+   """
+   Define as redes de infraestrutura.
+   Atributos:
+      nome: Nome da rede.
+      descricao: Descrição da rede.
+      tipo: Tipo da rede.
+      ip: Endereço IP da rede.
+      mascara: Máscara de subrede da rede.
+      gateway: Endereço IP do gateway da rede.
+      dns_primario: Endereço IP do servidor DNS primário.
+      dns_secundario: Endereço IP do servidor DNS secundário.
+      status: Status da rede.
+      data_cadastro: Data de cadastro da rede.
+      data_modificacao: Data de modificação da rede.
+      servidores: Servidores conectados à rede.
+   """
+   nome = models.CharField("Nome",max_length=50, unique=True,null=False)
+   descricao = models.TextField("Descrição",max_length=500)
+   tipo = models.CharField("Tipo de rede",max_length=50,choices=TIPO_REDE_CHOICES,default='LAN',null=False)
+   ip = models.GenericIPAddressField("Endereço IP",protocol="IPv4",null=False)
+   mascara = models.GenericIPAddressField("Máscara de subrede",protocol="IPv4",null=False)
+   gateway = models.GenericIPAddressField("Gateway",protocol="IPv4",null=False)
+   dns_primario = models.GenericIPAddressField("DNS Primário",protocol="IPv4",null=False)
+   dns_secundario = models.GenericIPAddressField("DNS Secundário",protocol="IPv4",null=True)
+   status = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_ATIVO_CHOICES,default='ATIVO')
+   data_cadastro = models.DateTimeField("Data Cadastro",auto_now_add=True,null=False) 
+   data_modificacao = models.DateTimeField("Data Modificação",auto_now=True,null=False)   
+   servidores = models.ManyToManyField(Servidor, related_name='rede_servidores', blank=True)  
+   class Meta:
+      db_table = "tb_rede"
+      verbose_name = 'Rede'
+      verbose_name_plural = 'Redes'
+      permissions = [
+         ("can_view_rede", "Can view redes"),
+         ("can_change_rede", "Can change redes"),
+         ("can_add_rede", "Can add redes"),
+         ("can_delete_rede", "Can delete redes"),
+         ]
+      ordering = ['nome']
+   def __str__(self):
+      return self.nome 
+
+# Bases de dados de infraestrutura   
+class BancoDados(models.Model):
+   """
+   Define os bancos de dados de infraestrutura.
+   Atributos:
+      nome: Nome do banco de dados.
+      descricao: Descrição do banco de dados.
+      tipo: Tipo do banco de dados.
+      ip: Endereço IP do banco de dados.
+      porta: Porta de acesso ao banco de dados.
+      usuario: Usuário de acesso ao banco de dados.
+      senha: Senha de acesso ao banco de dados.
+      status: Status do banco de dados.
+      data_cadastro: Data de cadastro do banco de dados.
+      data_modificacao: Data de modificação do banco de dados.
+      servidor: Servidor ao qual o banco de dados está hospedado.
+      aplicacoes: Aplicações relacionadas ao banco de dados.
+   """
+   nome = models.CharField("Nome",max_length=50, unique=True,null=False)
+   descricao = models.TextField("Descrição",max_length=500, null=False)
+   tipo = models.CharField("Tipo de banco de dados",max_length=50,choices=TIPO_BANCO_DADOS_CHOICES,null=False)
+   ip = models.GenericIPAddressField("Endereço IP",protocol="IPv4",null=False)
+   porta = models.IntegerField("Porta",null=False)
+   usuario = models.CharField("Usuário",max_length=50,null=False)
+   senha = models.CharField("Senha",max_length=50,null=False)
+   status = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_ATIVO_CHOICES,default='ATIVO')
+   data_cadastro = models.DateTimeField("Data Cadastro",auto_now_add=True,null=False)  
+   data_modificacao = models.DateTimeField("Data Modificação",auto_now=True,null=False)   
+   servidor = models.ForeignKey(Servidor, verbose_name="Servidor",on_delete=models.CASCADE,null=False)   
+   aplicacoes = models.ManyToManyField(Aplicacao, related_name='bancodados_aplicacoes', blank=True)
+   class Meta:
+      db_table = "tb_banco_dados"
+      verbose_name = 'Banco de Dados'
+      verbose_name_plural = 'Bancos de Dados'
+      permissions = [
+         ("can_view_banco_dados", "Can view bancos dados"),
+         ("can_change_banco_dados", "Can change bancos dados"),
+         ("can_add_banco_dados", "Can add bancos dados"),
+         ("can_delete_banco_dados", "Can delete bancos dados"),
+         ]
+      ordering = ['nome']
+   def __str__(self):
+      return self.nome
+   
+
 # Classes relacionadas aos documentos
 class TipoModeloDocumento(models.Model):
    """
@@ -405,7 +644,6 @@ class TipoModeloDocumento(models.Model):
    """
    nome = models.CharField("Nome",max_length=10, unique=True,null=False)
    descricao = models.TextField("Descrição",max_length=1000)
-   
    class Meta:
       db_table = "tb_tipo_modelo_documento"
       verbose_name = 'Tipo de Modelo de Documento'
@@ -427,16 +665,17 @@ class ModeloDocumento(models.Model):
       nome: Nome do modelo de documento.
       descricao: Descrição do modelo de documento.
       tipo: Tipo do modelo de documento.
-      data_registro: Data de registro do modelo de documento.
+      data_cadastro: Data de registro do modelo de documento.
       data_modificacao: Data de modificação do modelo de documento.
-      status: Status do modelo de documento.
+      ativa: Indica se o modelo de documento está ativo.
    """
    nome = models.CharField("Nome",max_length=100, unique=True,null=False)
    descricao = models.TextField("Descrição",max_length=1000)
    tipo = models.ForeignKey(TipoModeloDocumento, verbose_name="Tipo de Modelo",on_delete=models.CASCADE,null=False)
-   data_registro = models.DateTimeField("Data Registro",auto_now_add=True,null=False)
+   data_cadastro = models.DateTimeField("Data Cadastro",auto_now_add=True,null=False)
    data_modificacao = models.DateTimeField("Data Modificação",auto_now=True,null=False)
-   status = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_ATIVO_CHOICES,default='ATIVO') 
+   ativa = models.BooleanField("Ativa",default=True,null=False)
+   
    class Meta:
       db_table = "tb_modelo_documento"
       verbose_name = 'Modelo de Documento'
