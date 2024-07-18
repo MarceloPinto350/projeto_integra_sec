@@ -1,7 +1,10 @@
-import paramiko
-import paramiko.ssh_exception    
-import json 
-import logging
+import paramiko, paramiko.ssh_exception    
+import json, logging
+
+#from ..models import VersaoAplicacao 
+#from seguranca.models import (Aplicacao, VersaoAplicacao)
+#from seguranca.serializers import (AplicacaoSerializer, VersaoAplicacaoSerializer)
+import requests
 
 #from fabric import Connection,SerialGroup
 #import requests, docker, subprocess, paramiko    # para acessar o servidor docker
@@ -54,7 +57,7 @@ def exec_comando_ssh(comando):
         }
     return retorno
 
-def retorna_stout_ssh(comando, tipo):
+def retorna_stout_ssh(comando, tipo):    
     try:
         stdin,stdout,stderr = ssh_connect.exec_command(comando)
         stdin.write('docker\n')
@@ -78,40 +81,119 @@ def retorna_stout_ssh(comando, tipo):
     return retorno
     
 
-def testa():
-    if conecta_ssh('192.168.0.13', 'docker', 'docker'):
-        # testar comandos SSH...
-        comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --scan /src/DVWA --format ALL --out /src/report -n'"
-        
-        # validar o resultado
-        
-        resultado = exec_comando_ssh("docker inspect owasp_dc")  
-        #for val in resultado["stdout"]:
-        #    print(val)
-        
-        # localizar o valor do campo "Mountpoint" no resultado da inspeção do container (docker inspect owasp_dc)
-        print(resultado["stdout"][5])
-        # filtrar o valor do campo "Mountpoint" no resultado da inspeção do container (docker inspect owasp_dc)
-        caminho = ((resultado["stdout"][5].split(':')[1].strip().replace('"','')).replace(',',''))+'/src/report'
-        #print((resultado["stdout"][5].split(':')[1].strip().replace('"','')).replace(',',''))
-        print(caminho)  
-        
-        resultado = exec_comando_ssh("docker exec mn.owasp_dc bash -c 'cat /src/report/dependency-check-report.json'")
-        print(resultado.keys())     
-        #print(resultado["stdout"][0])
-        print("*-*-*-*-*")
-        resultado = retorna_stout_ssh("docker exec mn.owasp_dc bash -c 'cat /src/report/dependency-check-report.json'", 'JSON')
-        
-        print (resultado.keys())
-        print (json.loads(resultado))
-        #for valor in resultado.items[0].itens():
-        #    print(valor[0])
-        
-    else: 
-        print('Não foi possível conectar no docker via SSH')    
+def get_ultima_versao_app(aplicacao_id):
+    versao = 3
+    return versao
 
-host='192.168.0.13'
-comando = 'hostname'
+   
+def get_sistemas_varredura(aplicacao_id):
+    sistemas_varredura =  [
+        {
+            "id": 1,
+            "nome": "SonarQube",
+            "tipo": "SAST",
+            "status": "Ativo",
+            "url": "mn.sonar_cli"},
+        {   "id": 2,
+            "nome": "Owasp Dependency Check",
+            "tipo": "SCA",
+            "status": "Ativo",
+            "url": "mn.owasp_dc"},
+    ]
+    return json.dumps(sistemas_varredura)
+
+
+def testa():
+    # 1) coletar os dados da aplicação (última versão e sistemas de varredura)
+    # 2) coletar as informações sobre o serviço SSH (docker) para se conectar a ele 
+    # 2.1) conectar ao serviço SSH (docker)
+    # 3) fazer loop para cada sistema de varredura
+    # 3.1) executar a varredura da aplicação (SonarQube, Owasp dependency-check)
+    # 3.2) se não usar webhook, coletar os resultados da varredura
+    # 3.3) armazenar os resultados da varredura
+    # 4) fechar a conexao SSH
+    # 5) encerrar a rotina
+      
+    appseg_base = 'http://localhost:8000/api/v2/'
+    #http://192.168.0.22:8000/api/v2/aplicacoes/1/ 
+    headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
+    app_id='1'
+    
+    print('---')
+    print (get_ultima_versao_app(app_id))
+    print ("---")
+    print (get_sistemas_varredura(app_id))
+    
+    
+    aplicacao = requests.get(f'{appseg_base}aplicacoes/{app_id}', headers=headears)
+    if aplicacao.status_code == 200:
+        print (f"Aplicacao: {aplicacao.json().get('nome')}, Sigla: {aplicacao.json().get('sigla')}") #, Última Versão: {aplicacao.json().get('versoes').last}")
+        print (f"Última Versão: {get_ultima_versao_app(app_id)}")
+        # obtem os sistemas de varredura habilitados para a aplicação
+        #sistemas_varredura = aplicacao.json().get('sistemas_varredura')
+        #print (sistemas_varredura)
+    else:
+        print (f"Erro: {aplicacao.status_code}")
+    print('===--- ### ---===')
+    aplicacao = requests.get(f'{appseg_base}aplicacoes/{app_id}', headers=headears)
+    #aplicacao = Aplicacao.objects.get(pk=app_id)
+    versoes = requests.get(f'{appseg_base}versoes', headers=headears)
+    print(versoes.json())
+    
+    
+    # url_base_aplicacoes = 'http://localhost:8000/api/v2/aplicacoes/'
+    # url_base_versoes = 'http://localhost:8000/api/v2/versoes/'
+    # docker_host = '192.168.0.3'
+    # sonar_host = 'http://192.168.0.9:32768'
+    # sonar_api = f'{sonar_host}/api'
+    # docker_server = 'http://192.168.0.9:2375'
+    # dvwa_fonte = 'https://github.com/MarceloPinto350/DVWA.git'
+    # sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
+    
+    # exemplo de get usando o token de acesso e a API
+    # GET Aplicações
+    #
+    # aplicacoes = requests.get(url_base_aplicacoes, headers=headears)
+    # print (aplicacoes.json())
+    # # testar se o status da requisição foi bem sucedido
+    # assert aplicacoes.status_code == 200
+    # # Testar a qantidade de resultados
+    # assert aplicacoes.json()['count'] == 2
+    #
+    
+#     if conecta_ssh('192.168.0.13', 'docker', 'docker'):
+#         # testar comandos SSH...
+#         comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --scan /src/DVWA --format ALL --out /src/report -n'"
+        
+#         # validar o resultado
+        
+#         resultado = exec_comando_ssh("docker inspect owasp_dc")  
+#         #for val in resultado["stdout"]:
+#         #    print(val)
+        
+#         # localizar o valor do campo "Mountpoint" no resultado da inspeção do container (docker inspect owasp_dc)
+#         print(resultado["stdout"][5])
+#         # filtrar o valor do campo "Mountpoint" no resultado da inspeção do container (docker inspect owasp_dc)
+#         caminho = ((resultado["stdout"][5].split(':')[1].strip().replace('"','')).replace(',',''))+'/src/report'
+#         #print((resultado["stdout"][5].split(':')[1].strip().replace('"','')).replace(',',''))
+#         print(caminho)  
+        
+#         resultado = exec_comando_ssh("docker exec mn.owasp_dc bash -c 'cat /src/report/dependency-check-report.json'")
+#         print(resultado.keys())     
+#         #print(resultado["stdout"][0])
+#         print("*-*-*-*-*")
+#         resultado = retorna_stout_ssh("docker exec mn.owasp_dc bash -c 'cat /src/report/dependency-check-report.json'", 'JSON')
+        
+#         print (resultado.keys())
+#         print (json.loads(resultado))
+#         #for valor in resultado.items[0].itens():
+#         #    print(valor[0])
+        
+#     else: 
+#         print('Não foi possível conectar no docker via SSH')    
+
+# host='192.168.0.13'
+# comando = 'hostname'
 
 #print(f'Testando conexão SSH com o host {host}... {conecta_ssh(host,"docker","docker")}')
 #print(f"Testando execução de comando SSH no host {host}... {exec_comando_ssh('docker exec mn.owasp_dc uname -s')}")
@@ -126,7 +208,6 @@ print('--- ----')
 testa()
 
 ssh_connect.close()
-
 
 # 1º passo: clonar na máquina do Sonar_CLI a imagem da aplicação a ser varrida
 # comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf DVWA && git clone {dvwa_fonte}'\n"

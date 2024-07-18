@@ -231,9 +231,9 @@ class Aplicacao(models.Model):
          return aplicacao_seguranca
       else:
          return None
-   def get_ultima_versao(self):
-      """Retorna a última versão da aplicação."""
-      return VersaoAplicacao.objects.filter(aplicacao=self).latest('data_lancamento')
+   # def get_ultima_versao(self):
+   #    """Retorna a última versão da aplicação."""
+   #    return VersaoAplicacao.objects.filter(aplicacao=self).latest('data_lancamento')
    class Meta:
       db_table = "tb_aplicacao"
       verbose_name = 'Aplicação'
@@ -354,6 +354,7 @@ class SistemaVarredura(models.Model):
    usuario = models.CharField("Usuário",max_length=50,null=True,blank=True)
    senha = models.CharField("Senha",max_length=50,null=True,blank=True)
    token = models.CharField("Token",max_length=1000,null=True,blank=True)
+   usa_webhook = models.BooleanField("Usa Webhook",default=False,null=False)
    status = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_ATIVO_CHOICES,default='ATIVO') 
    tipos_varreduras = models.ManyToManyField(TipoVarredura, related_name='sistema_varredura', blank=True)
    aplicacoes = models.ManyToManyField(VersaoAplicacao, related_name='sistemas_varredura', blank=True)

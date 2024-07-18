@@ -15,7 +15,8 @@ from .views import (
       TipoAplicacaoViewSet,AreaNegocialViewSet,AplicacaoViewSet,
       VersaoViewSet,TipoAtivoInfraestruturaViewSet,AtivoInfraestruturaViewSet,
       ResultadoScanViewSet,ResultadoViewSet,TipoVarreduraViewSet,VarrerViewSet,
-      SistemaVarreduraViewSet,TipoModeloDocumentoViewSet,ModeloDocumentoViewSet)   
+      SistemaVarreduraViewSet,TipoModeloDocumentoViewSet,ModeloDocumentoViewSet,
+      RedeViewSet,BancoDadosViewSet,ServidorViewSet,ServicoViewSet)   
 
 # definindo o roteador para facilitar a referencia das APIs
 router = SimpleRouter()
@@ -26,6 +27,12 @@ router.register('versoes',VersaoViewSet)
 router.register('versoes',TipoAtivoInfraestruturaViewSet)
 router.register('versoes',AtivoInfraestruturaViewSet)
 router.register('resultadosscan',ResultadoScanViewSet)
+# ativos de infraestrutura
+router.register('redes',RedeViewSet)      
+router.register('servicos',ServicoViewSet)
+router.register('servidores',ServidorViewSet)
+router.register('bancodados',BancoDadosViewSet)
+
 #router.register('results',ResultadoViewSet, basename='results')
 router.register('tiposvarredura',TipoVarreduraViewSet)
 router.register('sistemasvarredura',SistemaVarreduraViewSet)      

@@ -129,10 +129,8 @@ class AplicacaoViewSet(viewsets.ModelViewSet):
       #serializer = VersaoAplicacaoSerializer(aplicacao.versoes.all(), many=True) 
       return Response(serializer.data)
    # criando uma ação personalizada para listar última versão de uma aplicação
-   @action(detail=True, methods=['get'])
    def ultima_versao(self, request, pk=None):
-      aplicacao = self.get_object()
-      ultima_versao = aplicacao.ultima_versao()
+      ultima_versao = self.get_object(0)
       serializer = VersaoAplicacaoSerializer(ultima_versao)
       return Response(serializer.data)
 
