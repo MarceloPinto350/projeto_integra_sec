@@ -127,8 +127,17 @@ def testa():
     
     aplicacao = requests.get(f'{appseg_base}aplicacoes/{app_id}', headers=headears)
     if aplicacao.status_code == 200:
-        print (f"Aplicacao: {aplicacao.json().get('nome')}, Sigla: {aplicacao.json().get('sigla')}") #, Última Versão: {aplicacao.json().get('versoes').last}")
-        print (f"Última Versão: {get_ultima_versao_app(app_id)}")
+        app = {
+            "id":aplicacao.json().get('id'),
+            "Sigla": {aplicacao.json().get('sigla')},
+            "url_fonte": {aplicacao.json().get('url_fonte')},
+            "versoes": {aplicacao.json().get('versoes')},
+            "sistemas_varredura": {aplicacao.json().get('sistemas_varredura')}
+            "versao_atual": {aplicacao.json().get('versoes').last()}
+        }
+        print (json.loads(app))
+        #print (f"Aplicacao: {aplicacao.json().get('nome')}, Sigla: {aplicacao.json().get('sigla')}") #, Última Versão: {aplicacao.json().get('versoes').last}")
+        #print (f"Última Versão: {get_ultima_versao_app(app_id)}")
         # obtem os sistemas de varredura habilitados para a aplicação
         #sistemas_varredura = aplicacao.json().get('sistemas_varredura')
         #print (sistemas_varredura)

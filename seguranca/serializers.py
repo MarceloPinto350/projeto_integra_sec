@@ -19,7 +19,7 @@ class AreaNegocialSerializer(serializers.ModelSerializer):
 
 class AplicacaoSerializer(serializers.ModelSerializer):
    # usando Nested Relatioship: Ruim para muitos registros, pois pode sobrecarregar a API
-   #versoes = VersaoAplicacaoSerializer(many=True, read_only=True,) 
+   #versoes = serializers.PrimaryKeyRelatedField(many=True, read_only=True), 
    #
    # usando Hyperlinked Related Field (recomendado para volume médio de registros)
    # atentar para o view_name que deve ser o mesmo nome da view que define a rota
@@ -28,7 +28,10 @@ class AplicacaoSerializer(serializers.ModelSerializer):
    # usando PrimaryKey Related Field
    # recomendado para muitos registros pois retorna apenas o id do registro relacionado
    versoes = serializers.PrimaryKeyRelatedField(many=True, read_only=True) 
-   
+   servicos = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+   servidores = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+   #aplicacoes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+      
    class Meta:
       extra_kwargs = {
          'url_acesso': {'write_only': True},
@@ -45,9 +48,9 @@ class AplicacaoSerializer(serializers.ModelSerializer):
          #'essencial','estrategico','arquitetura','hospedagem','tipo',
          'url_acesso','aplicacao_pai','usuario_servico','senha_servico','token_acesso',
          # campo para serialização de versões de aplicação
-         'versoes' 
+         'versoes', 'servicos','servidores' 
          # campo calculado para contagem de versões de aplicação
-         #,'cont_versoes'
+         
       )
       # validação de dados na serialização
       # o nome da função deve ser validate_<nome_campo>
