@@ -73,9 +73,10 @@ def topologia():
       port='4280:80', privileged=True,
       cpu_shares=20,
       #dimage="ramonfontes/dvwa:latest",
-      dimage="marcelopinto350/dvwa:latest",
-      volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","dvwa:/var/www/html"],
-      environment={'DISPLAY':":0",'DB_SERVER':"db_dvwa"})
+      #dimage="marcelopinto350/dvwa:latest",
+      dimage="ramonfontes/xss_attack",
+      #volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","dvwa:/var/www/html"],
+      environment={'DISPLAY':":0",'DB_SERVER':"dvwa_db"})
       
    # Criar o BD da aplicação de segurança APPSEG
    appseg_db = net.addDocker('appseg_db',
