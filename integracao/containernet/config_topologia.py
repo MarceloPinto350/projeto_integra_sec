@@ -137,7 +137,7 @@ def topologia():
    # subir o BD da aplicação de teste DVWA
    dvwa_db.cmd('service mariadb start')
    # rodar a aplicação de teste DVWA
-   dvwa.cmd('service apache2 start')   
+   dvwa.cmd('sh main.sh &')   
    # gerar a estrutura de banco dados da aplicação APPSEG
    #appseg.cmd('python3 /appseg/manage.py migrate')
 
