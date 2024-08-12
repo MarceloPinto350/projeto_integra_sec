@@ -24,6 +24,17 @@ ssh_connect = paramiko.SSHClient()
 ssh_connect.set_missing_host_key_policy(paramiko.AutoAddPolicy())
                      
 def conecta_ssh(host, usuario, senha):    
+    """
+    conecta_ssh - Função para conectar via SSH em um host remoto
+
+    Args:
+        host (url): host remoto
+        usuario (string): usuário para autenticação
+        senha (string): senha para autenticação
+
+    Returns:
+        boolean: conectado (True) ou não conectado (False)
+    """
     try:
         ssh_connect.connect(hostname=host, username=usuario, password=senha)
         return True
@@ -39,6 +50,15 @@ def conecta_ssh(host, usuario, senha):
         return  False
 
 def exec_comando_ssh(comando):
+    """
+    exec_comando_ssh - Função para executar um comando remoto via SSH
+
+    Args:
+        comando (string): comando a ser executado
+
+    Returns:
+        dictionary: retorno do comando (stdout, stderr)
+    """
     try:
         stdin,stdout,stderr = ssh_connect.exec_command(comando)
         stdin.write('docker\n')
@@ -57,7 +77,18 @@ def exec_comando_ssh(comando):
         }
     return retorno
 
-def retorna_stout_ssh(comando, tipo):    
+def retorna_stout_ssh(comando, tipo):  
+    """
+    retorna_stout_ssh - Função para executar um comando remoto via SSH e retornar o resultado no formato especificado
+    
+    Args:
+        comando (string): comando a ser executado
+        tipo (string): tipo de retorno (JSON, XML, TXT
+
+    Returns:
+        string: contendo o resultado do comando no formato especificado
+    
+    """  
     try:
         stdin,stdout,stderr = ssh_connect.exec_command(comando)
         stdin.write('docker\n')
@@ -80,96 +111,100 @@ def retorna_stout_ssh(comando, tipo):
         retorno = None
     return retorno
     
-
-def get_ultima_versao_app(aplicacao_id):
-    versao = 3
-    return versao
-
+# def get_ultima_versao_app(aplicacao_id):
+#     versao = 3
+#     return versao
    
-def get_sistemas_varredura(aplicacao_id):
-    sistemas_varredura =  [
-        {
-            "id": 1,
-            "nome": "SonarQube",
-            "tipo": "SAST",
-            "status": "Ativo",
-            "url": "mn.sonar_cli"},
-        {   "id": 2,
-            "nome": "Owasp Dependency Check",
-            "tipo": "SCA",
-            "status": "Ativo",
-            "url": "mn.owasp_dc"},
-    ]
-    return json.dumps(sistemas_varredura)
+# def get_sistemas_varredura(aplicacao_id):
+#     sistemas_varredura =  [
+#         {
+#             "id": 1,
+#             "nome": "SonarQube",
+#             "tipo": "SAST",
+#             "status": "Ativo",
+#             "url": "mn.sonar_cli"},
+#         {   "id": 2,
+#             "nome": "Owasp Dependency Check",
+#             "tipo": "SCA",
+#             "status": "Ativo",
+#             "url": "mn.owasp_dc"},
+#     ]
+#     return json.dumps(sistemas_varredura)
 
 
-def testa():
-    # 1) coletar os dados da aplicação (última versão e sistemas de varredura)
-    # 2) coletar as informações sobre o serviço SSH (docker) para se conectar a ele 
-    # 2.1) conectar ao serviço SSH (docker)
-    # 3) fazer loop para cada sistema de varredura
-    # 3.1) executar a varredura da aplicação (SonarQube, Owasp dependency-check)
-    # 3.2) se não usar webhook, coletar os resultados da varredura
-    # 3.3) armazenar os resultados da varredura
-    # 4) fechar a conexao SSH
-    # 5) encerrar a rotina
+# def testa():
+#     # 1) coletar os dados da aplicação (última versão e sistemas de varredura)
+#     # 2) coletar as informações sobre o serviço SSH (docker) para se conectar a ele 
+#     # 2.1) conectar ao serviço SSH (docker)
+#     # 3) fazer loop para cada sistema de varredura
+#     # 3.1) executar a varredura da aplicação (SonarQube, Owasp dependency-check)
+#     # 3.2) se não usar webhook, coletar os resultados da varredura
+#     # 3.3) armazenar os resultados da varredura
+#     # 4) fechar a conexao SSH
+#     # 5) encerrar a rotina
       
-    appseg_base = 'http://localhost:8000/api/v2/'
-    #http://192.168.0.22:8000/api/v2/aplicacoes/1/ 
-    headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
-    app_id='1'
+#     appseg_base = 'http://localhost:8000/api/v2/'
+#     #http://192.168.0.22:8000/api/v2/aplicacoes/1/ 
+#     headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
+#     app_id='1'
     
-    print('---')
-    print (get_ultima_versao_app(app_id))
-    print ("---")
-    print (get_sistemas_varredura(app_id))
-    
-    
-    aplicacao = requests.get(f'{appseg_base}aplicacoes/{app_id}', headers=headears)
-    if aplicacao.status_code == 200:
-        app = {
-            "id":aplicacao.json().get('id'),
-            "Sigla": {aplicacao.json().get('sigla')},
-            "url_fonte": {aplicacao.json().get('url_fonte')},
-            "versoes": {aplicacao.json().get('versoes')},
-            "sistemas_varredura": {aplicacao.json().get('sistemas_varredura')}
-            "versao_atual": {aplicacao.json().get('versoes').last()}
-        }
-        print (json.loads(app))
-        #print (f"Aplicacao: {aplicacao.json().get('nome')}, Sigla: {aplicacao.json().get('sigla')}") #, Última Versão: {aplicacao.json().get('versoes').last}")
-        #print (f"Última Versão: {get_ultima_versao_app(app_id)}")
-        # obtem os sistemas de varredura habilitados para a aplicação
-        #sistemas_varredura = aplicacao.json().get('sistemas_varredura')
-        #print (sistemas_varredura)
-    else:
-        print (f"Erro: {aplicacao.status_code}")
-    print('===--- ### ---===')
-    aplicacao = requests.get(f'{appseg_base}aplicacoes/{app_id}', headers=headears)
-    #aplicacao = Aplicacao.objects.get(pk=app_id)
-    versoes = requests.get(f'{appseg_base}versoes', headers=headears)
-    print(versoes.json())
+#     print('---')
+#     print (get_ultima_versao_app(app_id))
+#     print ("---")
+#     print (get_sistemas_varredura(app_id))
     
     
-    # url_base_aplicacoes = 'http://localhost:8000/api/v2/aplicacoes/'
-    # url_base_versoes = 'http://localhost:8000/api/v2/versoes/'
-    # docker_host = '192.168.0.3'
-    # sonar_host = 'http://192.168.0.9:32768'
-    # sonar_api = f'{sonar_host}/api'
-    # docker_server = 'http://192.168.0.9:2375'
-    # dvwa_fonte = 'https://github.com/MarceloPinto350/DVWA.git'
-    # sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
+#     aplicacao = requests.get(f'{appseg_base}aplicacoes/{app_id}', headers=headears)
+#     if aplicacao.status_code == 200:
+#         app = {
+#             "id":aplicacao.json().get('id'),
+#             "Sigla": {aplicacao.json().get('sigla')},
+#             "url_fonte": {aplicacao.json().get('url_fonte')},
+#             "versoes": {aplicacao.json().get('versoes')},
+#             "sistemas_varredura": {aplicacao.json().get('sistemas_varredura')}
+#             "versao_atual": {aplicacao.json().get('versoes').last()}
+#         }
+#         print (json.loads(app))
+#         #print (f"Aplicacao: {aplicacao.json().get('nome')}, Sigla: {aplicacao.json().get('sigla')}") #, Última Versão: {aplicacao.json().get('versoes').last}")
+#         #print (f"Última Versão: {get_ultima_versao_app(app_id)}")
+#         # obtem os sistemas de varredura habilitados para a aplicação
+#         #sistemas_varredura = aplicacao.json().get('sistemas_varredura')
+#         #print (sistemas_varredura)
+#     else:
+#         print (f"Erro: {aplicacao.status_code}")
+#     print('===--- ### ---===')
+#     aplicacao = requests.get(f'{appseg_base}aplicacoes/{app_id}', headers=headears)
+#     #aplicacao = Aplicacao.objects.get(pk=app_id)
+#     versoes = requests.get(f'{appseg_base}versoes', headers=headears)
+#     print(versoes.json())
     
-    # exemplo de get usando o token de acesso e a API
-    # GET Aplicações
-    #
-    # aplicacoes = requests.get(url_base_aplicacoes, headers=headears)
-    # print (aplicacoes.json())
-    # # testar se o status da requisição foi bem sucedido
-    # assert aplicacoes.status_code == 200
-    # # Testar a qantidade de resultados
-    # assert aplicacoes.json()['count'] == 2
-    #
     
+#     # url_base_aplicacoes = 'http://localhost:8000/api/v2/aplicacoes/'
+#     # url_base_versoes = 'http://localhost:8000/api/v2/versoes/'
+#     # docker_host = '192.168.0.3'
+#     # sonar_host = 'http://192.168.0.9:32768'
+#     # sonar_api = f'{sonar_host}/api'
+#     # docker_server = 'http://192.168.0.9:2375'
+#     # dvwa_fonte = 'https://github.com/MarceloPinto350/DVWA.git'
+#     # sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
+    
+#     # exemplo de get usando o token de acesso e a API
+#     # GET Aplicações
+#     #
+#     # aplicacoes = requests.get(url_base_aplicacoes, headers=headears)
+#     # print (aplicacoes.json())
+#     # # testar se o status da requisição foi bem sucedido
+#     # assert aplicacoes.status_code == 200
+#     # # Testar a qantidade de resultados
+#     # assert aplicacoes.json()['count'] == 2
+#     #
+    
+
+# print('--- ----')
+# testa()
+
+# ssh_connect.close()
+
 #     if conecta_ssh('192.168.0.13', 'docker', 'docker'):
 #         # testar comandos SSH...
 #         comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --scan /src/DVWA --format ALL --out /src/report -n'"
@@ -212,11 +247,6 @@ def testa():
 
 #print(f'Testando conexão SSH com o host {host}... {conecta_ssh(host,"docker","docker")}')
 #print(f'Testando execução de comando SSH no host {host}... {exec_comando_ssh(comando)}')      
-
-print('--- ----')
-testa()
-
-ssh_connect.close()
 
 # 1º passo: clonar na máquina do Sonar_CLI a imagem da aplicação a ser varrida
 # comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf DVWA && git clone {dvwa_fonte}'\n"

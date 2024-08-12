@@ -13,7 +13,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import mixins 
 
-from rest_framework import permissions 
+from rest_framework import permissions
+
+from seguranca import realiza_varredura 
 
 from .models import (TipoAplicacao, AreaNegocial, Aplicacao, VersaoAplicacao, TipoAtivoInfraestrutura, User,
    AtivoInfraestrutura, ResultadoScan, TipoVarredura, SistemaVarredura, TipoModeloDocumento, ModeloDocumento,
@@ -28,7 +30,7 @@ from .permissions import EhSuperUsuario
 
 #import jsonpath
 #from integracao import varredura_result
-from seguranca.utils import varredura_result, realiza_varredura
+from seguranca.utils import varredura_result
 
 
 """
