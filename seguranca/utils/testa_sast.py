@@ -7,9 +7,9 @@ import logging
 #url_base_sistemas_varredura = 'http://localhost:8000/api/v2/sistemasvarredura/'
 
 logger = logging.getLogger(__name__)
-sonar_host = 'http://192.168.0.15:32768'
+sonar_host = 'http://192.168.0.12:32768'
 sonar_api = f'{sonar_host}/api'
-docker_server = 'http://192.168.0.15:2375'
+docker_server = 'http://192.168.0.12:2375'
 dvwa_fonte = 'https://github.com/MarceloPinto350/DVWA.git'
 sonar_dvwa_token = 'squ_957a47e469662baf4ccfaed36337b9e02670dbee'   # mmpinto 12m1ª
 #sonar_dvwa_token = 'sqp_bd4affac00ce57c87e24b65544df7bbe821c2235'   #admin
@@ -24,7 +24,7 @@ ssh = paramiko.SSHClient()
 #def execute_ssh (comando):
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-ssh.connect(hostname='192.168.0.15', username='docker', password='docker')
+ssh.connect(hostname='192.168.0.12', username='docker', password='docker')
 
 # 1º passo: clonar na máquina do Sonar_CLI a imagem da aplicação a ser varrida
 comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf DVWA && git clone {dvwa_fonte}'\n"
@@ -188,8 +188,8 @@ print()
     #   print(f'Erro ao acessar o servidor Docker: {e1}')
     
     #subprocess.run(comando, shell=False, check=True)
-    #subprocess.run("ssh docker@192.168.0.15 docker exec -it mn.sonar_cli ls", shell=False, check=True)
-    #comando = "ssh docker@192.168.0.15 docker exec -it mn.sonar_cli bash -c 'sonar-scanner -Dsonar.projectKey=dvwa"
+    #subprocess.run("ssh docker@192.168.0.12 docker exec -it mn.sonar_cli ls", shell=False, check=True)
+    #comando = "ssh docker@192.168.0.12 docker exec -it mn.sonar_cli bash -c 'sonar-scanner -Dsonar.projectKey=dvwa"
 #    comando = "ssh docker@192.168.0.9 docker exec -it mn.sonar_cli bash -c 'sonar-scanner -Dsonar.projectKey=dvwa"
 #    comando = comando + f" -Dsonar.sources=DVWA -Dsonar.host.url={sonar_host} -Dsonar.token={sonar_dvwa_token}"
 #    comando = comando + f" -Dsonar.login=mmpinto -Dsonar.password=@dm1n'"

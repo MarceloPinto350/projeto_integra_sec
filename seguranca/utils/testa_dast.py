@@ -8,10 +8,10 @@ import varredura_result
 
 logger = logging.getLogger(__name__)
 
-docker_host = '192.168.0.15'
-sonar_host = 'http://192.168.0.15:32768'
+docker_host = 'cd '
+sonar_host = 'http://192.168.0.12:32768'
 sonar_api = f'{sonar_host}/api'
-docker_server = 'http://192.168.0.15:2375'
+docker_server = 'http://192.168.0.12:2375'
 dvwa_fonte = 'https://github.com/MarceloPinto350/DVWA.git'
 sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
 #sonar_dvwa_token = 'sqp_bd4affac00ce57c87e24b65544df7bbe821c2235'   #admin
@@ -23,7 +23,7 @@ ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect(hostname=docker_host, username='docker', password='docker')
 
-output = "owasp_zap_report.xml"
+output = "owasp_zap_report"
 
 # template do script para autenticação
 # // This authentication script can be used to authenticate in a webapplication via forms.
@@ -197,7 +197,7 @@ def executa_varredura():
     Função que executa a varredura DAST
     """
     # 2ª passo: rodar o scanner do owasp-zap via CLI
-    url_zap = "http://192.168.0.15:32770/"
+    url_zap = "http://192.168.0.12:32770/"
     #comando = f"docker exec mn.owasp_zap bash -c 'zap.sh -dir wrk -loglevel ERROR -script script/authentication.js -cmd -quickurl {url_zap} -quickprogress -quickout {output}'\n"
     comando = f"docker exec mn.owasp_zap bash -c 'zap.sh -dir wrk -loglevel ERROR -cmd -quickurl {url_zap} -quickprogress -quickout {output}'\n"
     print ("Executando a varredura...")
@@ -404,8 +404,8 @@ ssh.close()
     #   print(f'Erro ao acessar o servidor Docker: {e1}')
     
     #subprocess.run(comando, shell=False, check=True)
-    #subprocess.run("ssh docker@192.168.0.15 docker exec -it mn.sonar_cli ls", shell=False, check=True)
-    #comando = "ssh docker@192.168.0.15 docker exec -it mn.sonar_cli bash -c 'sonar-scanner -Dsonar.projectKey=dvwa"
+    #subprocess.run("ssh docker@192.168.0.12 docker exec -it mn.sonar_cli ls", shell=False, check=True)
+    #comando = "ssh docker@192.168.0.12 docker exec -it mn.sonar_cli bash -c 'sonar-scanner -Dsonar.projectKey=dvwa"
 #    comando = "ssh docker@192.168.0.9 docker exec -it mn.sonar_cli bash -c 'sonar-scanner -Dsonar.projectKey=dvwa"
 #    comando = comando + f" -Dsonar.sources=DVWA -Dsonar.host.url={sonar_host} -Dsonar.token={sonar_dvwa_token}"
 #    comando = comando + f" -Dsonar.login=mmpinto -Dsonar.password=@dm1n'"
