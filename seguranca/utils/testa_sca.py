@@ -1,4 +1,11 @@
-import requests, docker, subprocess, paramiko,json, logging     # para acessar o servidor docker
+import requests, paramiko, json, logging     # para acessar o servidor docker
+from rest_framework.response import Response
+
+# importando o serializer para salvar os dados no BD
+#from seguranca.serializers import ResultadoScanSerializer
+#from utils import varredura_result
+import varredura_result
+
 
 #from docker import DockerClient
 
@@ -8,15 +15,138 @@ import requests, docker, subprocess, paramiko,json, logging     # para acessar o
 
 logger = logging.getLogger(__name__)
 
-docker_host = '192.168.0.3'
-sonar_host = 'http://192.168.0.9:32768'
+docker_host = '192.168.0.15'
+sonar_host = 'http://192.168.0.15:32768'
 sonar_api = f'{sonar_host}/api'
-docker_server = 'http://192.168.0.9:2375'
+docker_server = 'http://192.168.0.15:2375'
 dvwa_fonte = 'https://github.com/MarceloPinto350/DVWA.git'
 sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
 #sonar_dvwa_token = 'sqp_bd4affac00ce57c87e24b65544df7bbe821c2235'   #admin
 
 #NVD API Key: 480fab96-3816-4ea8-be1f-cce19cdf026d  
+
+
+# define a conexão SSH
+ssh = paramiko.SSHClient()
+#def execute_ssh (comando):
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+ssh.connect(hostname=docker_host, username='docker', password='docker')
+
+def prepara_varredura():
+    """
+    Função que faz a clonagem dos dados para o processamento da varredura SCA
+    """
+    # 1º passo: clonar na máquina do OWASP-DC a imagem da aplicação a ser varrida
+    comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf DVWA && rm -f dependency-check-report.json && git clone {dvwa_fonte}'\n"
+    print ("Preparando para varredura...")
+    print (f"Comando: {comando}")        
+    try:  
+        stdin,stdout,stderr = ssh.exec_command(comando)
+        stdin.write('docker\n')
+        stdin.flush()    
+        stdin.close()
+        print(f"stdout: {stdout.readlines()}")
+        print(f"stderr: {stderr.readlines()}")    
+    except paramiko.SSHException as e:
+        print(f'Erro ao executar o comando remoto: {e}')
+        logger.error (f'Erro ao executar o comando remoto: {e}')    
+    print('-')
+
+def executa_varredura():
+    """
+    Função que executa a varredura SCA
+    """
+    # 2ª passo: rodar o scanner do owasp_dc via CLI
+    comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --project DVWA --scan /src/DVWA --format JSON --out /src/report -n'"
+    #comando = f"{comando} --nvdApiKey cd0c05ca-2b15-4034-9ae6-490fb505f439'"
+    print("Executando o scan do projeto...")
+    print(comando)
+    try:
+        stdin,stdout,stderr = ssh.exec_command(comando)
+        stdin.write('docker\n')
+        stdin.flush()    
+        stdin.close()
+        print(f"stdout: {stdout.readlines()}")
+        print(f"stderr: {stderr.readlines()}")    
+    except paramiko.SSHException as e:
+        print(f'Erro ao executar o comando remoto: {e}')
+        logger.error (f'Erro ao executar o comando remoto: {e}')
+    print('--')
+
+def coleta_resultado():
+    """
+    Função que coleta o resultado da varredura SCA
+    """
+    # 3º passo: coletar o resultado da varredura
+    #comando = "docker inspect owasp_dc"
+    comando = "docker exec mn.owasp_dc cat /src/report/dependency-check-report.json"
+    print(comando)
+    try:
+        stdin,stdout,stderr = ssh.exec_command(comando)
+        stdin.write('docker\n')
+        stdin.flush()    
+        stdin.close()
+        #print(f"stdout: {stdout.readlines()}")
+        print(f"stderr: {stderr.readlines()}")    
+        # testar se retornou erro
+        #print(stderr.channel.recv_exit_status() == 0)
+        if stderr.channel.recv_exit_status() == 0:
+            print("Análise realizada com sucesso!")
+            data = json.dumps(stdout.readlines())
+            #print (data.keys())
+            dados = json.loads(data.replace('\\','').replace('[\"','').replace('\"]',''))
+            #dados = json.dumps(json.loads(data.replace('\\','').replace('[\"','').replace('\"]','')), indent=4)
+            #resultado = varredura_result.processa_resultado(dados)
+            #print(resultado)
+            #print (dados)
+            #print (json.dumps(dados,indent=3))
+            print ("------------------------------------")
+            payload = json.dumps(dados,indent=3)
+            #print (payload)
+            # validar o serializer e salvar dados no BD
+            headers = {'Content-Type': 'application/json'}
+            response = requests.post('http://192.168.0.22:8000/api/v1/resultados/',data=payload, headers=headers)
+            if response.status_code == 201:
+                print("Dados inseridos no BD!")
+            else:
+                print("Erro ao enviar os dados para gravação no BD:", response.status_code)
+                logger.error (f'Erro ao salvar os dados no BD: {response.text}')
+            #serializer =  ResultadoScanSerializer(data=resultado)
+            #if serializer.is_valid():
+            #    serializer.save()
+            #    return Response(serializer.data, status=201)
+            #else:
+            #    return Response(serializer.errors, status=400)
+    except paramiko.SSHException as e:
+        print(f'Erro ao executar o comando remoto: {e}')
+        logger.error (f'Erro ao executar o comando remoto: {e}')    
+    print('---')
+
+# processando os testes
+prepara_varredura()
+executa_varredura()
+coleta_resultado()
+
+
+
+# # 3º passo: coletar o resultado da varredura
+# comando = "docker inspect owasp_dc"
+# print(comando)
+# try:
+#     stdin,stdout,stderr = ssh.exec_command(comando)
+#     stdin.write('docker\n')
+#     stdin.flush()    
+#     stdin.close()
+#     print(f"stdout: {stdout.readlines()}")
+#     print(f"stderr: {stderr.readlines()}")    
+#     if 'owasp_dc' in stdout.readlines():
+#         print("Análise realizada com sucesso!")
+#         dados = json.loads(stdout.readlines())
+#         print(dados['Mounts'][0]['Source'] + '/report/dependency-check-report.json')
+# except paramiko.SSHException as e:
+#     print(f'Erro ao executar o comando remoto: {e}')
+#     logger.error (f'Erro ao executar o comando remoto: {e}')    
+# print('---')
 
 
 # executar teste no servidor docker via SSH
@@ -60,65 +190,6 @@ sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
 
 #print(cliente.containers.list(filters='name=mn.sonar_cli'))
 
-# define a conexão SSH
-ssh = paramiko.SSHClient()
-#def execute_ssh (comando):
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-ssh.connect(hostname=docker_host, username='docker', password='docker')
-
-
-# 1º passo: clonar na máquina do OWASP-DC a imagem da aplicação a ser varrida
-comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf DVWA && rm -f dependency-check-report.json && git clone {dvwa_fonte}'\n"
-print ("Preparando para varredura...")
-print (f"Comando: {comando}")        
-try:  
-    stdin,stdout,stderr = ssh.exec_command(comando)
-    stdin.write('docker\n')
-    stdin.flush()    
-    stdin.close()
-    print(f"stdout: {stdout.readlines()}")
-    print(f"stderr: {stderr.readlines()}")    
-except paramiko.SSHException as e:
-    print(f'Erro ao executar o comando remoto: {e}')
-    logger.error (f'Erro ao executar o comando remoto: {e}')    
-print('-')
-
-# 2ª passo: rodar o scanner do owasp_dc via CLI
-
-comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --scan /src/DVWA --format JSON --out /src/report -n"
-#comando = f"{comando} --nvdApiKey cd0c05ca-2b15-4034-9ae6-490fb505f439'"
-print("Executando o scan do projeto...")
-print(comando)
-try:
-    stdin,stdout,stderr = ssh.exec_command(comando)
-    stdin.write('docker\n')
-    stdin.flush()    
-    stdin.close()
-    print(f"stdout: {stdout.readlines()}")
-    print(f"stderr: {stderr.readlines()}")    
-except paramiko.SSHException as e:
-    print(f'Erro ao executar o comando remoto: {e}')
-    logger.error (f'Erro ao executar o comando remoto: {e}')
-print('--')
-
-# 3º passo: coletar o resultado da varredura
-comando = "docker inspect owasp_dc"
-print(comando)
-try:
-    stdin,stdout,stderr = ssh.exec_command(comando)
-    stdin.write('docker\n')
-    stdin.flush()    
-    stdin.close()
-    print(f"stdout: {stdout.readlines()}")
-    print(f"stderr: {stderr.readlines()}")    
-    if 'owasp_dc' in stdout.readlines():
-        print("Análise realizada com sucesso!")
-        dados = json.loads(stdout.readlines())
-        print(dados['Mounts'][0]['Source'] + '/report/dependency-check-report.json')
-except paramiko.SSHException as e:
-    print(f'Erro ao executar o comando remoto: {e}')
-    logger.error (f'Erro ao executar o comando remoto: {e}')    
-print('---')
 
 #sftp = ssh.open_sftp()
 #with sftp.open('/src/report/dependency-check-report.json','r') as arq:

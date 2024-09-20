@@ -1,0 +1,22 @@
+@startuml "AppSeg-Contexto"
+!!include https://raw.githubusercontent.com/planuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+person (usuario, "Usuário de TI", "Usuário de TI que interage com o sistema")
+'person (usuario, "Usuário de TI", "Usuário de TI que interage com o sistema")
+System (AppSeg, "AppSeg", "Sistema que gerencia o portfólio de Aplicações e suas configurações para Segurança da Informação")
+'SystemExt (SAST, "SAST", "Sistema de Análise Estática de Vulnerabilidade")
+'SystemExt (SCA, "SCA", "Sistema de Análise Depedência de bibliotecas de terceiros")
+'SystemExt (DAST, "DAST", "Sistema de Análise Dinâmica de Vulnerabilidade")
+'SystemExt (RepositorioCodigo, "Repositório de Código", "Sistema gerenciamento de código fonte")
+'SystemExt (RepositorioImagem, "Repositório de Imagem", "Sistema de gerenciamento de imagens de containers")
+'SystemExt (Aplicacao, "Aplicação de Negócio", "Sistema de documentação de projetos")
+
+Rel(usuario, AppSeg, "Utiliza")
+'rel(AppSeg, SAST, "Chama varredura")
+'rel(AppSeg, SCA, "Chama varredura")
+'rel(AppSeg, DAST, "Chama varredura")
+'rel(AppSeg, RepositorioCodigo, "Busca código fonte")
+'rel(AppSeg, RepositorioImagem, "Busca imagem de container")
+'rel(AppSeg, Aplicacao, "Gerencia configurações e faz varredura de segurança")
+
+@enduml

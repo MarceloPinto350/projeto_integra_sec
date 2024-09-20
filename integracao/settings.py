@@ -120,7 +120,7 @@ WSGI_APPLICATION = 'integracao.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': '192.168.0.20',  # os.getenv('POSTGRES_HOST'),
+        'HOST': '192.168.0.15',  # os.getenv('POSTGRES_HOST'),
         'NAME': 'appseg',       #os.getenv('POSTGRES_DB'),
         'USER': 'postgres',     #os.getenv('POSTGRES_USER'),
         'PASSWORD': 'postgres', #os.getenv('POSTGRES_PASSWORD'),
@@ -186,9 +186,9 @@ REST_FRAMEWORK = {
         #'rest_framework.permissions.IsAuthenticated',              # para permitir autenticação em todas as rotas
         'rest_framework.permissions.AllowAny',                     # para permitir acesso sem autenticação em todas as rotas
     ],
-    # definindo a paginação padrão para 2 registros por página
+    # definindo a paginação padrão para 10 registros por página
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,
+    'PAGE_SIZE': 10,
     # configurando o limite global de requisições por segundo para a API
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',

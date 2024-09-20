@@ -141,8 +141,7 @@ class ServicoSerializer(serializers.ModelSerializer):
    class Meta:
       model = Servico
       fields = '__all__'
-        
-        
+              
 # classe para tratamento da serialização de resultados das varreduras
 class SonarResultSerializer(serializers.ModelSerializer):
    resultado = serializers.JSONField()

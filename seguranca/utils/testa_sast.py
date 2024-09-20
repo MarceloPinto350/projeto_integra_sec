@@ -7,15 +7,73 @@ import logging
 #url_base_sistemas_varredura = 'http://localhost:8000/api/v2/sistemasvarredura/'
 
 logger = logging.getLogger(__name__)
-sonar_host = 'http://192.168.0.13:32768'
+sonar_host = 'http://192.168.0.15:32768'
 sonar_api = f'{sonar_host}/api'
-docker_server = 'http://192.168.0.13:2375'
+docker_server = 'http://192.168.0.15:2375'
 dvwa_fonte = 'https://github.com/MarceloPinto350/DVWA.git'
 sonar_dvwa_token = 'squ_957a47e469662baf4ccfaed36337b9e02670dbee'   # mmpinto 12m1ª
 #sonar_dvwa_token = 'sqp_bd4affac00ce57c87e24b65544df7bbe821c2235'   #admin
 #token do SonarQube do usuário admin: squ_a3e1f7c8e3e969915b9bc4eb76c466717949a059
 #token sonarQube do usuário mmpinto: squ_8e2c4df166d3f1e628ef57b8d0e373364552e84c #2ª
 
+
+
+
+# define a conexão SSH
+ssh = paramiko.SSHClient()
+#def execute_ssh (comando):
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+ssh.connect(hostname='192.168.0.15', username='docker', password='docker')
+
+# 1º passo: clonar na máquina do Sonar_CLI a imagem da aplicação a ser varrida
+comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf DVWA && git clone {dvwa_fonte}'\n"
+print ("Preparando para varredura...")
+print (f"Comando: {comando}")        
+try:  
+    stdin,stdout,stderr = ssh.exec_command(comando)
+    stdin.write('docker\n')
+    stdin.flush()    
+    stdin.close()
+    
+    #print(f"stdout: {stdout.readlines()}")
+    #print(f"stderr: {stderr.readlines()}")  
+    if stderr.readlines() != "[]":
+        logger.error (stderr.readlines())
+    else:
+        logger.info (stdout.readlines())    
+except paramiko.SSHException as e:
+    print(f'Erro ao executar o comando remoto: {e}')
+    logger.error (f'Erro ao executar o comando remoto: {e}')
+print()
+
+# 2ª passo: criado webservice para receber os resultados da varredura do sonarqube via webhooks
+#path('resultadosscan/', ResultadosScanAPIView.as_view(), name='resultadosscan'),
+#path('resultadosscan/<int:pk>/', ResultadoScanAPIView.as_view(), name='resultadoscan'),
+#path('resultadosscan/', ResultadosScanAPIView.as_view({'post': 'create'}), name='resultadosscan'),
+
+
+# 3º passo: executar a varredura da aplicação
+print ("Executando o scan do projeto...")
+comando = "docker exec mn.sonar_cli bash -c 'sonar-scanner -X -Dsonar.projectKey=dvwa"
+comando = comando + f" -Dsonar.sources=app/DVWA -Dsonar.host.url={sonar_host} -Dsonar.token={sonar_dvwa_token}"
+comando = comando + f" -Dsonar.login=mmpinto -Dsonar.password=@dm1n'"
+print (f"Comando: {comando}")
+try:
+    stdin,stdout,stderr = ssh.exec_command(comando)
+    stdin.write('docker\n')
+    stdin.flush()    
+    stdin.close()
+    #print(f"stdout: {stdout.readlines()}")
+    #print(f"stderr: {stderr.readlines()}")  
+    if stderr.readlines() != "[]":
+        logger.error (stderr.readlines())
+    else:
+        logger.info (stdout.readlines())
+except paramiko.SSHException as e:
+    print(f'Erro ao executar o comando remoto: {e}')
+    logger.error (f'Erro ao executar o comando remoto: {e}')
+print()
 
 
 # executar teste no servidor docker via SSH
@@ -58,58 +116,6 @@ sonar_dvwa_token = 'squ_957a47e469662baf4ccfaed36337b9e02670dbee'   # mmpinto 12
 #print(resposta.status_code)
 
 #print(cliente.containers.list(filters='name=mn.sonar_cli'))
-
-# define a conexão SSH
-ssh = paramiko.SSHClient()
-#def execute_ssh (comando):
-ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-ssh.connect(hostname='192.168.0.13', username='docker', password='docker')
-
-# 1º passo: clonar na máquina do Sonar_CLI a imagem da aplicação a ser varrida
-comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf DVWA && git clone {dvwa_fonte}'\n"
-print ("Preparando para varredura...")
-print (f"Comando: {comando}")        
-try:  
-    stdin,stdout,stderr = ssh.exec_command(comando)
-    stdin.write('docker\n')
-    stdin.flush()    
-    stdin.close()
-    
-    #print(f"stdout: {stdout.readlines()}")
-    #print(f"stderr: {stderr.readlines()}")  
-    if stderr.readlines() != "[]":
-        logger.error (stderr.readlines())
-except paramiko.SSHException as e:
-    print(f'Erro ao executar o comando remoto: {e}')
-    logger.error (f'Erro ao executar o comando remoto: {e}')
-print()
-
-# 2ª passo: criado webservice para receber os resultados da varredura do sonarqube via webhooks
-#path('resultadosscan/', ResultadosScanAPIView.as_view(), name='resultadosscan'),
-#path('resultadosscan/<int:pk>/', ResultadoScanAPIView.as_view(), name='resultadoscan'),
-#path('resultadosscan/', ResultadosScanAPIView.as_view({'post': 'create'}), name='resultadosscan'),
-
-
-# 3º passo: executar a varredura da aplicação
-print ("Executando o scan do projeto...")
-comando = "docker exec mn.sonar_cli bash -c 'sonar-scanner -X -Dsonar.projectKey=dvwa"
-comando = comando + f" -Dsonar.sources=app/DVWA -Dsonar.host.url={sonar_host} -Dsonar.token={sonar_dvwa_token}"
-comando = comando + f" -Dsonar.login=mmpinto -Dsonar.password=@dm1n'"
-print (f"Comando: {comando}")
-try:
-    stdin,stdout,stderr = ssh.exec_command(comando)
-    stdin.write('docker\n')
-    stdin.flush()    
-    stdin.close()
-    #print(f"stdout: {stdout.readlines()}")
-    #print(f"stderr: {stderr.readlines()}")  
-    if stderr.readlines() != "[]":
-        logger.error (stderr.readlines())
-except paramiko.SSHException as e:
-    print(f'Erro ao executar o comando remoto: {e}')
-    logger.error (f'Erro ao executar o comando remoto: {e}')
-print()
 
 
 #try:

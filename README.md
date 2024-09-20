@@ -28,7 +28,7 @@ O ambiente para realização da prova de conceito para a solução de segurança
 
 ### Instalação do Containernet
 
-Para configuração do Containernet se deve acessar a máquina virtual através de SSH e proceder os seguintes passos para atualização do servidor e instalação do ambiente:
+O Containernet é um fork do Mininet, um emulador de redes que possibilita o uso de container Docker em topologias de rede, sendo usado ativamente pela comunidade de pesquisa, com foco em experimentos no campo de Cloud Computing, Fog Computing, Network Functoin Virtualization (NFV) e Multi-access Edge Computing computação (MEC). Para configuração do Containernet é necessário acessar a máquina virtual, através de SSH, e proceder os seguintes passos para atualização do servidor e preparação do ambiente:
 
 ```shell
 # Atualizar as configurações da máquina e intalar o Git e o Ansible
@@ -40,17 +40,22 @@ Para configuração do Containernet se deve acessar a máquina virtual através 
 # Proceder a instalação do containernet
 ~$ cd containernet
 ~/containernet$ sudo util/install.sh -W
-# Confirmar eventuais necessidades de reinicialização de serviços
-# ajustado erro no trecho '-u', '0, '%s... (sem fechamento das aspas no 0)
-# Ajustar configuração do containernet, para integração do ambiente, conforme indicado:
-# alterar linha containernet/node.py#L304 para:
-# cmd = ['docker', 'exec', '-it', '-u', '0', '%s' % self.did, 'env', 'PS1=' + chr(127),
-#alterar linha containernet/node.py#L307 para:
-# cmd = ['docker', 'exec', '-it', '-u', '0', '%s.%s' % (self.dnameprefix, self.name), 'env', 'PS1=' + chr(127),
-~/containernet$ nano containernet/node.py
 
-#Após isso, executar "sudo make install" no diretório raiz do containernet.
-~/containernet$ sudo make install
+#Caso necessário, confirmar eventuais necessidades de reinicialização de serviços.
+
+#Em caso de erros, verificar e ajustar configuração do containernet, para integração do ambiente, conforme indicado:
+
+#1. editar o arquivo: 
+   ~/containernet$ nano containernet/node.py
+
+#2. alterar linha containernet/node.py#L304 para:
+   cmd = ['docker', 'exec', '-it', '-u', '0', '%s' % self.did, 'env', 'PS1=' + chr(127),
+
+#3. alterar linha containernet/node.py#L307 para:
+   cmd = ['docker', 'exec', '-it', '-u', '0', '%s.%s' % (self.dnameprefix, self.name), 'env', 'PS1=' + chr(127),   
+
+#4. em seguida executar "sudo make install" no diretório raiz do containernet.
+   ~/containernet$ sudo make install
 
 # Executar os comandos abaixo para testar se a instalação do containernet
 ~/containernet$ cd containernet
@@ -133,9 +138,10 @@ def topologia():
       cpu_shares=20,
       #dimage="ramonfontes/dvwa:latest",
       # para tentar corrigir erro de IP e 404 file not found no repositório indicado acima
-      dimage="marcelopinto350/dvwa:latest",
-      volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","dvwa:/var/www/html"],
-      environment={'DISPLAY':":0",'DB_SERVER':"db_dvwa"})
+      #dimage="marcelopinto350/dvwa:latest",
+      dimage="ramonfontes/xss_attack",
+      #volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","dvwa:/var/www/html"],
+      environment={'DISPLAY':":0",'DB_SERVER':"dvwa_db"})
       
    # Banco de dados da aplicação de segurança APPSEG
    appseg_db = net.addDocker('appseg_db',
@@ -173,7 +179,7 @@ def topologia():
    net.addLink(sonar, s1)
    net.addLink(sonar_cli, s1)
    net.addLink(owasp_zap, s1)
-#  net.addLink(owasp_dc, s1)
+   net.addLink(owasp_dc, s1)
    net.addLink(dvwa_db, s1)
    net.addLink(dvwa, s1)
    net.addLink(appseg_db, s1)
@@ -190,6 +196,8 @@ def topologia():
    appseg_db.cmdPrint("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
    # incializar o sonarqube
    sonar.cmd("su sonarqube -c 'docker/entrypoint.sh &'")
+   # executar a aplicação a ser testada dinamicamente (DVWA)
+   dvwa.cmd('sh main.sh &')
    # incializar o owasp zap
    owasp_zap.cmd('zap.sh --addoninstall soap')
    # gerar a estrutura de banco dados da aplicação APPSEG
@@ -215,7 +223,7 @@ Para finalização da configuração do ambiente, proceder as execução dos pas
 ~$ mkdir app
 ~$ cd app
 ~/app$ nano config_topologia.py
-# Colar o código deisponível acima e salvar o arquivo
+# Colar o código disponível acima e salvar o arquivo
 
 # Executar o script para gerar a configuração inicial dos aplicativos
 ~/app$ sudo python config_topologia.py
@@ -239,11 +247,12 @@ appseg_db:/# su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'
 sonarqube@sonar:/opt/sonarqube$ docker/entrypoint.sh &
 
 ```
-Acessar a aplicação pela navegador através do link <url>:<port>, por exemplo, 192.168.0.15:32785
+
+Acessar a aplicação pela navegador através do link <url>:<port>, por exemplo, 192.168.0.15:32771
 3.1. Informar usuário e senha: admin/admin
 3.2. indicar nova senha @dm1n e confirmar
 3.3. Clicar em adicionar manualmente o projeto
-   3.3.1. Indique o no do projeto
+   3.3.1. Indique o nome do projeto
    3.3.2. Indique a chave única para o projeto no sonarqube
    3.3.3 Indique o nome da branch principal do projeto, por exemplo, master
    3.3.4 Clique no botão Set Up
@@ -252,7 +261,8 @@ Acessar a aplicação pela navegador através do link <url>:<port>, por exemplo,
 
 
 4. Configurar o acesso à linha de comando do Sonar (Sonar_CLI)
-Para ter acesso ao SonarCLI pela aplicação APPSEG é necessário configurar uma chave de acesso para SSH da máquina da aplicação para a o container docker
+Para ter acesso ao SonarCLI pela aplicação AppSeg é necessário configurar uma chave de acesso para SSH da máquina da aplicação para a o container docker
+
 4.1. Gerar a chave SSH na máquina onde a aplicação está sendo executada, caso ainda não exista
 ```shell
 ~$ cd .ssh
@@ -264,17 +274,27 @@ Para ter acesso ao SonarCLI pela aplicação APPSEG é necessário configurar um
 
 ```
 
-5. Configurações da aplicação APPSEG
+5. Configurações iniciais da aplicação AppSeg
 
 5.1. Setar o usuário administrador da aplicação
+
 a) Conectar no servidor e entrar na pasta da aplicação, em seguida executar o comando:
 ```shell
 appseg $ python manage.py createsuperuser
 ```
-$ 
 Informar o usuário, e-mail e senha para o administrador da aplicação.
 
 5.2. Inicializar o banco de dados da aplicação
+
+a) Conectar no servidor e entrar na pasta da aplicação, em seguida executar os comandos:
+```shell
+# Executar o comando para fazer a migração das classes para tabelas de banco de dados
+appseg $ python manage.py makemigrations
+
+# Efetivar a migração e criação das tabelas referentes às classes mapeadas
+appseg $ python manage.py migrate
+
+```
 
 
 5.2. Gerar token de autenticação do(s) usuário(s) que irá(ão) acessar os serviços web
@@ -282,15 +302,7 @@ a) Acessar a aplicação pelo navegador de sua preferência, por exemplo, 192.16
 b) Informar usuário e senha de acesso;
 c) Selecionar a opção **Tokens >> + Adicionar**;
 d) Selecionar o usuário e clicar no botão **Salvar**;
-e) Caso queira, é possível clique no ícone **+** ao lado da caixa de seleção de usuário para adicionar novos usuários.
-
-
-
-
-
-
-
-
+e) Caso queira, é possível clicar no ícone **+**, ao lado da caixa de seleção de usuário, para adicionar novos usuários.
 
 
 ## Configuração do ambiente das aplicações
@@ -313,36 +325,18 @@ api/projetc_analyses/<varias opções>
 api/user_tokens
 
 
-Outros comandos:
+**Outros comandos uteis**:
 
 Executar o comando para criação da imagem:
 ```shell
 $ docker run -d --name pg_appseg -e POSTGRES_DB=appseg -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v postgres_data:/var/lib/postgresql/data
+
 ```
 
 Clonar o projeto para a pasta local
 ```shell
-git clone ...
-```
+git clone <url do projeto>
 
-Executar o comando para fazer a migração das classes para tabelas de banco de dados
-```shell
-$ python manage.py makemigrations
-```
-
-Efetivar a migração e criação das tabelas referentes às classes mapeadas
-```shell
-$ python manage.py migrate
-```
-
-Criar o superusuário para administração da aplicação
-```shell
-$ python manage.py createsuperuser
-
-#Informar
-#Usuário: admin
-#e-mail: admin@admin.com
-#Senha: admin
 ```
 
 ## Arquitetura do framework de análise
@@ -351,12 +345,9 @@ Serão utilizadas na prova de conceito as seguintes ferramentas, conforme o tipo
 
 * SAST: SonarQube
 * SCA: OWASP Dependençy Check
-* DAST: OWASP ZAP ** e Burp Suite CE ???**
+* DAST: OWASP ZAP 
 
 
 Serão utilizadas as seguintes aplicações para realização de testes:
 
-**Sistema de biblioteca BIBPUB-IMD**, é uma aplicação web desenvolvida em Python + Django + Postgres, cujo principal objetivo foi servir de case de desenvolvimento web para as disciplinas de Desenvolvimento Web 2 e Testes de Software; Repositório: GitHub -  https://github.com/MarceloPinto350/bibpub.git; Imagem docker: docker push marcelopinto350/bibpub:<tagname>
-
 **Damn Vulnerable Web Application (DVWA)** é uma aplicação web desenvolvida  PHP + MySQL com a finalidade de praticar algumas das mais comuns vulnerabilidades web, com vário níveis de dificuldade; Repositório: Github: https://github.com/digininja/DVWA.git; imagem docker: ...
-

@@ -1,6 +1,6 @@
 import requests, json
 
-from models import Aplicacao
+from .models import Aplicacao
 
 #from models import Aplicacao
 
@@ -48,7 +48,7 @@ def sonarQube_scan(ferramenta_url, aplicacao):
     print(projeto.json())
     
     #sonar_cli =   docker.from_env()
-    return()
+    return(None)
     
     
 
@@ -71,7 +71,7 @@ def owaspDC_scan(ferramenta_url, aplicacao):
     Returns:
         _type_: _description_
     """
-    return ()
+    return (None)
 
 # método para iniciar e obter os resultados da varredura para o OWASP ZAP
 def owaspZap_scan(ferramenta_url, aplicacao):
@@ -89,7 +89,7 @@ def owaspZap_scan(ferramenta_url, aplicacao):
 #    zap.spider(application_url)
 
     # Executar a varredura
-    return (rai)
+    return (None)
     
 # método que inicia a análise e processa a varredura da aplicação, conforme o caso
 def inicializalizacao():
@@ -98,7 +98,7 @@ def inicializalizacao():
     """
     # inicializa as variáveis de ambiente
     sonarQube_url = 'http:// '   
-    return ()
+    return (None)
 
 
 
@@ -140,5 +140,6 @@ def get_aplicacao(nome):
 headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
 url_base = 'http://192.168.0.22:8000/api/v2'
 
-aplicacao = get_aplicacao("DVWA")
-print (aplicacao.nome)
+#aplicacao = get_aplicacao("DVWA")
+print ("executando o método realizar_varredura")
+

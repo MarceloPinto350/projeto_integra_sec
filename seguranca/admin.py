@@ -74,7 +74,8 @@ class SistemaVarreduraAdmin(admin.ModelAdmin):
 # ativos de infraestrutura    
 @admin.register(Servico)
 class ServicoAdmin(admin.ModelAdmin):
-    list_display = ('nome','descricao','protocolo','url','usuario','senha','servidor','status')
+    list_display = ('nome','descricao','protocolo','url','usuario','senha','status')
+                    #'servidor','status')
     filter_horizontal = ('aplicacoes',)
     list_display_icons = True
     list_per_page = 10
@@ -82,7 +83,7 @@ class ServicoAdmin(admin.ModelAdmin):
 @admin.register(Servidor)
 class Servidor(admin.ModelAdmin):
     list_display = ('nome','descricao','tipo','ip','sistema_operacional','processador','memoria','disco','status')
-    filter_horizontal = ('servicos','aplicacoes')
+    #filter_horizontal = ('servicos','aplicacoes')
     list_display_icons = True
     list_per_page = 10
 
@@ -96,7 +97,7 @@ class Rede(admin.ModelAdmin):
 @admin.register(BancoDados) 
 class BancoDados(admin.ModelAdmin):
     list_display = ('nome','descricao','tipo','ip','porta','usuario','senha','servidor','status')
-    filter_horizontal = ('aplicacoes',)
+    #filter_horizontal = ('aplicacoes',)
     list_display_icons = True
     list_per_page = 10
     
