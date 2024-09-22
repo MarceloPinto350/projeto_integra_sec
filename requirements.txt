@@ -13,3 +13,5 @@ pillow==10.4.0
 pipreqs==0.5.0
 psycopg==3.1.18
 requests==2.31.0
+networkx==3.3
+matplotlib==3.9.2

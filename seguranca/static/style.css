@@ -17,4 +17,13 @@ body {
     background-size: auto;
 }
     
-    
+#grafo {
+    width: 1440px;
+    height: 900px;
+    border: 1px solid lightgray;
+  }
+  
+  p {
+    max-width: 1600px;
+  }
+      

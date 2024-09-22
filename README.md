@@ -1,16 +1,22 @@
-# Configuração do ambiente
+# O ambiente
 
-O ambiente para realização da prova de conceito para a solução de segurança de software é composto dos seguintes componentes:
+O ambiente para realização da prova de conceito para a solução de segurança de software AppSeg possui a seguinte composição:
 
 1. Containetnet - para suportar as configurações das ferramentas de análise de segurança
-   1.1. sonar -  servidor da ferramenta Sonar Qube, para análise estática do código fonte das aplicações (SAST)
-   1.2. sonar_cli - é a máquina responsável pela intercomunicação da Aplicação de Análise de Segurança e o Sonar Qube, via linha de comando
-   1.3. owasp_zap - servidor da ferramenta OWASP-ZAP, para análise dinâmica das apliações (DAST)
-   1.4. owasp_dc - servidor da ferramenta OWASP Dependency Check, para análise de dependência de bibliotecas de terceiros (SCA)
+
+   * 1.1. **SAST - SonarQube (sonar)** - servidor da ferramenta Sonar Qube, para análise estática do código fonte das aplicações (SAST)
+
+   * 1.2. **(sonar_cli)** - é a máquina responsável pela intercomunicação da Aplicação de Análise de Segurança e o Sonar Qube, via linha de comando
+
+   * 1.3. **DAST: OWASP ZAP (owasp_zap)** - servidor da ferramenta OWASP-ZAP, para análise dinâmica das apliações (DAST)
+
+   * 1.4. **SCA: OWASP Dependençy Check (owasp_dc)** - servidor da ferramenta OWASP Dependency Check, para análise de dependência de bibliotecas de terceiros (SCA)
+
+   * 1.5. **Damn Vulnerable Web Application (DVWA)** - é uma aplicação web desenvolvida PHP + MySQL com a finalidade de realização de testes e praticar seurança com algumas das mais comuns vulnerabilidades web, com vários níveis de dificuldade; Disponível no repositório do Github: https://github.com/digininja/DVWA.git.
 
 
-2. Aplicação e banco de dados postgres - disponibilização da API para integração dos resultados e controle de chamadas às ferramentas de análise de segurança.
 
+2. Aplicação AppSeg e banco de dados postgres - disponibilização da aplicação WEB e API para cadastro das aplicações e suas configurações, integração dos resultados de análise de vulnerabilidades e controle de chamadas às ferramentas de análise de segurança.
 
 
 ## Preparação do ambiente
@@ -305,29 +311,9 @@ d) Selecionar o usuário e clicar no botão **Salvar**;
 e) Caso queira, é possível clicar no ícone **+**, ao lado da caixa de seleção de usuário, para adicionar novos usuários.
 
 
-## Configuração do ambiente das aplicações
-
-
-
-6. Acesso às APIs do SonarQube:
-api/authentication/login (POST)
-Parâmetros:
-   login 
-   password
-api/authentication/logout (POST)
-api/hostspots/search (GET)
-   pode ser passado vários parâmetros, mas opcionais
-api/hotspots/show
-Parâmero:
-   hostspot
-api/issues/<varias opções>
-api/projetc_analyses/<varias opções>
-api/user_tokens
-
-
 **Outros comandos uteis**:
 
-Executar o comando para criação da imagem:
+Executar o comando para criação de imagem:
 ```shell
 $ docker run -d --name pg_appseg -e POSTGRES_DB=appseg -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v postgres_data:/var/lib/postgresql/data
 
@@ -339,15 +325,3 @@ git clone <url do projeto>
 
 ```
 
-## Arquitetura do framework de análise
-
-Serão utilizadas na prova de conceito as seguintes ferramentas, conforme o tipo de teste:
-
-* SAST: SonarQube
-* SCA: OWASP Dependençy Check
-* DAST: OWASP ZAP 
-
-
-Serão utilizadas as seguintes aplicações para realização de testes:
-
-**Damn Vulnerable Web Application (DVWA)** é uma aplicação web desenvolvida  PHP + MySQL com a finalidade de praticar algumas das mais comuns vulnerabilidades web, com vário níveis de dificuldade; Repositório: Github: https://github.com/digininja/DVWA.git; imagem docker: ...

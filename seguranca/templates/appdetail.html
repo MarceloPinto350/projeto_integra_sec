@@ -2,7 +2,7 @@
 
 <link rel="stylesheet" href="{% static 'style.css' %}">
 
-<form action="{% url 'appdetail' aplicacao.id %}" method="post">
+<form action="{% url 'graphdetail' aplicacao.id %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="aplicacao_id" value="{{ aplicacao.id }}">
     <fieldset>
@@ -16,7 +16,7 @@
         Dada cadastro: <input type="models.DateTimeField" name="data_registro" value="{{ aplicacao.data_registro }} readonly"  length=25><br>
 
     </fieldset>
-    <input type="submit" value="Varrer">
+    <input type="submit" value="Consulta por Grafo">
 </form>
 
 

@@ -8,7 +8,7 @@ import varredura_result
 
 logger = logging.getLogger(__name__)
 
-docker_host = 'cd '
+docker_host = '192.168.0.12'
 sonar_host = 'http://192.168.0.12:32768'
 sonar_api = f'{sonar_host}/api'
 docker_server = 'http://192.168.0.12:2375'
@@ -23,7 +23,7 @@ ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect(hostname=docker_host, username='docker', password='docker')
 
-output = "owasp_zap_report"
+output = "owasp_zap_report.xml"
 
 # template do script para autenticação
 # // This authentication script can be used to authenticate in a webapplication via forms.
@@ -161,7 +161,8 @@ def prepara_varredura():
     
     # Transfere o arquivo para o servidor remoto
     print ("Criando o script...")
-    print (f"Direttório remoto: {sftp.listdir()}")
+    #print (f"Direttório remoto: {sftp.listdir()}")
+    print (f"Comando: sftp.putfo(arquivo, '/var/lib/docker/volumes/owasp_zap/_data/authentication.js')")
     try:
         sftp.putfo(arquivo, "/var/lib/docker/volumes/owasp_zap/_data/authentication.js")
     except paramiko.SSHException as e:
@@ -198,8 +199,8 @@ def executa_varredura():
     """
     # 2ª passo: rodar o scanner do owasp-zap via CLI
     url_zap = "http://192.168.0.12:32770/"
-    #comando = f"docker exec mn.owasp_zap bash -c 'zap.sh -dir wrk -loglevel ERROR -script script/authentication.js -cmd -quickurl {url_zap} -quickprogress -quickout {output}'\n"
-    comando = f"docker exec mn.owasp_zap bash -c 'zap.sh -dir wrk -loglevel ERROR -cmd -quickurl {url_zap} -quickprogress -quickout {output}'\n"
+    comando = f"docker exec mn.owasp_zap bash -c 'zap.sh -dir wrk -loglevel ERROR -script script/authentication.js -cmd -quickurl {url_zap} -quickprogress -quickout {output}'\n"
+    #comando = f"docker exec mn.owasp_zap bash -c 'zap.sh -dir wrk -loglevel ERROR -cmd -quickurl {url_zap} -quickprogress -quickout {output}'\n"
     print ("Executando a varredura...")
     print (f"Comando: {comando}")            
     try:
@@ -256,9 +257,9 @@ def coleta_resultado():
     print('---')
 
 # processando os testes
-#prepara_varredura()
+prepara_varredura()
 executa_varredura()
-#coleta_resultado()
+coleta_resultado()
 ssh.close()
 
 
