@@ -1,5 +1,7 @@
 import requests, paramiko, io, logging     # para acessar o servidor docker
 from rest_framework.response import Response
+import json
+
 
 # importando o serializer para salvar os dados no BD
 #from seguranca.serializers import ResultadoScanSerializer
@@ -23,7 +25,7 @@ ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect(hostname=docker_host, username='docker', password='docker')
 
-output = "owasp_zap_report.xml"
+output = "owasp_zap_report.json"
 
 # template do script para autenticação
 # // This authentication script can be used to authenticate in a webapplication via forms.
@@ -162,9 +164,22 @@ def prepara_varredura():
     # Transfere o arquivo para o servidor remoto
     print ("Criando o script...")
     #print (f"Direttório remoto: {sftp.listdir()}")
-    print (f"Comando: sftp.putfo(arquivo, '/var/lib/docker/volumes/owasp_zap/_data/authentication.js')")
+    print (f"Comando: sftp.putfo(arquivo, 'authentication.js')")
     try:
-        sftp.putfo(arquivo, "/var/lib/docker/volumes/owasp_zap/_data/authentication.js")
+        sftp.putfo(arquivo, "authentication.js")
+        print ("Copiando o arquivos para o servidor Owasp_ZAP...")
+        comando = f"docker cp authentication.js mn.owasp_zap:/zap/wrk/scripts/authentication.js\n"
+        try:
+            stdin,stdout,stderr = ssh.exec_command(comando)
+            stdin.write('docker\n')
+            stdin.flush()    
+            stdin.close()
+            print(f"stdout: {stdout.readlines()}")
+            print(f"stderr: {stderr.readlines()}")  
+        except paramiko.SSHException as e0:
+            print(f'Erro ao criar o arquivo remoto: {e0}')
+            logger.error (f'Erro ao criar o arquivo remoto: {e0}')
+    # print ("Criando o script...")
     except paramiko.SSHException as e:
         print(f'Erro ao criar o arquivo remoto: {e}')
         logger.error (f'Erro ao criar o arquivo remoto: {e}')
@@ -176,7 +191,7 @@ def prepara_varredura():
         logger.error (f'Erro ao criar o arquivo remoto: {eee}')
 
     # Fecha a conexão
-    sftp.close()
+    #sftp.close()
     
     # comando = f"docker exec mn.owasp_dc bash -c 'echo ''{script}'' > scripts/authentication.js'\n"
     # print ("Criando o script...")
@@ -198,9 +213,9 @@ def executa_varredura():
     Função que executa a varredura DAST
     """
     # 2ª passo: rodar o scanner do owasp-zap via CLI
-    url_zap = "http://192.168.0.12:32770/"
-    comando = f"docker exec mn.owasp_zap bash -c 'zap.sh -dir wrk -loglevel ERROR -script script/authentication.js -cmd -quickurl {url_zap} -quickprogress -quickout {output}'\n"
-    #comando = f"docker exec mn.owasp_zap bash -c 'zap.sh -dir wrk -loglevel ERROR -cmd -quickurl {url_zap} -quickprogress -quickout {output}'\n"
+    url_zap = "http://192.168.0.12:32770"
+    #comando = f"docker exec mn.owasp_zap bash -c 'zap.sh -dir wrk -loglevel ERROR -script wrk/scripts/authentication.js -cmd -quickurl {url_zap} -quickprogress -quickout {output}'\n"
+    comando = f"docker exec mn.owasp_zap bash -c 'python zap-full-scan.py -t {url_zap} -J {output} -d'\n"
     print ("Executando a varredura...")
     print (f"Comando: {comando}")            
     try:
@@ -236,7 +251,8 @@ def coleta_resultado():
             print (data)
             print ("------------------------------------")
             #converter o arquivo XML para JSON
-            dados = data.xml_to_json()
+            #dados = data.xml_to_json()
+            dados = json.dumps(dados,indent=3)
             print (dados)
             #dados = varredura_result.xml_to_json(data)
             #payload = json.dumps(dados,indent=3)
@@ -259,7 +275,7 @@ def coleta_resultado():
 # processando os testes
 prepara_varredura()
 executa_varredura()
-coleta_resultado()
+#coleta_resultado()
 ssh.close()
 
 
