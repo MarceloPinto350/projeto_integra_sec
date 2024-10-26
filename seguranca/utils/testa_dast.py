@@ -220,7 +220,6 @@ def executa_varredura():
     print (f"Comando: {comando}")            
     try:
         stdin,stdout,stderr = ssh.exec_command(comando)
-        stdin.write('docker\n')
         stdin.flush()    
         stdin.close()
         print(f"stdout: {stdout.readlines()}")

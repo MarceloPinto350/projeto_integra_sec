@@ -128,14 +128,20 @@ def topologia():
    #appseg_db.cmdPrint("docker-ensure-initdb.sh")      # somente a primeira vez
    # inicializar o postgresql
    appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
+   
    # incializar o sonarqube
    sonar.cmd("su sonarqube -c 'docker/entrypoint.sh &'")
+   
    # configurar o owasp_dc
    owasp_dc.cmd('echo export JAVA_OPTION="Xmx2g" >> ~/.bashrc')
-   # incializar o owasp zap
-   owasp_zap.cmd('zap.sh --addoninstall soap')
+   
+   # incializar o owasp zap colocando a pasta de trabalho como sendo de propriedade do usuário zap
+   #owasp_zap.cmd('zap.sh --addoninstall soap')
+   owasp_zap.cmd('chown -R zap:zap wrk')
+   
    # subir o BD da aplicação de teste DVWA
    dvwa_db.cmd('service mariadb start')
+   
    # rodar a aplicação de teste DVWA
    dvwa.cmd('sh main.sh &')   
    # gerar a estrutura de banco dados da aplicação APPSEG

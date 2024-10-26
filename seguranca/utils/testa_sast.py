@@ -18,7 +18,6 @@ sonar_dvwa_token = 'squ_957a47e469662baf4ccfaed36337b9e02670dbee'   # mmpinto 12
 
 
 
-
 # define a conexão SSH
 ssh = paramiko.SSHClient()
 #def execute_ssh (comando):
