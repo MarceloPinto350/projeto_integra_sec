@@ -38,7 +38,7 @@ SECRET_KEY = 'django-insecure-^q&m4yv8-&yrz&)e(mh=&2r3+(_c3091y%0p6#p7dprs3a6(n3
 DEBUG = True
 
 
-ALLOWED_HOSTS = ["192.168.0.22","10.100.0.155","192.168.0.4","localhost","127.0.0.1"]
+ALLOWED_HOSTS = ["192.168.0.22","10.100.0.155","192.168.0.4","localhost","127.0.0.1","192.168.0.15","192.168.0.16"]
 
 
 # Application definition
@@ -81,7 +81,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://10.100.0.155:8000",
     "http://10.100.0.155:8000",
     "http://192.168.0.4:8000",
-    
+    "http://192.168.0.15:8000",
+    "http://192.168.0.16:8000",
 ]
 
 CORS_ALLOWED_HEADERS = list(default_headers) + [
@@ -117,10 +118,11 @@ WSGI_APPLICATION = 'integracao.wsgi.application'
 #        'ENGINE': 'django.db.backends.sqlite3',
 #        'NAME': BASE_DIR / 'db.sqlite3',
 #    }
+print("Variável POSTGRES_HOST = ",os.getenv('POSTGRES_HOST'))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': '192.168.0.12',  # os.getenv('POSTGRES_HOST'),
+        'HOST': '192.168.0.16',  # os.getenv('POSTGRES_HOST'),
         'NAME': 'appseg',       #os.getenv('POSTGRES_DB'),
         'USER': 'postgres',     #os.getenv('POSTGRES_USER'),
         'PASSWORD': 'postgres', #os.getenv('POSTGRES_PASSWORD'),

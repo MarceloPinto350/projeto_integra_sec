@@ -122,30 +122,36 @@ def topologia():
    s1.start([])
 
    # complementação das configurações e execuções posteriores 
+   
    #Executar o comando para o postgres a 1ª vez: 
    #appseg_db.cmdPrint("su postgres -c 'initdb -D /var/lib/postgresql/data'")
-   #docker-ensure-initdb.sh
    #appseg_db.cmdPrint("docker-ensure-initdb.sh")      # somente a primeira vez
-   # inicializar o postgresql
+   
+   # Inicializar o postgresql
+   #appseg_db.cmdPrint("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
    appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
    
-   # incializar o sonarqube
+   # Incializar o sonarqube
    sonar.cmd("su sonarqube -c 'docker/entrypoint.sh &'")
    
    # configurar o owasp_dc
    owasp_dc.cmd('echo export JAVA_OPTION="Xmx2g" >> ~/.bashrc')
    
-   # incializar o owasp zap colocando a pasta de trabalho como sendo de propriedade do usuário zap
+   # Inicializar o owasp zap colocando a pasta de trabalho como sendo de propriedade do usuário zap
    #owasp_zap.cmd('zap.sh --addoninstall soap')
    owasp_zap.cmd('chown -R zap:zap wrk')
    
-   # subir o BD da aplicação de teste DVWA
-   dvwa_db.cmd('service mariadb start')
+   # Subir o BD da aplicação de teste DVWA
+   #dvwa_db.cmd('service mariadb start')
+   #dvwa_db.cmd('docker-entrypoint.sh mysqld &')
    
-   # rodar a aplicação de teste DVWA
+   # Rodar a aplicação de teste DVWA
    dvwa.cmd('sh main.sh &')   
-   # gerar a estrutura de banco dados da aplicação APPSEG
-   #appseg.cmd('python3 /appseg/manage.py migrate')
+   
+   # Subir a aplicaçã AppSeg
+   #appseg.cmd('cd /appseg & python3 manage.py migrate')   #somente na primeira execução
+   appseg.cmd('cd /appseg & python3 manage.py runserver 0.0.0.0:8000')
+   
 
  
    info('*** Executando CLI\n')
