@@ -410,7 +410,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='rede',
             name='ativo_infraestrutura',
-            field=models.ForeignKey(default=django.utils.timezone.now, on_delete=django.db.models.deletion.CASCADE, to='seguranca.ativoinfraestrutura', verbose_name='Ativo de Infraestrutura'),
+            #field=models.ForeignKey(default=django.utils.timezone.now, on_delete=django.db.models.deletion.CASCADE, to='seguranca.ativoinfraestrutura', verbose_name='Ativo de Infraestrutura'),
+            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='seguranca.ativoinfraestrutura', verbose_name='Ativo de Infraestrutura'),
             preserve_default=False,
         ),
         migrations.AddField(
@@ -422,7 +423,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='servico',
             name='porta',
-            field=models.IntegerField(default=django.utils.timezone.now, verbose_name='Porta de serviço'),
+            #field=models.IntegerField(default=django.utils.timezone.now, verbose_name='Porta de serviço'),
+            field=models.IntegerField(default=0, verbose_name='Porta de serviço'),
             preserve_default=False,
         ),
         migrations.AddField(
@@ -438,7 +440,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sistemavarredura',
             name='aplicacao_seguranca',
-            field=models.ForeignKey(default=django.utils.timezone.now, on_delete=django.db.models.deletion.CASCADE, to='seguranca.aplicacao', verbose_name='Aplicação de Segurança'),
+            #field=models.ForeignKey(default=django.utils.timezone.now, on_delete=django.db.models.deletion.CASCADE, to='seguranca.aplicacao', verbose_name='Aplicação de Segurança'),
+            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='seguranca.aplicacao', verbose_name='Aplicação de Segurança'),
             preserve_default=False,
         ),
         migrations.AddField(
@@ -450,7 +453,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sistemavarredura',
             name='ip_acesso',
-            field=models.GenericIPAddressField(default=django.utils.timezone.now, protocol='IPv4', verbose_name='Endereço IP'),
+            #field=models.GenericIPAddressField(default=django.utils.timezone.now, protocol='IPv4', verbose_name='Endereço IP'),
+            field=models.GenericIPAddressField(default='127.0.0.1', protocol='IPv4', verbose_name='Endereço IP'),
             preserve_default=False,
         ),
         migrations.AddField(
@@ -540,7 +544,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='resultadoscan',
             name='varredura',
-            field=models.ForeignKey(default=django.utils.timezone.now, on_delete=django.db.models.deletion.CASCADE, to='seguranca.varredura', verbose_name='Varredura'),
+            #field=models.ForeignKey(default=django.utils.timezone.now, on_delete=django.db.models.deletion.CASCADE, to='seguranca.varredura', verbose_name='Varredura'),
+            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='seguranca.varredura', verbose_name='Varredura'),
             preserve_default=False,
         ),
     ]

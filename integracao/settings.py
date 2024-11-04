@@ -118,14 +118,18 @@ WSGI_APPLICATION = 'integracao.wsgi.application'
 #        'ENGINE': 'django.db.backends.sqlite3',
 #        'NAME': BASE_DIR / 'db.sqlite3',
 #    }
-print("Variável POSTGRES_HOST = ",os.getenv('POSTGRES_HOST'))
+#print("Variável POSTGRES_HOST = ",os.getenv('POSTGRES_HOST'))
+#print("Variável POSTGRES_PASSWORD = ",os.getenv('POSTGRES_PASSWORD'))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': '192.168.0.16',  # os.getenv('POSTGRES_HOST'),
+        #'HOST': '192.168.0.16',  #os.getenv('POSTGRES_HOST'),
+        'HOST':  os.getenv('POSTGRES_HOST'),
         'NAME': 'appseg',       #os.getenv('POSTGRES_DB'),
         'USER': 'postgres',     #os.getenv('POSTGRES_USER'),
-        'PASSWORD': 'postgres', #os.getenv('POSTGRES_PASSWORD'),
+        #'PASSWORD': 'postgres', #os.getenv('POSTGRES_PASSWORD'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'PORT': '32771'         #os.getenv('POSTGRES_PORT')
     }    
 }

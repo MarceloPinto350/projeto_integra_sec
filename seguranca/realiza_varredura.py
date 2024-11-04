@@ -141,5 +141,5 @@ headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
 url_base = 'http://192.168.0.22:8000/api/v2'
 
 #aplicacao = get_aplicacao("DVWA")
-print ("executando o método realizar_varredura")
+#print ("executando o método realizar_varredura")
 

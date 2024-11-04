@@ -46,7 +46,7 @@ def processa_resultado(novo_resultado,aplicacao="dvwa"):
       aplicacao (str, optional): É a aplicação que está sendo avaliada. Default "dvwa".
 
   Returns:
-      JSON: Restorna o resultado da varredura no padrão da AppSeg
+      JSON: Retorna o resultado da varredura no padrão da AppSeg
   """
   try:
     estrutura = novo_resultado.keys()
