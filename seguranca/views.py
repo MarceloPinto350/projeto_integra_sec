@@ -17,13 +17,13 @@ from rest_framework import permissions
 
 from seguranca import realiza_varredura 
 
-from .models import (TipoAplicacao, AreaNegocial, Aplicacao, VersaoAplicacao, TipoAtivoInfraestrutura, User,
-   AtivoInfraestrutura, ResultadoScan, TipoVarredura, SistemaVarredura, TipoModeloDocumento, ModeloDocumento,
-   Rede, Servidor, BancoDados, Servico
+from .models import (AreaNegocial,TipoAplicacao,TipoVarredura,SistemaVarredura,Aplicacao,VersaoAplicacao,ResultadoScan,Configuracao,
+   ArquivoConfiguracao,ModeloDocumento,AtivoInfraestrutura,Relacionamento,TipoAtivoInfraestrutura,User,Servico,BancoDados,Rede, 
+   Servidor,TipoRelacionamento,Varredura
 )
 from .serializers import (TipoAplicacaoSerializer, AreaNegocialSerializer, AplicacaoSerializer, VersaoAplicacaoSerializer,
    TipoAtivoInfraestruturaSerializer, AtivoInfraestruturaSerializer, ResultadoScanSerializer, TipoVarreduraSerializer, 
-   VersaoAplicacaoSerializer, SistemaVarreduraSerializer, TipoModeloDocumentoSerializer, ModeloDocumentoSerializer,
+   VersaoAplicacaoSerializer, SistemaVarreduraSerializer, ModeloDocumentoSerializer,
    RedeSerializer, ServidorSerializer, BancoDadosSerializer, ServicoSerializer   
 )
 from .permissions import EhSuperUsuario
@@ -200,11 +200,7 @@ class SistemaVarreduraViewSet(viewsets.ModelViewSet):
    permissions_classes = (permissions.DjangoModelPermissions, )
    queryset = SistemaVarredura.objects.all()
    serializer_class = SistemaVarreduraSerializer
-
-class TipoModeloDocumentoViewSet(viewsets.ModelViewSet):
-   queryset = TipoModeloDocumento.objects.all()
-   serializer_class = TipoModeloDocumentoSerializer
-   
+  
 class ModeloDocumentoViewSet(viewsets.ModelViewSet):
    permissions_classes = (permissions.DjangoModelPermissions, )
    queryset = ModeloDocumento.objects.all()
