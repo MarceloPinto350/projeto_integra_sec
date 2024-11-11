@@ -15,7 +15,8 @@ from rest_framework import mixins
 
 from rest_framework import permissions
 
-from seguranca import realiza_varredura 
+from seguranca import realiza_varredura
+from seguranca.utils import varrer_SAST
 
 from .models import (AreaNegocial,TipoAplicacao,TipoVarredura,SistemaVarredura,Aplicacao,VersaoAplicacao,ResultadoScan,Configuracao,
    ArquivoConfiguracao,ModeloDocumento,AtivoInfraestrutura,Relacionamento,TipoAtivoInfraestrutura,User,Servico,BancoDados,Rede, 
@@ -23,7 +24,7 @@ from .models import (AreaNegocial,TipoAplicacao,TipoVarredura,SistemaVarredura,A
 )
 from .serializers import (TipoAplicacaoSerializer, AreaNegocialSerializer, AplicacaoSerializer, VersaoAplicacaoSerializer,
    TipoAtivoInfraestruturaSerializer, AtivoInfraestruturaSerializer, ResultadoScanSerializer, TipoVarreduraSerializer, 
-   VersaoAplicacaoSerializer, SistemaVarreduraSerializer, ModeloDocumentoSerializer,
+   VersaoAplicacaoSerializer, SistemaVarreduraSerializer, ModeloDocumentoSerializer, VarreduraSerializer,
    RedeSerializer, ServidorSerializer, BancoDadosSerializer, ServicoSerializer   
 )
 from .permissions import EhSuperUsuario
@@ -32,6 +33,7 @@ from .permissions import EhSuperUsuario
 #from integracao import varredura_result
 from seguranca.utils import varredura_result
 
+import datetime
 
 """
 API Versão 1.0
@@ -135,13 +137,11 @@ class AplicacaoViewSet(viewsets.ModelViewSet):
       ultima_versao = self.get_object(0)
       serializer = VersaoAplicacaoSerializer(ultima_versao)
       return Response(serializer.data)
-
-# comentado para mostrar a mesma coisa feita através do uso de mixins para modificar conportamento padrão
-# a ser utilizado conforme a necessidades
-#class VersaoViewSet(viewsets.ModelViewSet):
-#   queryset = VersaoAplicacao.objects.all()
-#   serializer_class = VersaoAplicacaoSerializer
-
+   # comentado para mostrar a mesma coisa feita através do uso de mixins para modificar conportamento padrão
+   # a ser utilizado conforme a necessidades
+   #class VersaoViewSet(viewsets.ModelViewSet):
+   #   queryset = VersaoAplicacao.objects.all()
+   #   serializer_class = VersaoAplicacaoSerializer
 
 class VersaoViewSet( 
    # caso queira não disponibilizar todas as ações, pode-se comentar a que vc deseja bloquear
@@ -164,7 +164,6 @@ class AtivoInfraestruturaViewSet(viewsets.ModelViewSet):
    permissions_classes = (permissions.DjangoModelPermissions, )
    queryset = AtivoInfraestrutura.objects.all()
    serializer_class = AtivoInfraestruturaSerializer
-
 
 # classes para manipulação dos ativos de inraestrutura]
 class RedeViewSet(viewsets.ModelViewSet):
@@ -201,10 +200,16 @@ class SistemaVarreduraViewSet(viewsets.ModelViewSet):
    queryset = SistemaVarredura.objects.all()
    serializer_class = SistemaVarreduraSerializer
   
+class VarreduraViewSet(viewsets.ModelViewSet):  
+   permissions_classes = (permissions.DjangoModelPermissions, )
+   queryset = Varredura.objects.all()
+   serializer_class = VarreduraSerializer
+  
 class ModeloDocumentoViewSet(viewsets.ModelViewSet):
    permissions_classes = (permissions.DjangoModelPermissions, )
    queryset = ModeloDocumento.objects.all()
    serializer_class = ModeloDocumento
+
 
 ####   
 # visões das páginas web 
@@ -258,6 +263,7 @@ class DetailView(generic.DetailView):
 #### 
 # visões para chamadas de APIs para processamento das varreduras
 ####
+
 # Webhook para chamada da API pelo SonarQube
 #path('resultados/', ResultadoViewSet.as_view({'post':'post'}), name='resultados'),
 class ResultadoViewSet(viewsets.ViewSet):
@@ -279,26 +285,128 @@ class ResultadoViewSet(viewsets.ViewSet):
 # classe que deverá ser utilizada para a página de varredura das aplicações  
 class VarrerViewSet(viewsets.ViewSet):
    def post(self, request):
-      aplicacao = Aplicacao.objects.get(pk=request.data['aplicacao'])
-      print(f"Varrendo aplicação {aplicacao.nome}")
-      ultima_versao = aplicacao.ultima_versao()
-      print(f"Última versão: {ultima_versao.nome_versao}")
-      
-      resultado = {
-         "Aplicacao": aplicacao.nome,
-         "Versao": ultima_versao.nome_versao
-      }
-      # validar o serializer e salvar dados no BD
-      
-      serializer =  serializer(data=resultado)
-      try:
-         realiza_varredura()
-         
-      #if serializer.is_valid():
-         return Response(serializer.data, status=201)
-      #else:
-      except Exception as e:
+      ########################################################
+      # CRIANDO A VARREDURA
+      varredura = realiza_varredura.inicializa(request.data)
+      serializer =  VarreduraSerializer(data=varredura)
+      if serializer.is_valid():
+         serializer.save()
+         #return Response(serializer.data, status=201)
+      else:
          return Response(serializer.errors, status=400)
+      print()
+      print (f"Varredura cadastrada: {serializer.data}")
+      ########################################################
+      # PROCESSANDO CADA TIPO DE VARREDURA
+      aplicacao = Aplicacao.objects.get(pk=serializer.data['aplicacao'])
+      # coleta os sistemas de varredura ativos para a aplicação
+      versoes = VersaoAplicacao.objects.filter(aplicacao=aplicacao.id)
+      lista_versoes = []
+      for ver in versoes:  
+         lista_versoes.append(ver.id)
+      print (f"Varrendo aplicação {serializer.data['aplicacao']} - {lista_versoes}")
+      sistemas_varredura = SistemaVarredura.objects.filter(situacao='ATIVO', aplicacoes__in=lista_versoes)
+      resultado = {}
+      for sist_varr in sistemas_varredura:
+         #aplicacao_seguranca = Aplicacao.objects.get(id=sist_varr.tipo_varredura.id)
+         #print (f"Sistema de varredura: {sist_varr.id} - {sist_varr.tipo_varredura.nome} ==> {sist_varr.aplicacao_seguranca.url_codigo_fonte}")  
+         if "SAST" == sist_varr.tipo_varredura.nome:
+            processar = {
+               "aplicacao": aplicacao.nome,
+               "aplicacao_sigla": aplicacao.sigla,     
+               "aplicacao_id": aplicacao.id,
+               "url_codigo_fonte": aplicacao.url_codigo_fonte,
+               "varredura": serializer.data['id'],
+               "sistema_varredura": sist_varr.id,
+               "sist_varredura_ip_acesso": sist_varr.ip_acesso,
+               "sist_varredura_host": sist_varr.aplicacao_seguranca.url_codigo_fonte,
+               "sist_varredura_comando": sist_varr.comando,
+               "sist_varredura_webhook": sist_varr.usa_webhook,
+               "sist_varredura_tipo": sist_varr.tipo_varredura,
+               "sist_varredura_sigla_tipo": sist_varr.tipo_varredura.nome,
+               "sist_varredura_usuario": sist_varr.usuario, #sist_varr.aplicacao_seguranca.usuario_servico, 
+               "sist_varredura_senha": sist_varr.senha, #sist_varr.aplicacao_seguranca.senha_servico,
+               "sist_varredura_token": sist_varr.token,
+               "caminho_resultado": f"app/{aplicacao.sigla}_{sist_varr.tipo_varredura.nome}_{sist_varr.id}.json"
+            }
+            # realiza a varredura
+            #print (f"Vai processar: {processar}")
+            resultado = varrer_SAST.processa(processar)
+            
+            print(resultado)
+            # validar o serializer e salvar dados no BD
+            serializer =  ResultadoScanSerializer(data=resultado)
+            if serializer.is_valid():
+               serializer.save()
+               return Response(serializer.data, status=201)
+            else:
+               return Response(serializer.errors, status=400)
+         # elif "DAST" == TipoVarredura.objects.get(id=sist_varr.aplicacao_seguranca.id):
+         #    processar = {
+         #       "aplicacao": aplicacao.nome,
+         #       "aplicacao_sigla": aplicacao.sigla,     
+         #       "aplicacao_id": aplicacao.id,
+         #       "url_codigo_fonte": aplicacao.url_codigo_fonte,
+         #       "varredura": serializer.data['id'],
+         #       "sistema_varredura": sist_varr.id,
+         #       "sist_varredura_ip_acesso": sist_varr.ip_acesso,
+         #       "sist_varredura_host": sist_varr.url_codigo_fonte,
+         #       "sist_varredura_comando": sist_varr.comando,
+         #       "sist_varredura_webhook": sist_varr.usa_webhook,
+         #       "sist_varredura_tipo": sist_varr.tipo_varredura,
+         #       "sist_varredura_sigla_tipo": "DAST",
+         #       "sist_varredura_usuario": sist_varr.usuario,
+         #       "sist_varredura_senha": sist_varr.senha,
+         #       "sist_varredura_token": sist_varr.token_acesso,
+         #    }
+         #    # processo a varredura e retorna o resultado
+         #    # resultado = {
+         #    #    "aplicacao": aplicacao.pk,
+         #    #    "varredura": ultima_versao.nome_versao,
+         #    #    "sistemas_varredura": lista_sistemas
+         #    # }   
+         #    # realiza a varredura
+         #    resultado = varrer_SAST.inicializa(processar)
+            
+         #    print(resultado)
+         #    # validar o serializer e salvar dados no BD
+         #    serializer =  ResultadoScanSerializer(data=resultado)
+         #    if serializer.is_valid():
+         #       serializer.save()
+         #       return Response(serializer.data, status=201)
+         #    else:
+         #       return Response(serializer.errors, status=400)
+     
+      print(resultado)
+         
+      #return Response(serializer.data, status=201)
+      serializer =  ResultadoScanSerializer(data=varredura)
+      if serializer.is_valid():
+         #serializer.save()
+         return Response(serializer.errors, status=400)
+      else:
+         return Response(serializer.errors, status=400)
+   
+      
+      # print(f"Varrendo aplicação {aplicacao.nome}")
+      # ultima_versao = aplicacao.ultima_versao()
+      # print(f"Última versão: {ultima_versao.nome_versao}")
+      
+      # resultado = {
+      #    "Aplicacao": aplicacao.nome,
+      #    "Versao": ultima_versao.nome_versao
+      # }
+      # # validar o serializer e salvar dados no BD
+      
+      # serializer =  serializer(data=resultado)
+      # try:
+      #    realiza_varredura()
+         
+      # #if serializer.is_valid():
+      #    return Response(serializer.data, status=201)
+      # #else:
+      # except Exception as e:
+      #    return Response(serializer.errors, status=400)
    """
    View function para a página de varredura
    """

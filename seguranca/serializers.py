@@ -29,9 +29,10 @@ class SistemaVarreduraSerializer(serializers.ModelSerializer):
    tipos_varredura = serializers.PrimaryKeyRelatedField(many=True, read_only=True)  
    class Meta:
       model = SistemaVarredura
-      fields = (
-        'id','aplicacao_seguranca','tipo_varredura','comando','usa_webhook','aplicacoes'
-      )
+      fields = '__all__'
+      #fields = (
+      #  'id','aplicacao_seguranca','tipo_varredura','comando','usa_webhook','aplicacoes'
+      #)
   
 class AplicacaoSerializer(serializers.ModelSerializer):
    # usando Nested Relatioship: Ruim para muitos registros, pois pode sobrecarregar a API
@@ -51,7 +52,7 @@ class AplicacaoSerializer(serializers.ModelSerializer):
    class Meta:
       extra_kwargs = {
          'url_acesso': {'write_only': True},
-         'usuario_servico': {'write_only': True},
+         #'usuario_servico': {'write_only': True},
          'senha_servico': {'write_only': True},
          'token_acesso': {'write_only': True},         
       }
@@ -105,6 +106,7 @@ class RelacionamentoSerializer(serializers.ModelSerializer):
    class Meta:
       model = Relacionamento
       fields = '__all__'
+
 class AtivoInfraestruturaSerializer(serializers.ModelSerializer): 
    class Meta:
       model = AtivoInfraestrutura
@@ -151,6 +153,7 @@ class TipoRelacionamentoSerializer(serializers.ModelSerializer):
       fields = '__all__'
 
 class VarreduraSerializer(serializers.ModelSerializer):
+   #aplicacao = AplicacaoSerializer(read_only=True)
    class Meta: 
       model = Varredura
       fields = '__all__'

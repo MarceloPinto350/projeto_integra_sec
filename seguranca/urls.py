@@ -15,7 +15,7 @@ from .views import (
       TipoAplicacaoViewSet,AreaNegocialViewSet,AplicacaoViewSet,
       VersaoViewSet,TipoAtivoInfraestruturaViewSet,AtivoInfraestruturaViewSet,
       ResultadoScanViewSet,ResultadoViewSet,TipoVarreduraViewSet,VarrerViewSet,
-      SistemaVarreduraViewSet,ModeloDocumentoViewSet,
+      SistemaVarreduraViewSet,ModeloDocumentoViewSet,VarreduraViewSet,
       RedeViewSet,BancoDadosViewSet,ServidorViewSet,ServicoViewSet)   
 
 # definindo o roteador para facilitar a referencia das APIs
@@ -24,8 +24,8 @@ router.register('tiposaplicacao',TipoAplicacaoViewSet)
 router.register('areasnegociais',AreaNegocialViewSet)
 router.register('aplicacoes',AplicacaoViewSet)
 router.register('versoes',VersaoViewSet)
-router.register('versoes',TipoAtivoInfraestruturaViewSet)
-router.register('versoes',AtivoInfraestruturaViewSet)
+router.register('tipoativoinfraestrutura',TipoAtivoInfraestruturaViewSet)
+router.register('ativoinfraestrutura',AtivoInfraestruturaViewSet)
 router.register('resultadosscan',ResultadoScanViewSet)
 # ativos de infraestrutura
 router.register('redes',RedeViewSet)      
@@ -36,7 +36,7 @@ router.register('bancodados',BancoDadosViewSet)
 #router.register('results',ResultadoViewSet, basename='results')
 router.register('tiposvarredura',TipoVarreduraViewSet)
 router.register('sistemasvarredura',SistemaVarreduraViewSet)      
-#router.register('versoes',TipoModeloDocumentoViewSet)
+router.register('varreduras',VarreduraViewSet)
 router.register('versoes',ModeloDocumentoViewSet)
 
 # define as rotas para as APIs

@@ -15,6 +15,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import logging  # adicionado para permitir logar as mensagens de erro
 import os
 
 from corsheaders.defaults import default_headers    # para permitir acesso de qualquer origem
@@ -37,6 +38,33 @@ SECRET_KEY = 'django-insecure-^q&m4yv8-&yrz&)e(mh=&2r3+(_c3091y%0p6#p7dprs3a6(n3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# informações de log
+LOG_FILE = os.path.join(BASE_DIR, 'appseg/logs', 'appseg.log')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': LOG_FILE,
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    }
+}
 
 ALLOWED_HOSTS = ["192.168.0.22","10.100.0.155","192.168.0.4","localhost","127.0.0.1","192.168.0.15","192.168.0.16"]
 
