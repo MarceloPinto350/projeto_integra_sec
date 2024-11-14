@@ -347,7 +347,7 @@ class Aplicacao(models.Model):
    aplicacao_pai = models.ForeignKey('self', verbose_name="Aplicação pai",on_delete=models.CASCADE,null=True, blank=True)
    essencial = models.BooleanField("Essencial",default=True,null=False)
    estrategica = models.BooleanField("Estratégica",default=False,null=False)
-   usuario_servico = models.CharField("Usuário de serviço",max_length=50)
+   usuario_servico = models.CharField("Usuário de serviço",max_length=50,default='servico',null=False)
    data_registro = models.DateTimeField("Data cadastro", auto_now_add=True, null=False)
    data_atualizacao = models.DateTimeField(auto_now=True)
    data_descontinuacao = models.DateField("Data descontinuação",null=True, blank=True)  
@@ -391,6 +391,9 @@ class VersaoAplicacao(models.Model):
       nome_versao: Nome ou número da versão
       data_lancamento: Data de lançamento da versão
       descricao: Descrição da versão
+      url_acesso: URL de acesso à aplicacao configurada
+      senha_servico: Senha de acesso à aplicação
+      token_acesso: Token de acesso à aplicação
       data_homologacao: Data de homologação da versão
       data_producao: Data de produção da versão
       situacao: Situação da versão  
@@ -399,6 +402,9 @@ class VersaoAplicacao(models.Model):
    nome_versao = models.CharField("Versão",max_length=50)
    data_lancamento = models.DateField("Data lançamento",null=False)
    descricao = models.TextField("Descrição",max_length=1000,null=False)
+   url_acesso = models.URLField("URL de acesso à aplicação",max_length=200,null=True,blank=True)
+   senha_servico = models.CharField("Senha de serviço",max_length=50,null=True,blank=True)
+   token_acesso = models.CharField("Token de acesso",max_length=1000,null=True,blank=True)
    data_homologacao = models.DateField("Data homologação",null=True, blank=True) 
    data_producao = models.DateField("Data produção",null=True, blank=True)
    situacao = models.CharField("Situação",default="EM DESENVOLVIMENTO",max_length=20,null=False,choices=SITUACAO_SW_CHOICES)
@@ -582,9 +588,6 @@ class Configuracao (models.Model):
    ativo_infraestrutura = models.ForeignKey(AtivoInfraestrutura, related_name='configuracoes',on_delete=models.CASCADE, null=False)
    descricao = models.TextField("Descrição",max_length=1000)
    ambiente = models.CharField("Ambiente",default="DESENVOLVIMENTO",max_length=50,null=False,choices=TIPO_AMBIENTE_CHOICES)
-   url_acesso = models.URLField("URL de acesso à aplicação",max_length=200)
-   senha_servico = models.CharField("Senha de serviço",max_length=50)
-   token_acesso = models.CharField("Token de acesso",max_length=1000)
    class Meta:
       db_table = "tb_configuracao"
       verbose_name = 'Configuração'
