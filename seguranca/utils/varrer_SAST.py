@@ -1,5 +1,7 @@
 import requests, logging, json, paramiko
 
+from celery import shared_task
+
 headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
 url_base_aplicacoes = 'http://192.168.0.22:8000/api/v2/aplicacoes/'
 
@@ -13,6 +15,7 @@ jsondoc = {
     }
     
 # realiza o processamento da varredura
+@shared_task(soft_time_limit=600, time_limit=600) #limitar em 10 minutos o processamento
 def processa (processar):
   """
   Inicializar as variáveis de ambiente
@@ -36,9 +39,9 @@ def processa (processar):
     "caminho_resultado": f"{aplicacao.sigla}_{sist_varredura.sigla}_{datetime.now().strftime('%Y%m%d%H%M%S")}.json"
   }
   """
-  print()
-  print (processar)
-  print()
+  #print()
+  #print (processar)
+  #print()
   try:
     # define a conexão SSH
     ssh = paramiko.SSHClient()
@@ -49,27 +52,30 @@ def processa (processar):
     # 1º passo: clonar na máquina do Sonar_CLI a imagem da aplicação a ser varrida
     #comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf DVWA && git clone {dvwa_fonte}'\n"
     # deve rodar o comando na máquina do sonar_cli na pasta app
-    comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf " + processar["aplicacao_sigla"].lower() + " && git clone " + processar["url_codigo_fonte"] + " && mv " + processar["aplicacao_sigla"] + " " + processar["aplicacao_sigla"].lower() + "'\n"
-    print (f"1º passo: Comando: {comando}")        
-    try:  
-        stdin,stdout,stderr = ssh.exec_command(comando)
-        stdin.write("docker\n")
-        stdin.flush()    
-        stdin.close()
-        # testar se retornou erro
-        #if stderr.channel.recv_exit_status() == 0:
-        if stderr.readlines() != "[]":
-            print("Clonagem realizada com sucesso!")
-            logger.info (f"Clonagem da aplicação " + processar["aplicacao_sigla"] + "realizada com sucesso.")
-            if stderr.channel.recv_exit_status() == 0:
-                print("Clonagem realizada com sucesso!")
-                logger.info (f"Clonagem da aplicação " + processar["aplicacao_sigla"] + "realizada com sucesso.")
-        else:
-            #print ("Erro ao clonar o repositório da aplicação.")
-            logger.error (f"Erro ao clonar o repositório da aplicação: {stderr.readlines()}")
-    except paramiko.SSHException as e:
-        print(f"Erro ao executar o comando remoto: {e}")
-        logger.error (f"Erro ao executar o comando remoto: {e}")  
+    comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf " + processar["aplicacao_sigla"].lower() + " && git clone " + processar["url_codigo_fonte"] + "'\n" # " && mv " + processar["aplicacao_sigla"] + " " + processar["aplicacao_sigla"].lower() + "'\n"
+    print (f"1º passo: Comando: {comando}")   
+    
+    ### comentado para testar a varredura com dados locais - desabilitar para homologação     
+    # try:  
+    #     stdin,stdout,stderr = ssh.exec_command(comando)
+    #     stdin.write("docker\n")
+    #     stdin.flush()    
+    #     stdin.close()
+    #     # testar se retornou erro
+    #     #if stderr.channel.recv_exit_status() == 0:
+    #     if stderr.readlines() != "[]":
+    #         print("Clonagem realizada com sucesso!")
+    #         logger.info (f"Clonagem da aplicação " + processar["aplicacao_sigla"] + "realizada com sucesso.")
+    #         if stderr.channel.recv_exit_status() == 0:
+    #             print("Clonagem realizada com sucesso!")
+    #             logger.info (f"Clonagem da aplicação " + processar["aplicacao_sigla"] + "realizada com sucesso.")
+    #     else:
+    #         #print ("Erro ao clonar o repositório da aplicação.")
+    #         logger.error (f"Erro ao clonar o repositório da aplicação: {stderr.readlines()}")
+    # except paramiko.SSHException as e:
+    #     print(f"Erro ao executar o comando remoto: {e}")
+    #     logger.error (f"Erro ao executar o comando remoto: {e}")  
+        
     # 2º passo: executar a varredura da aplicação
     #comando = "sonar-scanner -X -Dsonar.projectKey={aplicacao} -Dsonar.sources=app/{aplicacao} -Dsonar.host.url={app_host} -Dsonar.token={app_token} -Dsonar.login={user} -Dsonar.password={password}"
     comando = "docker exec mn.sonar_cli bash -c '" + processar["sist_varredura_comando"] + "'" 
@@ -95,39 +101,15 @@ def processa (processar):
             print("Análise realizada com sucesso!")
             logger.info (f"Análise da aplicação " + processar["aplicacao_sigla"] + "realizada com sucesso.")
         else:
+            print ("Erro ao executar a varredura.")
             logger.error (f"Erro ao executar a varredura: {stderr.readlines()}")
     except paramiko.SSHException as e:
         print(f"Erro ao executar o comando remoto: {e}")
         logger.error (f"Erro ao executar o comando remoto: {e}")
+    
     #3º passo: carregar o resultado da varredura
     if not processar["sist_varredura_webhook"]:  #se usar webhook o carregamento é feito pela chamado do webhook
-      #comando = "docker exec mn.owasp_dc cat /src/report/dependency-check-report.json"
-      comando = "docker exec mn.sonar_cli cat " + processar["caminho_resultado"]
-      cmd = comando.replace( '{aplicacao}', processar["aplicacao_sigla"])  
-      print(f"3º passo: Comando: {cmd}")
-      try:
-        stdin,stdout,stderr = ssh.exec_command(cmd)
-        stdin.write("docker\n")
-        stdin.flush()    
-        stdin.close()
-        # testar se retornou erro
-        if stderr.channel.recv_exit_status() == 0:
-            print("Análise realizada com sucesso!")
-            data = json.dumps(stdout.readlines())
-            dados = json.loads(data.replace("\\','").replace("[\"','").replace("\"]','"))
-            print ("------------------------------------")
-            payload = json.dumps(dados,indent=3)
-            headers = {'Content-Type': 'application/json'}
-            response = requests.post('http://192.168.0.22:8000/api/v1/resultados/',data=payload, headers=headers)
-            if response.status_code == 201:
-                print("Dados inseridos no BD!")
-                logger.info (f"Resultado da análise "+ processar["aplicacao_sigla"] + "-" + processar["sist_varredura_sigla_tipo"] + "." + processar["varredura"] + " inserida no BD.")
-            else:
-                print("Erro ao enviar os dados para gravação no BD:", response.status_code)
-                logger.error (f"Erro ao salvar os dados no BD: {response.text}")
-      except paramiko.SSHException as e:
-        print(f"Erro ao executar o comando remoto: {e}")
-        logger.error (f"Erro ao executar o comando remoto: {e}")
+      carregar_arquivo_resultado (processar)
     # finalizar processamento
     ssh.close()
     
@@ -138,13 +120,41 @@ def processa (processar):
       "sistemas_varredura": processar["sistema_varredura"],
       "resultado": jsondoc,
     }   
+    print (resultado)
     return (resultado)
   
   except paramiko.SSHException as e:    
     print(f"Erro ao conectar ao servidor remoto: {e}")
     logger.error (f"Erro ao conectar ao servidor remoto: {e}")
 
-  
+def carregar_arquivo_resultado (processar):
+  #comando = "docker exec mn.owasp_dc cat /src/report/dependency-check-report.json"
+  comando = "docker exec mn.sonar_cli cat " + processar["caminho_resultado"]
+  cmd = comando.replace( '{aplicacao}', processar["aplicacao_sigla"])  
+  print(f"3º passo: Comando: {cmd}")
+  try:
+    stdin,stdout,stderr = ssh.exec_command(cmd)
+    stdin.write("docker\n")
+    stdin.flush()    
+    stdin.close()
+    # testar se retornou erro
+    if stderr.channel.recv_exit_status() == 0:
+        print("Análise realizada com sucesso!")
+        data = json.dumps(stdout.readlines())
+        dados = json.loads(data.replace("\\','").replace("[\"','").replace("\"]','"))
+        print ("------------------------------------")
+        payload = json.dumps(dados,indent=3)
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post('http://192.168.0.22:8000/api/v1/resultados/',data=payload, headers=headers)
+        if response.status_code == 201:
+            print("Dados inseridos no BD!")
+            logger.info (f"Resultado da análise "+ processar["aplicacao_sigla"] + "-" + processar["sist_varredura_sigla_tipo"] + "." + processar["varredura"] + " inserida no BD.")
+        else:
+            print("Erro ao enviar os dados para gravação no BD:", response.status_code)
+            logger.error (f"Erro ao salvar os dados no BD: {response.text}")
+  except paramiko.SSHException as e:
+    print(f"Erro ao executar o comando remoto: {e}")
+    logger.error (f"Erro ao executar o comando remoto: {e}")
          
 def processaJuris (processar):
   try:
@@ -165,7 +175,7 @@ def processaJuris (processar):
     cmd = cmd.replace( "{password}", "@dm1n")  #processar["sist_varredura_senha"])  
     print (f"2º passo: Comando: {cmd}")
     cmd = "docker exec mn.sonar_cli bash -c 'sonar-scanner -X -Dsonar.projectKey=jurisprudencia -Dsonar.sources=app/jurisprudencia "
-    cmd = cmd + "-Dsonar.host.url=http://192.168.0.15:32768 -Dsonar.login=servico -Dsonar.password=@dm1n -Dsonar.exclusions=**/*.java'"
+    cmd = cmd + "-Dsonar.host.url=http://192.168.0.12:32768 -Dsonar.login=servico -Dsonar.password=@dm1n -Dsonar.exclusions=**/*.java'"
     print("---")
     print (cmd) 
     try:
@@ -195,8 +205,7 @@ def processaJuris (processar):
     
   except paramiko.SSHException as e:    
     print(f"Erro ao conectar ao servidor remoto: {e}")
-    logger.error (f"Erro ao conectar ao servidor remoto: {e}")
-              
+    logger.error (f"Erro ao conectar ao servidor remoto: {e}")             
                  
 def processaGarimpo (processar):
   try:
@@ -217,7 +226,7 @@ def processaGarimpo (processar):
     cmd = cmd.replace( "{password}", "@dm1n")  #processar["sist_varredura_senha"])  
     print (f"2º passo: Comando: {cmd}")
     cmd = "docker exec mn.sonar_cli bash -c 'sonar-scanner -X -Dsonar.projectKey=deposito-web -Dsonar.sources=app/deposito-web "
-    cmd = cmd + "-Dsonar.host.url=http://192.168.0.15:32768 -Dsonar.token=squ_a3331308f1483f4f988f220c376d34853f0a2eb4 "
+    cmd = cmd + "-Dsonar.host.url=http://192.168.0.12:32768 -Dsonar.token=squ_a3331308f1483f4f988f220c376d34853f0a2eb4 "
     cmd = cmd + "-Dsonar.login=servico -Dsonar.password=@dm1n -Dsonar.exclusions=**/*.java'"
         
     print("---")
@@ -251,7 +260,6 @@ def processaGarimpo (processar):
     print(f"Erro ao conectar ao servidor remoto: {e}")
     logger.error (f"Erro ao conectar ao servidor remoto: {e}")
               
- 
 def get_sistema_varredura(resultado):
   retorno=''
   if "Sonar way" in resultado['qualityGate']['name']:

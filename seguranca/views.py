@@ -15,8 +15,8 @@ from rest_framework import mixins
 
 from rest_framework import permissions
 
-from seguranca import realiza_varredura
-from seguranca.utils import varrer_SAST
+#from seguranca import realiza_varredura
+from seguranca.utils import varredura,varrer_SAST
 
 from .models import (AreaNegocial,TipoAplicacao,TipoVarredura,SistemaVarredura,Aplicacao,VersaoAplicacao,ResultadoScan,Configuracao,
    ArquivoConfiguracao,ModeloDocumento,AtivoInfraestrutura,Relacionamento,TipoAtivoInfraestrutura,User,Servico,BancoDados,Rede, 
@@ -29,11 +29,12 @@ from .serializers import (TipoAplicacaoSerializer, AreaNegocialSerializer, Aplic
 )
 from .permissions import EhSuperUsuario
 
-#import jsonpath
-#from integracao import varredura_result
-from seguranca.utils import varredura_result
+from seguranca.utils import varredura_result, varrer_SCA,varrer_DAST
 
-import datetime
+from django.utils import timezone
+
+#testado o celery para processamento assíncrono
+#from celery import shared_task
 
 """
 API Versão 1.0
@@ -284,18 +285,29 @@ class ResultadoViewSet(viewsets.ViewSet):
  
 # classe que deverá ser utilizada para a página de varredura das aplicações  
 class VarrerViewSet(viewsets.ViewSet):
+   """
+   ViewSet para processar a varredura de uma aplicação
+
+   Args: Exemplo
+      {
+         "nome_aplicacao": "DVWA",
+         "origem_processamento": "API",
+         "sistema_varredura": ["ALL","SAST","DAST","SCA"]
+         }
+   """
    def post(self, request):
       ########################################################
       # CRIANDO A VARREDURA
-      varredura = realiza_varredura.inicializa(request.data)
-      serializer =  VarreduraSerializer(data=varredura)
+      #print ("Inicializando a varredura...")
+      vVarredura = varredura.inicializa(request.data)
+      serializer =  VarreduraSerializer(data=vVarredura)
       if serializer.is_valid():
          serializer.save()
          #return Response(serializer.data, status=201)
       else:
          return Response(serializer.errors, status=400)
-      print()
       print (f"Varredura cadastrada: {serializer.data}")
+      print()
       ########################################################
       # PROCESSANDO CADA TIPO DE VARREDURA
       aplicacao = Aplicacao.objects.get(pk=serializer.data['aplicacao'])
@@ -304,63 +316,109 @@ class VarrerViewSet(viewsets.ViewSet):
       lista_versoes = []
       for ver in versoes:  
          lista_versoes.append(ver.id)
-      print (f"Varrendo aplicação {serializer.data['aplicacao']} - {lista_versoes}")
+      #print (f"Varrendo aplicação {serializer.data['aplicacao']} - {lista_versoes}")
       sistemas_varredura = SistemaVarredura.objects.filter(situacao='ATIVO', aplicacoes__in=lista_versoes)
+      #print (f"Sistemas de varredura ativos: {sistemas_varredura}")
       resultado = {}
-      for sist_varr in sistemas_varredura:
-         # Define o que será processado
-         processar = {
-               "aplicacao": aplicacao.nome,
-               "aplicacao_sigla": aplicacao.sigla,     
-               "aplicacao_id": aplicacao.id,
-               "url_codigo_fonte": aplicacao.url_codigo_fonte,
-               "varredura": serializer.data['id'],
-               "sistema_varredura": sist_varr.id,
-               "sist_varredura_ip_acesso": sist_varr.ip_acesso,
-               "sist_varredura_host": sist_varr.aplicacao_seguranca.url_codigo_fonte,
-               "sist_varredura_comando": sist_varr.comando,
-               "sist_varredura_webhook": sist_varr.usa_webhook,
-               "sist_varredura_tipo": sist_varr.tipo_varredura,
-               "sist_varredura_sigla_tipo": sist_varr.tipo_varredura.nome,
-               "sist_varredura_usuario": sist_varr.usuario, #sist_varr.aplicacao_seguranca.usuario_servico, 
-               "sist_varredura_senha": sist_varr.senha, #sist_varr.aplicacao_seguranca.senha_servico,
-               "sist_varredura_token": sist_varr.token,
-               "caminho_resultado": f"app/{aplicacao.sigla}_{sist_varr.tipo_varredura.nome}_{sist_varr.id}.json"
-            }
-         if "SAST" == sist_varr.tipo_varredura.nome:
-            # realiza a varredura
-            print (f"Vai processar: {processar}")
-            if aplicacao.sigla.lower()  == "dvwa":
+      if "ALL" == request.data['sistema_varredura']:
+         for sist_varr in sistemas_varredura:
+            processar = {
+                  "aplicacao": aplicacao.nome,
+                  "aplicacao_sigla": aplicacao.sigla,     
+                  "aplicacao_id": aplicacao.id,
+                  "url_codigo_fonte": aplicacao.url_codigo_fonte,
+                  "varredura": serializer.data['id'],
+                  "sistema_varredura": sist_varr.id,
+                  "sist_varredura_ip_acesso": sist_varr.ip_acesso,
+                  "sist_varredura_host": sist_varr.aplicacao_seguranca.url_codigo_fonte,
+                  "sist_varredura_comando": sist_varr.comando,
+                  "sist_varredura_webhook": sist_varr.usa_webhook,
+                  "sist_varredura_tipo": sist_varr.tipo_varredura,
+                  "sist_varredura_sigla_tipo": sist_varr.tipo_varredura.nome,
+                  "sist_varredura_usuario": sist_varr.usuario, #sist_varr.aplicacao_seguranca.usuario_servico, 
+                  "sist_varredura_senha": sist_varr.senha, #sist_varr.aplicacao_seguranca.senha_servico,
+                  "sist_varredura_token": sist_varr.token,
+                  "caminho_resultado": f"app/{aplicacao.sigla}_{sist_varr.tipo_varredura.nome}_{sist_varr.id}.json"
+               }
+            #print (f"Vai processar os tipos de varredura: {request.data['sistema_varredura']}")
+            #print (f"Tipo de varredura a ser processado: {sist_varr.tipo_varredura.nome}")
+            #print (f"Tipo de varredura a ser processado está na lista: {sist_varr.tipo_varredura.nome} - {sist_varr.tipo_varredura.nome in request.data['sistema_varredura']}")
+            # Define o que será processado
+            if "SAST" == sist_varr.tipo_varredura.nome:
+               # realiza a varredura
+               print (f"Vai processar: SAST")
                resultado = varrer_SAST.processa(processar)
-            elif aplicacao.sigla.lower()  == "deposito-web":
-               resultado = varrer_SAST.processaGarimpo(processar)
-            elif aplicacao.sigla.lower()  == "jurisprudencia":
-               resultado = varrer_SAST.processaJuris(processar)
-         else:
-            print(f"Tipo de varredura não implementado: {sist_varr.tipo_varredura.nome}")
-      print(resultado)
-      # varredura = {
-      #   "origem": origem,
-      #   "data_inicio": dth_inicio,
-      #   "data_fim": dth_termino,
-      #   "situacao": 'EM ANDAMENTO', # FALHA|EM ANDAMENTO|CONCLUÍDA
-      #   "aplicacao": apps.id,
-      #   "log": None,
-      # }
+            elif "SCA" == sist_varr.tipo_varredura.nome:
+               print (f"Vai processar: SCA")
+               resultado = varrer_SCA.processa(processar)
+            elif "DAST" == sist_varr.tipo_varredura.nome:
+               # realiza a varredura
+               print (f"Vai processar: DAST")
+               resultado = varrer_DAST.processa(processar)
+            else: 
+               print(f"Tipo de varredura não implementado: {sist_varr.tipo_varredura.nome}")
+      else:
+         for sist_varr in sistemas_varredura:
+            processar = {
+                  "aplicacao": aplicacao.nome,
+                  "aplicacao_sigla": aplicacao.sigla,     
+                  "aplicacao_id": aplicacao.id,
+                  "url_codigo_fonte": aplicacao.url_codigo_fonte,
+                  "varredura": serializer.data['id'],
+                  "sistema_varredura": sist_varr.id,
+                  "sist_varredura_ip_acesso": sist_varr.ip_acesso,
+                  "sist_varredura_host": sist_varr.aplicacao_seguranca.url_codigo_fonte,
+                  "sist_varredura_comando": sist_varr.comando,
+                  "sist_varredura_webhook": sist_varr.usa_webhook,
+                  "sist_varredura_tipo": sist_varr.tipo_varredura,
+                  "sist_varredura_sigla_tipo": sist_varr.tipo_varredura.nome,
+                  "sist_varredura_usuario": sist_varr.usuario, #sist_varr.aplicacao_seguranca.usuario_servico, 
+                  "sist_varredura_senha": sist_varr.senha, #sist_varr.aplicacao_seguranca.senha_servico,
+                  "sist_varredura_token": sist_varr.token,
+                  "caminho_resultado": f"app/{aplicacao.sigla}_{sist_varr.tipo_varredura.nome}_{sist_varr.id}.json"
+               }
+            # print (f"Vai processar os tipos de varredura: {request.data['sistema_varredura']}")
+            # print (f"Tipo de varredura a ser processado: {sist_varr.tipo_varredura.nome}")
+            # print (f"Tipo de varredura a ser processado está na lista: {sist_varr.tipo_varredura.nome} - {sist_varr.tipo_varredura.nome in request.data['sistema_varredura']}")
+            # Define o que será processado
+            if sist_varr.tipo_varredura.nome in request.data['sistema_varredura']:
+               if "SAST" == sist_varr.tipo_varredura.nome:
+                  # realiza a varredura
+                  print (f"Vai processar: SAST")
+                  resultado = varrer_SAST.processa(processar)
+               elif "SCA" == sist_varr.tipo_varredura.nome:
+                  print (f"Vai processar: SCA")
+                  resultado = varrer_SCA.processa(processar)
+               elif "DAST" == sist_varr.tipo_varredura.nome:
+                  # realiza a varredura
+                  print (f"Vai processar: DAST")
+                  resultado = varrer_DAST.processa(processar)
+               else: 
+                  print(f"Tipo de varredura não implementado: {sist_varr.tipo_varredura.nome}")
+         
+      
       # Ajustar a varredura para concluir
       try:
-         varredura = Varredura.objects.get(pk=resultado['varredura'])
-         varredura.situacao = 'CONCLUÍDA'
-         varredura.data_fim = datetime.datetime.now()
-         varredura.save()
+         vVarredura = Varredura.objects.get(pk=resultado['varredura'])
+         vVarredura.situacao = 'CONCLUÍDA'
+         vVarredura.data_fim = timezone.now()
+         vVarredura.save()
       except Exception as e:
          print(f'Erro ao concluir a varredura: {e}')
-      # validar o serializer e salvar dados no BD
-      serializer =  ResultadoScanSerializer(data=resultado)
-      if serializer.is_valid():
-         serializer.save()
-         return Response(serializer.data, status=201)
-      else:
-         return Response(serializer.errors, status=400)
-
-         
+         vVarredura = Varredura.objects.get(pk=resultado['erro'])
+         vVarredura.situacao = 'FALHA'
+         vVarredura.data_fim = timezone.now()
+         vVarredura.save()
+      
+      
+      try:  
+         resultado = {
+            "varredura_id": vVarredura.pk,
+            "data_resultado": vVarredura.data_fim,
+            "origem_varredura": vVarredura.origem,
+            "aplicacao": vVarredura.aplicacao.nome,
+            "situcao": vVarredura.situacao
+         }
+         return Response(resultado,status=201)   
+      except Exception as e:
+         return Response(f'Erro ao processar o resultado: {e}',status=500)

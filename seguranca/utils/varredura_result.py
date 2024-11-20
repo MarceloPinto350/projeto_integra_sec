@@ -1,8 +1,10 @@
-import requests, json
+import requests, logging
 
 from ..models import Varredura,SistemaVarredura,Aplicacao
 
 headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
+
+logger = logging.getLogger(__name__)  
 
 url_base = "http://192.168.0.22:8000/api/"
 url_base_aplicacoes = f"{url_base}v2/aplicacoes/"
@@ -54,16 +56,10 @@ def processa_resultado(novo_resultado,aplicacao="dvwa"):
   """
   try:
     estrutura = novo_resultado.keys()
-    #print(estrutura)
-    #print('---')
     ferramenta = ''
     aplicacao = ''
     data_execucao = ''
-    #dados = json.dumps(novo_resultado)
-    #print ("scanInfo" in estrutura)
-    #print(f"Aplicação: {novo_resultado['projectInfo']['name']}")
-    #print(f"Data: {novo_resultado['projectInfo']['reportDate']}")
-    #print('---')
+    #print(estrutura)
     
     if "qualityGate" in estrutura:
       ferramenta='SonarQube'
@@ -79,13 +75,13 @@ def processa_resultado(novo_resultado,aplicacao="dvwa"):
     #print  (apps.status_code)
     if apps.status_code == 200:
       for app in apps.json().get('results'):
-        if app['sigla'] == aplicacao.upper():
+        if app['sigla'].upper() == aplicacao.upper():
           aplicacao_id = app['id']
           versoes = fetch_all_pages(f'{url_base_aplicacoes}{aplicacao_id}/versoes')
           for dados in versoes:
             versao = dados.get('results')[0]
             if ferramenta == 'SonarQube':
-              print(f"Ferramenta: {ferramenta} - Versão: {versao.get('nome_versao')} ==> {novo_resultado['branch']['name']}")
+              #print(f"Ferramenta: {ferramenta} - Versão: {versao.get('nome_versao')} ==> {novo_resultado['branch']['name']}")
               if versao.get('nome_versao') == novo_resultado['branch']['name']:
                 versao_id = versao.get('id')
             elif ferramenta == 'Owasp dependency-check':
@@ -93,7 +89,9 @@ def processa_resultado(novo_resultado,aplicacao="dvwa"):
               versao_id = versao.get('id')
           break
     else:
-      return(apps.status_code)  
+      print(f"Erro ao buscar a aplicação: {apps.status_code}")
+      logger.error(f"Erro ao buscar a aplicação: {apps.status_code}")
+      #return(apps.status_code)  
     # obtem o sistema de varredura que gerou o resultado
     #sistemas_varredura = get_sistema_varredura(novo_resultado)
     app_seg = Aplicacao.objects.get(nome=ferramenta)
@@ -109,11 +107,9 @@ def processa_resultado(novo_resultado,aplicacao="dvwa"):
       "varredura": varredura.id,      
       "sistema_varredura": sistemas_varredura.id
       }
-    #print(string_resultado)
+    print(string_resultado)
     #json_data = json.dumps(string_resultado)
     #return (json_data)
-    
-    
     return (string_resultado)
   except Exception as e:
     return (f'Erro ao processar o resultado: {e}')

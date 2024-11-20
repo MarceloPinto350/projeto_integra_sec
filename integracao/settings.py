@@ -15,7 +15,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-import logging  # adicionado para permitir logar as mensagens de erro
+#import logging  # adicionado para permitir logar as mensagens de erro
 import os
 
 from corsheaders.defaults import default_headers    # para permitir acesso de qualquer origem
@@ -43,7 +43,7 @@ LOG_FILE = os.path.join(BASE_DIR, 'appseg/logs', 'appseg.log')
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
             'format': '{levelname} {asctime} {module} {message}',
