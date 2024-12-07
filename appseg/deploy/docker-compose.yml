@@ -1,19 +1,19 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:alpine
-    container_name: db_postgres
-    host_name: db_postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: mpm
-      PGDATA: /var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  # db:
+  #   image: postgres:alpine
+  #   container_name: db_postgres
+  #   host_name: db_postgres
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: mpm
+  #     PGDATA: /var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
     
   appseg:
     build: .
@@ -27,6 +27,6 @@ services:
     volumes:
       - .:/appseg
 
-volumes:
-  postgres_data_mpm:
+# volumes:
+#   postgres_data_mpm:
   
