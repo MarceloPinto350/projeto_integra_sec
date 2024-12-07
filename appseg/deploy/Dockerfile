@@ -16,13 +16,13 @@ RUN pip install -U pip setuptools
 ADD . .
 
 # Copiando o arquivo de dependências para o container
-COPY requirements.txt requirements.txt
+COPY ../../requirements.txt requirements.txt
 
 # Instalando as dependências do Python
 RUN pip install -r requirements.txt 
 
 # Copiando o arquivo de configuração do Django para o container
-COPY . .
+COPY ../../. .
 
 # Acrescentando as variáveis de ambiente
 ENV POSTGRES_HOST '192.168.0.17'
