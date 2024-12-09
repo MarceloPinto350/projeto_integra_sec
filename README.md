@@ -19,14 +19,14 @@ O ambiente para realização da prova de conceito para a solução de segurança
 2. Aplicação AppSeg e banco de dados postgres - disponibilização da aplicação WEB e API para cadastro das aplicações e suas configurações, integração dos resultados de análise de vulnerabilidades e controle de chamadas às ferramentas de análise de segurança.
 
 
-## Preparação do ambiente
+## Preparação do ambiente da POC
 
 ### Criar uma VM Ubuntu 22.04 server
 1. Requisitos:
    * A configuração do Ubuntu Server deverá ser com os pacotes mínimos (minimal server) e OpenSSH Server instalado
       * Hostname: containernet (sugestão)
       * Usuário padrão: docker (sugestão)
-      * Senha: docker (sugestão)    
+      * Senha: docker (sugestão)
    * Memmória: 4Gb
    * Processadores: 4
    * Armazenamento: 25Gb
@@ -93,7 +93,7 @@ def topologia():
    #net = Containernet(controller=Controller)
 
    info('*** Adicionando os conteineres\n')
-	# Criar o container do SonarQube
+   # Criar o container do SonarQube
    sonar = net.addDocker('sonar',
       ip='10.100.0.120', 
       cpu_shares=20, privileged=True,
@@ -118,7 +118,7 @@ def topologia():
       cpu_shares=20, privileged=True,
       environment={'DISPLAY':":0"},
       dimage="ramonfontes/zaproxy",
-      dcmd="zap.sh -daemon -config api.disablekey=true",
+      #dcmd="zap.sh -daemon -config api.disablekey=true",
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_zap:/zap/wrk"])
 
    # Criar o container do Owasp dependency-check
@@ -127,12 +127,13 @@ def topologia():
       cpu_shares=20, privileged=True,
       environment={'DISPLAY':":0"},
       dimage="marcelopinto350/owasp-dependency-check:9.2",
-      dcmd="--scan /src --format 'ALL' --out /src/report",
+      #dcmd="--scan /src --format 'ALL' --out /src/report",
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_dc:/src"])
 
    # Criar o container da aplicação de teste DVWA
    dvwa_db = net.addDocker('dvwa_db',
       ip='10.100.0.140', privileged=True,
+      #dimage="marcelopinto350/mariadb:11",
       dimage="ramonfontes/mariadb:11",
       environment={'DISPLAY':":0",'MYSQL_ROOT_PASSWORD':'dvwa','MYSQL_DATABASE':'dvwa','MYSQL_USER':'dvwa','MYSQL_PASSWORD':'p@ssw0rd'}, 
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","dvwa_db:/var/lib/mysql"])
@@ -143,23 +144,21 @@ def topologia():
       port='4280:80', privileged=True,
       cpu_shares=20,
       #dimage="ramonfontes/dvwa:latest",
-      # para tentar corrigir erro de IP e 404 file not found no repositório indicado acima
       #dimage="marcelopinto350/dvwa:latest",
       dimage="ramonfontes/xss_attack",
-      #volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","dvwa:/var/www/html"],
       environment={'DISPLAY':":0",'DB_SERVER':"dvwa_db"})
       
    # Banco de dados da aplicação de segurança APPSEG
    appseg_db = net.addDocker('appseg_db',
       ip='10.100.0.150',
       #dimage="ramonfontes/postgres:alpine", privileged=True,
-      # para substituir imagem acima para corrigir erro de IP
       dimage="marcelopinto350/postgres:alpine", privileged=True,
-      environment={'DISPLAY':":0",
-         'POSTGRES_DB':'appseg',
-         'POSTGRES_USER':'postgres',
-         'POSTGRES_PASSWORD':'postgres',
-         'POSTGRES_PORT':'5432'},
+      environment={'DISPLAY':":0"},
+      #environment={'DISPLAY':":0",
+      #   'POSTGRES_DB':'appseg',
+      #   'POSTGRES_USER':'postgres',
+      #   'POSTGRES_PASSWORD':'postgres',
+      #   'POSTGRES_PORT':'5432'},
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","pg_data:/var/lib/postgresql/data"])
    
    # Aplicação de segurança APPSEG
@@ -171,12 +170,13 @@ def topologia():
       # para corrigir erro de IP e na aplicação appseg
       dimage="marcelopinto350/appseg:alfa",
       environment={'DISPLAY':":0",
-         'POSTGRES_HOST':'appseg_db',
+         'POSTGRES_HOST':'172.17.0.8',
          'POSTRGES_PORT':'5432',
          'POSTGRES_DB':'appseg',
          'POSTGRES_USER':'postgres',
          'POSTGRES_PASSWORD':'postgres'},
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","appseg:/appseg"])
+
 
    info('*** Adicionando switches de rede\n')
    s1 = net.addSwitch('s1', failMode="standalone")
@@ -189,6 +189,7 @@ def topologia():
    net.addLink(dvwa_db, s1)
    net.addLink(dvwa, s1)
    net.addLink(appseg_db, s1)
+   net.addLink(appseg, s1)
 
    info('*** Iniciando a rede\n')
    net.build()
@@ -221,6 +222,7 @@ if __name__ == '__main__':
    topologia()
 ```
 
+### Finalização da configuração do ambiente de teste
 Para finalização da configuração do ambiente, proceder as execução dos passos a seguir:
 
 1. Clonar o arquivo e executar o script python
@@ -237,39 +239,83 @@ Para finalização da configuração do ambiente, proceder as execução dos pas
 
 2. Configurar o acesso ao banco de dados
 Acessar o docker correspondente ao banco de dados da aplicação appseg_db e rodar a inicialização do bando de dados postgres 
+
 ```shell
-# Executar o bash no docker do BD postgres da aplicação apseg
-~$ docker exec -i mn.appseg_db bash
+# Executar o bash no docker do BD postgres da aplicação appseg
+~$ docker exec -it mn.appseg_db bash
 # na primeira vez executar esse comando 
 appseg_db:/# docker-ensure-initdb.sh
 appseg_db:/# su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'
-
 ```
 
-3. Configurar o acesso ao Sonarqube
+ou diretamente através do Containernet:
+
+containernet> appseg_db docker-ensure-initdb.sh
+containernet> appseg_db su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'
+
+
+3. Configurar a aplicação APPSEG para utilizar o banco de dados
+Acessar o docker correspondente à Aplicação APPSEG e executar os comandos a seguir?
+
+```shell
+# Executar o bash no docker da aplicação APPSEG
+~$ docker exec -it mn.appseg bash
+# na primeira vez executar esse comando 
+appseg:/# python manage.py makemigrations
+appseg:/# python manage.py migrate
+# criar o usuário adminsitrador da aplicação
+appseg:/# python manage.py createsuperuser
+# executar a aplicação
+appseg:/# python manage.py runserver 0.0.0.0:8000
+```
+
+ou diretamente através do Containernet:
+
+containernet> appseg python manage.py makemigrations
+containernet> appseg python manage.py migrate
+containernet> appseg python manage.py createsuperuser
+containernet> appseg python manage.py runserver 0.0.0.0:8000
+
+
+4. Configurar o acesso ao Sonarqube
+
 ```shell
 # executar o bash no docker do sonar
 ~$ docker exec -i mn.sonar bash
 sonarqube@sonar:/opt/sonarqube$ docker/entrypoint.sh &
-
 ```
 
-Acessar a aplicação pela navegador através do link <url>:<port>, por exemplo, 192.168.0.15:32771
-3.1. Informar usuário e senha: admin/admin
-3.2. indicar nova senha @dm1n e confirmar
-3.3. Clicar em adicionar manualmente o projeto
-   3.3.1. Indique o nome do projeto
-   3.3.2. Indique a chave única para o projeto no sonarqube
-   3.3.3 Indique o nome da branch principal do projeto, por exemplo, master
-   3.3.4 Clique no botão Set Up
-3.4. Na página de configuração da integração da aplicação clique em *Other CI*
-   3.4.1 Clique no botão *Generate* para gerar um token para a aplicação e copie para cadastro no appseg, por exemplo, sqp_bd4affac00ce57c87e24b65544df7bbe821c2235.
+ou diretamente através do Containernet:
+
+containernet> sonar docker/entrypoint.sh &
 
 
-4. Configurar o acesso à linha de comando do Sonar (Sonar_CLI)
+### Teste de acesso à aplicação
+Para verificar se o ambiente está acessível, acessar a aplicação pela navegador através do link <url>:<porta>/admin, por exemplo, 192.168.0.15:32771/admin, onde:
+**<url>**: é o endereço do host do containernet;
+**<porta>**: é a porta gerada para a aplicação APPSEG pelo containernet
+
+
+### Outras configurações
+Outras configurações necessárias para realizações de testes
+
+1. Inclusão de projeto da aplicação a ser testado no SonarQube
+1.1. Informar usuário e senha: admin/admin
+1.2. Indicar nova senha @dm1n e confirmar
+1.3. Clicar em adicionar manualmente o projeto
+   1.3.1. Indique o nome do projeto
+   1.3.2. Indique a chave única para o projeto no sonarqube
+   1.3.3. Indique o nome da branch principal do projeto, por exemplo, master
+   1.3.4. Clique no botão Set Up
+1.4. Na página de configuração da integração da aplicação clique em *Other CI*
+   1.4.1 Clique no botão *Generate* para gerar um token para a aplicação e copie para cadastro no appseg, por exemplo, sqp_bd4affac00ce57c87e24b65544df7bbe821c2235.
+
+
+2. Configurar o acesso à linha de comando do Sonar (Sonar_CLI)
 Para ter acesso ao SonarCLI pela aplicação AppSeg é necessário configurar uma chave de acesso para SSH da máquina da aplicação para a o container docker
 
-4.1. Gerar a chave SSH na máquina onde a aplicação está sendo executada, caso ainda não exista
+2.1. Gerar a chave SSH na máquina onde a aplicação está sendo executada, caso ainda não exista
+
 ```shell
 ~$ cd .ssh
 ~/.ssh$ ls
@@ -280,30 +326,7 @@ Para ter acesso ao SonarCLI pela aplicação AppSeg é necessário configurar um
 
 ```
 
-5. Configurações iniciais da aplicação AppSeg
-
-5.1. Setar o usuário administrador da aplicação
-
-a) Conectar no servidor e entrar na pasta da aplicação, em seguida executar o comando:
-```shell
-appseg $ python manage.py createsuperuser
-```
-Informar o usuário, e-mail e senha para o administrador da aplicação.
-
-5.2. Inicializar o banco de dados da aplicação
-
-a) Conectar no servidor e entrar na pasta da aplicação, em seguida executar os comandos:
-```shell
-# Executar o comando para fazer a migração das classes para tabelas de banco de dados
-appseg $ python manage.py makemigrations
-
-# Efetivar a migração e criação das tabelas referentes às classes mapeadas
-appseg $ python manage.py migrate
-
-```
-
-
-5.2. Gerar token de autenticação do(s) usuário(s) que irá(ão) acessar os serviços web
+2.2. Gerar token de autenticação do(s) usuário(s) que irá(ão) acessar os serviços web, caso seja de interesse
 a) Acessar a aplicação pelo navegador de sua preferência, por exemplo, 192.160.0.24:8000/admin
 b) Informar usuário e senha de acesso;
 c) Selecionar a opção **Tokens >> + Adicionar**;
@@ -311,17 +334,44 @@ d) Selecionar o usuário e clicar no botão **Salvar**;
 e) Caso queira, é possível clicar no ícone **+**, ao lado da caixa de seleção de usuário, para adicionar novos usuários.
 
 
-**Outros comandos uteis**:
 
-Executar o comando para criação de imagem:
+### Fazer o deploy da aplicação
+**1º Passo**: Clonar o porjeo do github para a pasta local
 ```shell
-$ docker run -d --name pg_appseg -e POSTGRES_DB=appseg -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v postgres_data:/var/lib/postgresql/data
-
+git clone https://github.com/MarceloPinto350/projeto_integra_sec.git
 ```
 
-Clonar o projeto para a pasta local
+**2º Passo**: Executar o comando para criação de imagem:
 ```shell
-git clone <url do projeto>
-
+# executar o comando onde estiver o arquivo Dockerfile
+~/projeto_integra_seg$ docker build -appseg:<versao> .
 ```
+
+**3º Passo**: Executar a aplicação para se certificar que está tudo ok
+```shell
+~/projeto_integra_seg$ docker run -it  --name appseg-<versao> -p 8000:8000 appseg:<versao>
+```
+
+**4º Passo**: Criar tag da imagem para enviar para repositório remoto
+```shell
+~/projeto_integra_seg$ docker tag appseg:<versao> marcelopinto350/appseg:<versao>
+```
+
+**5º Passo**: Conectar na conta do repositório (git)
+```shell
+~/projeto_integra_seg$ docker login
+```
+
+**5º Passo**: Enviar dados para repositório
+```shell
+~/projeto_integra_seg$ 
+```
+
+**Outros comando importantes**
+Remover uma imagem existente localmente: $ docker rmi appseg:beta
+
+
+
+
+
 
