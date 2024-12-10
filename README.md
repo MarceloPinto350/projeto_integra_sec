@@ -292,22 +292,34 @@ containernet> sonar docker/entrypoint.sh &
 
 ### Teste de acesso à aplicação
 Para verificar se o ambiente está acessível, acessar a aplicação pela navegador através do link <url>:<porta>/admin, por exemplo, 192.168.0.15:32771/admin, onde:
-**<url>**: é o endereço do host do containernet;
-**<porta>**: é a porta gerada para a aplicação APPSEG pelo containernet
+
+
+**<\url>**: é o endereço do host do containernet;
+
+**<\porta>**: é a porta gerada para a aplicação APPSEG pelo containernet
 
 
 ### Outras configurações
 Outras configurações necessárias para realizações de testes
 
 1. Inclusão de projeto da aplicação a ser testado no SonarQube
+
 1.1. Informar usuário e senha: admin/admin
+
 1.2. Indicar nova senha @dm1n e confirmar
+
 1.3. Clicar em adicionar manualmente o projeto
+
    1.3.1. Indique o nome do projeto
+
    1.3.2. Indique a chave única para o projeto no sonarqube
+
    1.3.3. Indique o nome da branch principal do projeto, por exemplo, master
+
    1.3.4. Clique no botão Set Up
+
 1.4. Na página de configuração da integração da aplicação clique em *Other CI*
+
    1.4.1 Clique no botão *Generate* para gerar um token para a aplicação e copie para cadastro no appseg, por exemplo, sqp_bd4affac00ce57c87e24b65544df7bbe821c2235.
 
 
@@ -326,11 +338,16 @@ Para ter acesso ao SonarCLI pela aplicação AppSeg é necessário configurar um
 
 ```
 
-2.2. Gerar token de autenticação do(s) usuário(s) que irá(ão) acessar os serviços web, caso seja de interesse
+2.2. Gerar token de autenticação do(s) usuário(s) que irá(ão) acessar os serviços web, caso seja de interesse:
+
 a) Acessar a aplicação pelo navegador de sua preferência, por exemplo, 192.160.0.24:8000/admin
+
 b) Informar usuário e senha de acesso;
+
 c) Selecionar a opção **Tokens >> + Adicionar**;
+
 d) Selecionar o usuário e clicar no botão **Salvar**;
+
 e) Caso queira, é possível clicar no ícone **+**, ao lado da caixa de seleção de usuário, para adicionar novos usuários.
 
 
@@ -369,6 +386,8 @@ git clone https://github.com/MarceloPinto350/projeto_integra_sec.git
 
 **Outros comando importantes**
 Remover uma imagem existente localmente: $ docker rmi appseg:beta
+
+
 
 
 
