@@ -6,7 +6,7 @@ WORKDIR /appseg
 
 # Instalando as dependências do SO
 RUN apt-get update && apt-get upgrade -y 
-RUN apt-get install -y net-tools apt-transport-https ca-certificates curl openssh-server openssl postgresql-client 
+RUN apt-get install -y net-tools apt-transport-https ca-certificates curl openssh-server openssl postgresql-client iproute2
 
 # Instalando asconfigurações para o Python
 RUN pip install -U pip setuptools 
@@ -21,7 +21,7 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Acrescentando as variáveis de ambiente
-ENV POSTGRES_HOST '172.17.0.8'
+ENV POSTGRES_HOST '10.100.0.150'
 ENV POSTGRES_PORT '5432'
 ENV POSTGRES_DB 'appseg'
 ENV POSTGRES_USER 'postgres'

@@ -323,14 +323,14 @@ Outras configurações necessárias para realizações de testes
    1.4.1 Clique no botão *Generate* para gerar um token para a aplicação e copie para cadastro no appseg, por exemplo, sqp_bd4affac00ce57c87e24b65544df7bbe821c2235.
 
 
-2. Configurar o acesso à linha de comando do Sonar (Sonar_CLI)
+2. Configurar o acesso direto à linha de comando do Sonar (Sonar_CLI)
 Para ter acesso ao SonarCLI pela aplicação AppSeg é necessário configurar uma chave de acesso para SSH da máquina da aplicação para a o container docker
 
-2.1. Gerar a chave SSH na máquina onde a aplicação está sendo executada, caso ainda não exista
+2.1. Entrar na máquina da APPSEG e gerar a chave SSH da máquina onde a aplicação está sendo executada, caso ainda não exista
 
 ```shell
 ~$ cd .ssh
-~/.ssh$ ls
+~/.ssh$ ls -lah   # lista os arquivos existentes na pasta
 # Execute o comando abaixo, confirme o arquivo e deixe a senha em branco para gerar a chave
 ~/.ssh$ ssh-keygen -t rsa -b 4096
 # copiar a chave pública para a outra máquina conforme o exemplo (ssh-copy-id usuario_remote@endereço_IP_remoto)
@@ -353,7 +353,7 @@ e) Caso queira, é possível clicar no ícone **+**, ao lado da caixa de seleç�
 
 
 ### Fazer o deploy da aplicação
-**1º Passo**: Clonar o porjeo do github para a pasta local
+**1º Passo**: Clonar o projeto do github para a pasta local
 ```shell
 git clone https://github.com/MarceloPinto350/projeto_integra_sec.git
 ```
@@ -361,7 +361,7 @@ git clone https://github.com/MarceloPinto350/projeto_integra_sec.git
 **2º Passo**: Executar o comando para criação de imagem:
 ```shell
 # executar o comando onde estiver o arquivo Dockerfile
-~/projeto_integra_seg$ docker build -appseg:<versao> .
+~/projeto_integra_seg$ docker build -t appseg:<versao> .
 ```
 
 **3º Passo**: Executar a aplicação para se certificar que está tudo ok
@@ -385,7 +385,48 @@ git clone https://github.com/MarceloPinto350/projeto_integra_sec.git
 ```
 
 **Outros comando importantes**
+
 Remover uma imagem existente localmente: $ docker rmi appseg:beta
+
+Configurar o SSH server nos hosts
+=================================
+**SONAR_CLI**
+```shell
+$ docker exec -it mn.sonar_cli bash
+root@sonar_cli:/# apt update && apt install openssh-server vim -y
+root@sonar_cli:/# service ssh start
+
+# Através do containernet
+containernet> sonar_cli apt update && apt install openssh-server vim -y
+containernet> sonar_cli service ssh start
+```
+
+**OWASP_DC**
+```shell
+$ docker exec -it mn.owasp_dc bash
+root@owasp_dc:/# apt update && apt install openssh-server vim -y
+root@owasp_dc:/# service ssh start
+
+# Através do containernet
+containernet> owasp_dc apt update && apt install openssh-server vim -y
+containernet> owasp_dc service ssh start
+```
+
+**OWASP_ZAP**
+```shell
+$ docker exec -it mn.owasp_zap bash
+root@owasp_zap:/# apt update && apt install openssh-server -y
+root@owasp_zap:/# service ssh start
+
+# Através do containernet
+containernet> owasp_zap apt update && apt install openssh-server -y
+containernet> owasp_zap service ssh start
+```
+
+**APPSEG**
+
+Necesário configurar o acesso do servdor appseg para as demais máquinas via SSH direto, sendo necessário eventualmente ajustar em cada servidor a permissão para conectar via SSH ao usuário root, para os conforme o caso.
+
 
 
 
