@@ -378,10 +378,11 @@ git clone https://github.com/MarceloPinto350/projeto_integra_sec.git
 ```shell
 ~/projeto_integra_seg$ docker login
 ```
+Informar usuário e senha, conforme o caso.
 
 **5º Passo**: Enviar dados para repositório
 ```shell
-~/projeto_integra_seg$ 
+~/projeto_integra_seg$ docker push marcelopinto350/appseg:beta
 ```
 
 **Outros comando importantes**
