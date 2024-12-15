@@ -125,12 +125,9 @@ def topologia():
    
    # Instalar e configurar o servidor ssh nas máquinas SOANR_CLI, OWASP_DC e OWASP_ZAP
    info('*** Configurando os containers\n')
-   #sonar_cli.cmd('apt-get update && apt-get install -y openssh-server vim')
-   #sonar_cli.cmd('echo "PermitRootLogin yes" >> /etc/ssh/sshd_config')
    sonar_cli.cmd('sed -i "s/PermitRootLogin without-password/PermitRootLogin yes/g" /etc/ssh/sshd_config')
    sonar_cli.cmd('service ssh start')
    #
-   owasp_dc.cmd('apt-get update && apt-get install -y openssh-server vim')  
    owasp_dc.cmd('echo "PermitRootLogin yes" >> /etc/ssh/sshd_config')
    owasp_dc.cmd('service ssh start')
    #
@@ -142,11 +139,7 @@ def topologia():
    owasp_dc.cmd('echo "root:root" | chpasswd')
    owasp_zap.cmd('echo "zap:zap" | chpasswd')
       
-   #Executar o comando para o postgres a 1ª vez: 
-   #appseg_db.cmdPrint("su postgres -c 'initdb -D /var/lib/postgresql/data'")
-   #appseg_db.cmdPrint("docker-ensure-initdb.sh")      # somente a primeira vez
    # Inicializar o postgresql
-   #appseg_db.cmdPrint("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
    appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
    
    # Incializar o sonarqube
@@ -156,7 +149,6 @@ def topologia():
    owasp_dc.cmd('echo export JAVA_OPTION="Xmx2g" >> ~/.bashrc')
    
    # Inicializar o owasp zap colocando a pasta de trabalho como sendo de propriedade do usuário zap
-   #owasp_zap.cmd('zap.sh --addoninstall soap')
    owasp_zap.cmd('chown -R zap:zap wrk')
    
    # Subir o BD da aplicação de teste DVWA
@@ -166,11 +158,9 @@ def topologia():
    # Rodar a aplicação de teste DVWA
    dvwa.cmd('sh main.sh &')   
    
-   # Subir a aplicaçã AppSeg
-   #appseg.cmd('cd /appseg & python3 manage.py migrate')   #somente na primeira execução
+   # Subir a aplicação AppSeg
    appseg.cmd('cd /appseg & python3 manage.py runserver 0.0.0.0:8000 &')
    
-
  
    info('*** Executando CLI\n')
    CLI(net)
@@ -179,5 +169,6 @@ def topologia():
    net.stop()
 
 if __name__ == '__main__':
-   setLogLevel('info')
+   #setLogLevel('info')
+   setLogLevel('debug')
    topologia()

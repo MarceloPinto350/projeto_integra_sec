@@ -26,6 +26,7 @@ ENV POSTGRES_PORT '5432'
 ENV POSTGRES_DB 'appseg'
 ENV POSTGRES_USER 'postgres'
 ENV POSTGRES_PASSWORD 'postgres'
+ENV URL_API 'http://10.21.220.150:8000/api'
 
 # Expondo o Django service na máquina
 EXPOSE 8000
