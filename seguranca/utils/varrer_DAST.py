@@ -1,5 +1,4 @@
-import io
-import requests, logging, json, paramiko, subprocess
+import requests, logging, json, paramiko, subprocess, os 
 
 from django.utils import timezone
 
@@ -10,11 +9,14 @@ from celery import shared_task
 
 #headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
 headers = {'Content-Type': 'application/json'}
-url_base = "http://192.168.0.22:8000/api/v2"
-url_base_aplicacoes = f"{url_base}/aplicacoes/"
+#url_base = "http://192.168.0.22:8000/api/v2"
+#url_base_aplicacoes = f"{url_base}/aplicacoes/"
+url_api = os.getenv('URL_API')
+url_base_aplicacoes = f'{url_api}/v2/aplicacoes/'
 
 logger = logging.getLogger(__name__)  
 
+work_path = 'zap/wrk'
 report_path = 'zap/wrk/reports'
 report_name = "owasp_zap_report_{aplicacao}.json"
 
@@ -123,19 +125,26 @@ def processa (processar):
         logger.error (f'Erro ao criar o arquivo remoto: {eee}')
     try:  
       #sftp.putfo(arquivo, "authentication.js")
-      comando = f"docker cp authentication.js mn.owasp_zap:/zap/wrk/scripts/authentication.js\n"
+      #comando = f"docker cp authentication.js mn.owasp_zap:/zap/wrk/scripts/authentication.js\n"
+      #ssh.connect(hostname=processar["sist_varredura_ip_acesso"], username=processar["sist_varredura_usuario"], password=processar["sist_varredura_senha"])
+      comando = f"scp {script} {processar['sist_varredura_usuario']}@{processar['sist_varredura_ip_acesso']}:{work_path}/scripts/authentication.js\n"
       print()
       print (f"1º Passo: {comando}")
       try:
-          stdin,stdout,stderr = ssh.exec_command(comando)
-          stdin.write('docker\n')
-          stdin.flush()    
-          stdin.close()
-          #print(f"stdout: {stdout.readlines()}")
-          #print(f"stderr: {stderr.readlines()}")  
-      except ssh.exec_command as e2:
-          print(f'Erro ao criar o arquivo remoto: {e2}')
-          logger.error (f'Erro ao criar o arquivo remoto: {e2}')
+        subprocess.run(comando, shell=True,check=True)
+        # processar arquivo de resultado
+      except subprocess.CalledProcessError as e2:
+        print(f"Erro ao copiar o arquivo de resultado: {e}")
+        logger.error (f"Erro ao copiar o arquivo de resultado: {e}") 
+      #     stdin,stdout,stderr = ssh.exec_command(comando)
+      #     stdin.write('docker\n')
+      #     stdin.flush()    
+      #     stdin.close()
+      #     #print(f"stdout: {stdout.readlines()}")
+      #     #print(f"stderr: {stderr.readlines()}")  
+      # except ssh.exec_command as e2:
+      #     print(f'Erro ao criar o arquivo remoto: {e2}')
+      #     logger.error (f'Erro ao criar o arquivo remoto: {e2}')
     except paramiko.SSHException as e1:
       print(f'Erro ao criar o arquivo remoto: {e1}')
       logger.error (f'Erro ao criar o arquivo remoto: {e1}')
@@ -146,7 +155,8 @@ def processa (processar):
   # 2º passo: rodar o scanner do owasp-zap via CLI
   #comando = f"docker exec mn.owasp_zap bash -c 'zap.sh -dir wrk -loglevel ERROR -script wrk/scripts/authentication.js -cmd -quickurl {url_zap} -quickprogress -quickout {output}'\n"
   #comando = f"docker exec mn.owasp_zap bash -c 'python zap-full-scan.py -t {url_zap} -J {output} -d'\n"
-  comando = f"docker exec mn.owasp_zap bash -c '{processar['sist_varredura_comando']}'\n"
+  #comando = f"docker exec mn.owasp_zap bash -c '{processar['sist_varredura_comando']}'\n"
+  comando = f"{processar['sist_varredura_comando']}"
   cmd = comando.replace( "{aplicacao}", processar["aplicacao_sigla"].lower())
   cmd = cmd.replace( "{url_zap}", processar["sist_varredura_host"])
   cmd = cmd.replace( "{pasta}", "reports")
@@ -238,8 +248,8 @@ def processa (processar):
             
             #response = requests.post('http://192.168.0.22:8000/api/v1/resultados/',data=dados, headers=headers)
         except requests.exceptions.RequestException as e:
-            print(f"Erro ao enviar os dados para gravação no BD: {response.status_code} - {e} ")
-            logger.error (f"Erro ao salvar os dados no BD: {response.status_code} - {e}")
+            print(f"Erro ao enviar os dados para gravação no BD: {e} ")
+            logger.error (f"Erro ao salvar os dados no BD: {e}")
         print()
       except Exception as e:
         print(f"Erro ao salvar o arquivo de resultado: {e}")

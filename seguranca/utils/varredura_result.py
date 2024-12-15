@@ -1,4 +1,4 @@
-import requests, logging
+import requests, logging, os 
 
 from ..models import Varredura,SistemaVarredura,Aplicacao
 
@@ -6,8 +6,11 @@ headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
 
 logger = logging.getLogger(__name__)  
 
-url_base = "http://192.168.0.22:8000/api/"
-url_base_aplicacoes = f"{url_base}v2/aplicacoes/"
+#url_base = "http://192.168.0.22:8000/api/"
+#url_base_aplicacoes = f"{url_base}v2/aplicacoes/"
+url_api = os.getenv('URL_API')
+url_base_aplicacoes = f'{url_api}/v2/aplicacoes/'
+
 
 def get_sistema_varredura(resultado):
   retorno=''

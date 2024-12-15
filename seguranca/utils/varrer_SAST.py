@@ -54,9 +54,10 @@ def processa (processar):
     #comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf DVWA && git clone {dvwa_fonte}'\n"
     # deve rodar o comando na máquina do sonar_cli na pasta app
     #comando = f"docker exec mn.sonar_cli bash -c 'cd app && rm -rf " + processar["aplicacao_sigla"].lower() + " && git clone " + processar["url_codigo_fonte"] + "'\n" # " && mv " + processar["aplicacao_sigla"] + " " + processar["aplicacao_sigla"].lower() + "'\n"
-    comando = f"cd app && rm -rf " + processar["aplicacao_sigla"].lower() + " && git clone " + processar["url_codigo_fonte"] + "'\n" 
+    #comando = f"rm -rf " + processar["aplicacao_sigla"].lower() + " && git clone " + processar["url_codigo_fonte"] + "\n" 
+    comando = f"rm -rf {processar['aplicacao_sigla'].lower()} && git clone {processar['url_codigo_fonte']}"
     print (f"1º passo: Comando: {comando}")   
-    
+    comando = "ls -lah"
     ### comentado para testar a varredura com dados locais - desabilitar para homologação     
     try:  
         stdin,stdout,stderr = ssh.exec_command(comando)
@@ -84,15 +85,20 @@ def processa (processar):
     comando = processar["sist_varredura_comando"] 
     response = requests.get (f"{url_base_aplicacoes}{processar['sistema_varredura']}")
     #print(response.json())
+    app_host = ""
     app_usuario_servico=""  
+    # Senha a ser cadastrada como ENV para o sonarqube e outros serviços associados, com a senha do usuário "servico"
+    senha_servico="@dm1n"
     if response.status_code == 200:
         app_usuario_servico = response.json().get('usuario_servico')
+        app_host = response.json().get('url_codigo_fonte')
     #print (f"Usuário do serviço: {app_usuario_servico}")
-    cmd = comando.replace( "{aplicacao}", processar["aplicacao_sigla"].lower())
-    cmd = cmd.replace( "{app_host}", processar["sist_varredura_host"])
-    cmd = cmd.replace( "{app_token}", processar["sist_varredura_token"])
-    cmd = cmd.replace( "{user}", app_usuario_servico) #processar["sist_varredura_usuario"])  
-    cmd = cmd.replace( "{password}", "@dm1n")  #processar["sist_varredura_senha"])  
+    cmd = comando.replace("{aplicacao}", processar["aplicacao_sigla"].lower())
+    #cmd = cmd.replace("{app_host}", processar["sist_varredura_host"])
+    cmd = cmd.replace("{app_host}", app_host)
+    cmd = cmd.replace("{app_token}", processar["sist_varredura_token"])
+    cmd = cmd.replace("{user}", app_usuario_servico) #processar["sist_varredura_usuario"])  
+    cmd = cmd.replace("{password}", senha_servico)  #processar["sist_varredura_senha"])  
     print (f"2º passo: Comando: {cmd}")
     try:
         stdin,stdout,stderr = ssh.exec_command(cmd)
@@ -136,7 +142,7 @@ def carregar_arquivo_resultado (cnnssh,processar):
   cmd = comando.replace( '{aplicacao}', processar["aplicacao_sigla"])  
   print(f"3º passo: Comando: {cmd}")
   try:
-    stdin,stdout,stderr = cnnssh.exec_command(cmd)
+    stdin,stdout,stderr = ssh.exec_command(cmd)
     stdin.write("docker\n")
     stdin.flush()    
     stdin.close()
