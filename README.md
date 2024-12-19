@@ -12,7 +12,7 @@ O ambiente para realização da prova de conceito para a solução de segurança
 
    * 1.4. **SCA: OWASP Dependençy Check (owasp_dc)** - servidor da ferramenta OWASP Dependency Check, para análise de dependência de bibliotecas de terceiros (SCA)
 
-   * 1.5. **Damn Vulnerable Web Application (DVWA)** - é uma aplicação web desenvolvida PHP + MySQL com a finalidade de realização de testes e praticar seurança com algumas das mais comuns vulnerabilidades web, com vários níveis de dificuldade; Disponível no repositório do Github: https://github.com/digininja/DVWA.git.
+   * 1.5. **Damn Vulnerable Web Application (DVWA)** - é uma aplicação web desenvolvida PHP + MySQL com a finalidade de realização de testes e praticar seurança com algumas das mais comuns vulnerabilidades web, com vários níveis de dificuldade; Disponível no repositório do Github: <https://github.com/digininja/DVWA.git>.
 
 2. Aplicação AppSeg e banco de dados postgres - disponibilização da aplicação WEB e API para cadastro das aplicações e suas configurações, integração dos resultados de análise de vulnerabilidades e controle de chamadas às ferramentas de análise de segurança.
 
@@ -488,3 +488,18 @@ containernet> owasp_zap service ssh start
 ```
 
 **APPSEG** Necesário configurar o acesso do servdor appseg para as demais máquinas via SSH direto, sendo necessário eventualmente ajustar em cada servidor a permissão para conectar via SSH ao usuário root, para os conforme o caso.
+
+## Outros ações necessárias para habilitar o ambinete de caso de testes
+
+### Instalar certificado do TRT na Máquina Virtual do containernet
+
+```shell
+# Copiar o arquivo .crt para o servidor
+~/Download>$ sudo cp certificado.crt /usr/local/share/ca-certificates
+
+# sincronizar os dados do repositório do ca-certificates
+~/Download>$ sudo dpkg-reconfigure ca-certificates
+
+# instalar os certificados copiados para a pasta local
+~/Download>$ sudo update-ca-certificates
+```

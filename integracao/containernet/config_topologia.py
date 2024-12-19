@@ -47,7 +47,8 @@ def topologia():
       ip='10.100.0.130',
       cpu_shares=20, privileged=True,
       environment={'DISPLAY':":0"},
-      dimage="ramonfontes/zaproxy",		#atualizado o uso para essa versão por conta de ter mais recursos
+      #dimage="ramonfontes/zaproxy",		#atualizado o uso para essa versão por conta de ter mais recursos
+      dimage="marcelopinto350/owasp_zap",
       #dcmd="zap.sh -daemon -config api.disablekey=true",
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_zap:/zap/wrk"])
    
@@ -56,7 +57,8 @@ def topologia():
       ip='10.100.0.135',
       cpu_shares=20, privileged=True,
       environment={'DISPLAY':":0"},
-      dimage="marcelopinto350/owasp-dependency-check:9.2",
+      #dimage="marcelopinto350/owasp-dependency-check:9.2",
+      dimage="marcelopinto350/owasp_dc:9.2",
       #dcmd="--scan /src --format 'JSON' --out /src/report",
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_dc:/src"])
 
@@ -83,11 +85,11 @@ def topologia():
       ip='10.100.0.150',
       #dimage="ramonfontes/postgres:alpine", privileged=True,
       dimage="marcelopinto350/postgres:alpine", privileged=True,
-      environment={'DISPLAY':":0",
-         'POSTGRES_DB':'appseg',
-         'POSTGRES_USER':'postgres',
-         'POSTGRES_PASSWORD':'postgres',
-         'POSTGRES_PORT':'5432'},
+      environment={'DISPLAY':":0"},
+         # 'POSTGRES_DB':'appseg',
+         # 'POSTGRES_USER':'postgres',
+         # 'POSTGRES_PASSWORD':'postgres',
+         # 'POSTGRES_PORT':'5432'},
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","pg_data:/var/lib/postgresql/data"])
    
    # Criar a aplicação de segurança APPSEG
@@ -96,13 +98,14 @@ def topologia():
       port='8000:8000', privileged=True,
       cpu_shares=20,
       #dimage="ramonfontes/python:3.10",
-      dimage="marcelopinto350/appseg:alfa",
+      dimage="marcelopinto350/appseg:beta",
       environment={'DISPLAY':":0",
-         'POSTGRES_HOST':'appseg_db',
+         'POSTGRES_HOST':'10.100.0.150',
          'POSTRGES_PORT':'5432',
          'POSTGRES_DB':'appseg',
          'POSTGRES_USER':'postgres',
-         'POSTGRES_PASSWORD':'postgres'},
+         'POSTGRES_PASSWORD':'postgres',
+         'URL_API':'http://10.100.0.155:8000/api'},
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","appseg:/appseg"])
 
    info('*** Adicionando switches de rede\n')

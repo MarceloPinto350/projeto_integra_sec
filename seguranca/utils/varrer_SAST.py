@@ -14,6 +14,10 @@ jsondoc = {
       "testes": 0, 
       "tempo": 0
     }
+
+# define a conexão SSH que vai ser utilizada 
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
 # realiza o processamento da varredura
 @shared_task(soft_time_limit=600, time_limit=600) #limitar em 10 minutos o processamento
@@ -44,9 +48,6 @@ def processa (processar):
   #print (processar)
   #print()
   try:
-    # define a conexão SSH
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     # baixar o código fonte da aplicação
     #ssh.connect(hostname='192.168.0.10', username='docker', password='docker")
     ssh.connect(hostname=processar["sist_varredura_ip_acesso"], username=processar["sist_varredura_usuario"], password=processar["sist_varredura_senha"])
@@ -117,7 +118,7 @@ def processa (processar):
     
     #3º passo: carregar o resultado da varredura
     if not processar["sist_varredura_webhook"]:  #se usar webhook o carregamento é feito pela chamado do webhook
-      carregar_arquivo_resultado (ssh,processar)
+      carregar_arquivo_resultado (processar)
     # finalizar processamento
     ssh.close()
     
@@ -135,7 +136,7 @@ def processa (processar):
     print(f"Erro ao conectar ao servidor remoto: {e}")
     logger.error (f"Erro ao conectar ao servidor remoto: {e}")
 
-def carregar_arquivo_resultado (cnnssh,processar):
+def carregar_arquivo_resultado (processar):
   #comando = "docker exec mn.owasp_dc cat /src/report/dependency-check-report.json"
   #comando = "docker exec mn.sonar_cli cat " + processar["caminho_resultado"]
   comando = "cat " + processar["caminho_resultado"]
