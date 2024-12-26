@@ -70,6 +70,7 @@ ALLOWED_HOSTS = [
     "192.168.0.2",
     "192.168.0.22",
     "10.21.220.150",
+    "192.168.0.193",
     "localhost",
     "127.0.0.1"
     #"10.21.220.0/24",
@@ -167,7 +168,8 @@ DATABASES = {
         'USER': 'postgres',     #os.getenv('POSTGRES_USER'),
         #'PASSWORD': 'postgres', #os.getenv('POSTGRES_PASSWORD'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'PORT': '32771'         #os.getenv('POSTGRES_PORT')
+        #'PORT': '32771'         #os.getenv('POSTGRES_PORT')
+        'PORT': os.getenv('POSTGRES_PORT')
     }    
 }
 

@@ -111,6 +111,7 @@ TIPO_AMBIENTE_CHOICES = (
    ['HOMOLOGAÇÃO','Homologação'],
    ['DESENVOLVIMENTO','Desenvolvimento'],
    ['TESTE','Teste'],
+   ['BUGFIX','Bugfix'],
    ['TREINAMENTO','Treinamento'],
    ['OUTRO','Outro'],
 )
@@ -731,19 +732,22 @@ class BancoDados(models.Model):
    """
    Define os bancos de dados de infraestrutura.
    Atributos:
+      nome: Nome do banco de dados.
       tipo: Tipo do banco de dados.
+      ambiente: Ambiente do banco de dados.
+      ativo_infraestrutura: Ativo de infraestrutura ao qual o banco de dados está relacionado.
+      porta: Porta de acesso ao banco de dados.
       versao: versão do banco de dados.
       string_conexao: String de conexão para o banco de dados.
-      usuario: Usuário de serviço para acesso ao banco de dados.
-      senha: Senha de serviço para acesso ao banco de dados.
-      ativo_infraestrutura: Ativo de infraestrutura ao qual o banco de dados está relacionado.
    """
+   nome = models.CharField("Nome do banco de dados",max_length=100,null=False,unique=True)
    tipo = models.CharField("Tipo de banco de dados",max_length=50,choices=TIPO_BANCO_DADOS_CHOICES,null=False)
-   versao = models.TextField("Versão",max_length=50,null=False)
+   ambiente = models.CharField("Ambiente",max_length=50,null=False,choices=TIPO_AMBIENTE_CHOICES,default='DESENVOLVIMENTO')
+   ativo_infraestrutura = models.ForeignKey(AtivoInfraestrutura, verbose_name="Ativo de Infraestrutura",on_delete=models.CASCADE,null=True)
+   porta = models.IntegerField("Porta",null=False, default=1521) 
+   versao = models.TextField("Versão",max_length=50,null=True,default='1.0')
    string_conexao = models.TextField("String de Conexão",max_length=1000,null=False)
-   usuario = models.CharField("Usuário",max_length=50,null=False)
-   senha = models.CharField("Senha",max_length=50,null=False)
-   ativo_infraestrutura = models.ForeignKey(AtivoInfraestrutura, verbose_name="Ativo de Infraestrutura",on_delete=models.CASCADE,null=False)
+   
    class Meta:
       db_table = "tb_banco_dados"
       verbose_name = 'Banco de Dados'

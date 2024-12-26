@@ -160,7 +160,7 @@ def topologia():
    owasp_dc.cmd('echo "PermitRootLogin yes" >> /etc/ssh/sshd_config')
    owasp_dc.cmd('service ssh start')
    #
-   owasp_zap.cmd('apt-get update && apt-get install -y openssh-server vim')
+   owasp_zap.cmd('apt-get update && apt-get install -y openssh-server nano')
    owasp_zap.cmd('service ssh start')
    
    # mudar as senhas dos usuários root e zap para "root" e "zap" respectivamente
@@ -180,18 +180,15 @@ def topologia():
    # Inicializar o owasp zap colocando a pasta de trabalho como sendo de propriedade do usuário zap
    owasp_zap.cmd('chown -R zap:zap wrk')
    
-   # Subir o BD da aplicação de teste DVWA
-   #dvwa_db.cmd('service mariadb start')
-   #dvwa_db.cmd('docker-entrypoint.sh mysqld &')
-   
    # Rodar a aplicação de teste DVWA
    dvwa.cmd('sh main.sh &')   
    
    # Subir a aplicação AppSeg
-   appseg.cmd('cd /appseg & python3 manage.py runserver 0.0.0.0:8000 &')
+   appseg.cmd('python3 manage.py migrate')
+   appseg.cmd('python3 manage.py runserver 0.0.0.0:8000 &')
    
    # configuração específica para o permitir aesso às aplicaçãoes via host local do docker
-   appseg.cmd("route add -net 172.17.0.0 netmask 255.255.0.0 gw 172.17.0.1 "
+   #appseg.cmd("route add -net 172.17.0.0 netmask 255.255.0.0 gw 172.17.0.1 "
    
  
    info('*** Executando CLI\n')

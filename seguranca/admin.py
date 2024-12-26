@@ -112,7 +112,7 @@ class Rede(admin.ModelAdmin):
     
 @admin.register(BancoDados) 
 class BancoDados(admin.ModelAdmin):
-    list_display = ('tipo','versao','string_conexao','usuario','senha','ativo_infraestrutura')
+    list_display = ('nome','tipo','ambiente','versao','string_conexao','ativo_infraestrutura')
     #filter_horizontal = ('aplicacoes',)
     list_display_icons = True
     list_per_page = 10
