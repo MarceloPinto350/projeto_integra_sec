@@ -26,7 +26,7 @@ def topologia():
 	# Criar o container do SonarQube
    sonar = net.addDocker('sonar',
       ip='10.100.0.120', 
-      ipbase='172.17.0.0/24',
+      #ipbase='172.17.0.0/24',
       port='9000:9000',
       port_bindings={9000:9000},
       publish_all_ports=True,
@@ -42,7 +42,7 @@ def topologia():
    # Criar o container do sonar em modo CLI
    sonar_cli = net.addDocker('sonar_cli',
       ip='10.100.0.125',
-      ipbase='172.17.0.0/24',
+      #ipbase='172.17.0.0/24',
       cpu_shares=20, 
       privileged=True,
       environment={'DISPLAY':":0"},
@@ -53,7 +53,7 @@ def topologia():
    # Criar o container do OWASP ZAP
    owasp_zap = net.addDocker('owasp_zap', 
       ip='10.100.0.130',
-      ipbase='172.17.0.0/24',
+      #ipbase='172.17.0.0/24',
       cpu_shares=20, 
       privileged=True,
       environment={'DISPLAY':":0"},
@@ -65,19 +65,17 @@ def topologia():
    # Criar o container do Owasp dependency-check
    owasp_dc = net.addDocker('owasp_dc',
       ip='10.100.0.135',
-      ipbase='172.17.0.0/24',
+      #ipbase='172.17.0.0/24',
       cpu_shares=20, 
       privileged=True,
       environment={'DISPLAY':":0"},
-      #dimage="marcelopinto350/owasp-dependency-check:9.2",
       dimage="marcelopinto350/owasp_dc:9.2",
-      #dcmd="--scan /src --format 'JSON' --out /src/report",
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_dc:/src"])
 
    # Criar o container do BD da aplicação de teste DVWA
    dvwa_db = net.addDocker('dvwa_db',
       ip='10.100.0.140', 
-      ipbase='172.17.0.0/24',
+      #ipbase='172.17.0.0/24',
       dimage="ramonfontes/mariadb:11",
       environment={'DISPLAY':":0",
             'MYSQL_ROOT_PASSWORD':'dvwa',
@@ -89,22 +87,20 @@ def topologia():
    # Criar o container da aplicação de teste DVWA
    dvwa = net.addDocker('dvwa',
       ip='10.100.0.145',
-      ipbase='172.17.0.0/24',
+      #ipbase='172.17.0.0/24',
       port='4280:80', 
-      port_bindings={80:4280},
+      port_bindings={4280:80},
       publish_all_ports=True,
       privileged=True,
       cpu_shares=20,
       #dimage="ramonfontes/dvwa:latest",
-      #dimage="marcelopinto350/dvwa:latest",
       dimage="ramonfontes/xss_attack",
-      #volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","dvwa:/var/www/html"],
       environment={'DISPLAY':":0",'DB_SERVER':"dvwa_db"})
       
    # Criar o BD da aplicação de segurança APPSEG
    appseg_db = net.addDocker('appseg_db',
       ip='10.100.0.150',
-      ipbase='172.17.0.0/24',
+      #ipbase='172.17.0.0/24',
       port='5432:5432',
       port_bindings={5432:5432},
       publish_all_ports=True,
@@ -117,13 +113,12 @@ def topologia():
    # Criar a aplicação de segurança APPSEG
    appseg = net.addDocker('appseg',
       ip='10.100.0.155',
-      ipbase='172.17.0.0/24',
+      #ipbase='172.17.0.0/24',
       port='8000:8000', 
       port_bindings={8000:8000},
       publish_all_ports=True,
       privileged=True,
       cpu_shares=20,
-      #dimage="ramonfontes/python:3.10",
       dimage="marcelopinto350/appseg:beta",
       environment={'DISPLAY':":0",
          'POSTGRES_HOST':'10.100.0.150',
@@ -160,7 +155,8 @@ def topologia():
    owasp_dc.cmd('echo "PermitRootLogin yes" >> /etc/ssh/sshd_config')
    owasp_dc.cmd('service ssh start')
    #
-   owasp_zap.cmd('apt-get update && apt-get install -y openssh-server nano')
+   #owasp_zap.cmd('apt-get update && apt-get install -y openssh-server nano')
+   owasp_zap.cmd('echo "PermitRootLogin yes" >> /etc/ssh/sshd_config')
    owasp_zap.cmd('service ssh start')
    
    # mudar as senhas dos usuários root e zap para "root" e "zap" respectivamente
