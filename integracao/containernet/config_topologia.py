@@ -45,7 +45,8 @@ def topologia():
       #ipbase='172.17.0.0/24',
       cpu_shares=20, 
       privileged=True,
-      environment={'DISPLAY':":0"},
+      environment={'DISPLAY':":0",
+            'SENHA_SERVICO':'root',},
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","app:/app"],
       #dimage='ramonfontes/ubuntu:trusty')
       dimage='marcelopinto350/sonarcli-ubuntu:trusty')
@@ -56,7 +57,8 @@ def topologia():
       #ipbase='172.17.0.0/24',
       cpu_shares=20, 
       privileged=True,
-      environment={'DISPLAY':":0"},
+      environment={'DISPLAY':":0",
+            'SENHA_SERVICO':'zap'},
       #dimage="ramonfontes/zaproxy",		#atualizado o uso para essa versão por conta de ter mais recursos
       dimage="marcelopinto350/owasp_zap",
       #dcmd="zap.sh -daemon -config api.disablekey=true",
@@ -68,7 +70,8 @@ def topologia():
       #ipbase='172.17.0.0/24',
       cpu_shares=20, 
       privileged=True,
-      environment={'DISPLAY':":0"},
+      environment={'DISPLAY':":0",
+            'SENHA_SERVICO':'root'},
       dimage="marcelopinto350/owasp_dc:9.2",
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_dc:/src"])
 
@@ -162,7 +165,7 @@ def topologia():
    # mudar as senhas dos usuários root e zap para "root" e "zap" respectivamente
    sonar_cli.cmd('echo root:root | chpasswd')
    owasp_dc.cmd('echo "root:root" | chpasswd')
-   owasp_zap.cmd('echo "zap:zap" | chpasswd')
+   owasp_zap.cmd('echo "zap:root" | chpasswd')
       
    # Inicializar o postgresql
    appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
@@ -186,6 +189,10 @@ def topologia():
    # configuração específica para o permitir aesso às aplicaçãoes via host local do docker
    #appseg.cmd("route add -net 172.17.0.0 netmask 255.255.0.0 gw 172.17.0.1 "
    
+   #comandos para processar varredura
+   #sonar_cli.cmd('sonar-scanner -X -Dsonar.projectKey={aplicacao} -Dsonar.sources={aplicacao} -Dsonar.host.url={app_host} -Dsonar.token={app_token} -Dsonar.login={user} -Dsonar.password={password} -Dsonar.exclusions=**/*.java')
+   #owasp_dc.cmd('/bin/dependency-check.sh --project {aplicacao} --scan /src/{aplicacao} --format JSON --out {report_path}/{aplicacao} -n')
+   #owasp_zap.cmd('python zap-full-scan.py -t  {url_zap} -J {pasta}/owasp_zap_report_{aplicacao}.json -d')
  
    info('*** Executando CLI\n')
    CLI(net)

@@ -334,13 +334,13 @@ class Aplicacao(models.Model):
       data_descontinuacao: data que a aplicação foi descontinuada
    """
    nome = models.CharField("Nome",max_length=255, unique=True,null=False)
-   sigla = models.CharField("Sigla",max_length=20, unique=True)
+   sigla = models.CharField("Sigla",max_length=20, null=False)    #unique=True)
    descricao = models.TextField("Descrição",max_length=1000)
    categoria = models.TextField("Categoria",default="ADMINISTRATIVA",null=False,choices=CATEGORIA_CHOICES)
    arquitetura = models.CharField("Arquitetura",max_length=20,default="WEB",null=False,choices=ARQUITETURA_CHOICES)
    abrangencia = models.TextField("Abrangência",default="REGIONAL",null=False,choices=ABRANGENCIA_CHOICES)   
    hospedagem = models.CharField("Hospedagem",max_length=20,default="LOCAL",null=False,choices=HOSPEDAGEM_CHOICES)
-   url_codigo_fonte = models.URLField("URL Fonte",unique=True,max_length=500,null=False)
+   url_codigo_fonte = models.URLField("URL Fonte",max_length=500,null=False)  #unique=True,
    area_responsavel = models.ForeignKey(AreaNegocial, verbose_name="Área responsável",on_delete=models.CASCADE,null=False)
    #gestor_negocial = models.ForeignKey(User, verbose_name="Gestor responsável",on_delete=models.CASCADE)
    #area_analista_liberacao = models.ForeignKey(AreaNegocial, verbose_name="Área analista liberação",on_delete=models.CASCADE,null=False)
@@ -767,6 +767,7 @@ class Servidor(models.Model):
    """
    Define os servidores de infraestrutura.
    Atributos:
+      nome: Nome do servidor.
       tipo: Tipo do servidor.
       sistema_operacional: Sistema operacional do servidor.
       arquitetura: Arquitetura do servidor.
@@ -777,6 +778,7 @@ class Servidor(models.Model):
       servicos: Serviços de infraestrutura associados ao servidor.
       bancos_dados: Bancos de dados de infraestrutura associados ao servidor.
    """
+   nome = models.CharField("Nome do servidor",max_length=100,null=False,unique=True)
    tipo = models.CharField("Tipo de servidor",max_length=50,choices=TIPO_SERVIDOR_CHOICES,null=False)
    sistema_operacional = models.CharField("Sistema Operacional",max_length=50,null=False)
    arquitetura = models.CharField("Arquitetura",max_length=50,null=False)

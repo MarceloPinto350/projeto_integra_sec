@@ -119,7 +119,7 @@ class BancoDados(admin.ModelAdmin):
     
 @admin.register(Servidor)
 class Servidor(admin.ModelAdmin):
-    list_display = ('tipo','sistema_operacional','arquitetura','processador','memoria','disco','get_redes','get_servicos','get_bancos_dados')
+    list_display = ('nome','tipo','sistema_operacional','arquitetura','processador','memoria','disco','get_redes','get_servicos','get_bancos_dados')
     filter_horizontal = ('redes','servicos','bancos_dados')
     list_display_icons = True
     list_per_page = 10

@@ -45,7 +45,7 @@ def processa (processar):
   }
   """
   #print()
-  #print (processar)
+  print (processar["sist_varredura_ip_acesso"], processar["sist_varredura_usuario"], processar["sist_varredura_senha"])
   #print()
   try:
     # baixar o código fonte da aplicação
@@ -89,7 +89,7 @@ def processa (processar):
     app_host = ""
     app_usuario_servico=""  
     # Senha a ser cadastrada como ENV para o sonarqube e outros serviços associados, com a senha do usuário "servico"
-    senha_servico="@dm1n"
+    senha_servico=os.getenv('SENHA_SERVICO')
     if response.status_code == 200:
         app_usuario_servico = response.json().get('usuario_servico')
         app_host = response.json().get('url_codigo_fonte')

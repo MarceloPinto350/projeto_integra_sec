@@ -43,6 +43,7 @@ LOG_FILE = os.path.join(BASE_DIR, 'appseg/logs', 'appseg.log')
 
 LOGGING = {
     'version': 1,
+    'level': 'INFO',
     'disable_existing_loggers': True,
     'formatters': {
         'verbose': {

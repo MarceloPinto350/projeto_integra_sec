@@ -5,8 +5,6 @@ from ..models import Aplicacao, SistemaVarredura,VersaoAplicacao,TipoVarredura
 url_base = 'http://127.0.0.1:8000/api/v2'
 headers = {'Content-Type': 'application/json'}
 
-
-
 logger = logging.getLogger(__name__)
     
 # método que inicia a análise e processa a varredura da aplicação, conforme o caso

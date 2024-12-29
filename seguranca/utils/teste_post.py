@@ -1,18 +1,27 @@
-import requests
+#import varredura
 
-headears = {'Authorization':'Token f0ee4a32f947f00cc06202ee306b5524fe1f3590'}
+from ..models import Aplicacao #, SistemaVarredura,VersaoAplicacao,TipoVarredura
 
-url_base_aplicacoes = 'http://localhost:8000/api/v2/aplicacoes/'
-url_base_versoes = 'http://localhost:8000/api/v2/versoes/'
+#headears = {'Authorization':'Token f0ee4a32f947f00cc06202ee306b5524fe1f3590'}
+headears = {'Content-Type': 'application/json'}
+url_base_aplicacoes = 'http://192.168.0.22:8000/varrer'
+url_base_versoes = 'http://localhost:8000/varrer'
 
 
-nova_aplicacao = {
-   "nome": "Aplicação 3",
-   "descricao": "Descrição da aplicação 3",
-   "tipo": "1"
-   
+json =  { 
+    "nome_aplicacao": "deposito-web", 
+    "origem_processamento": "APP", 
+    "sistema_varredura": ["SAST"] 
 }
 
-resultado = requests.post(url_base_aplicacoes, headers=headears, data=nova_aplicacao)  
+print(json['nome_aplicacao'])
+
+apps = Aplicacao.objects.get(json['nome_aplicacao'])
+
+print (apps)
+
+#resultado = varredura.inicializa(json)
+#print (resultado)
+#resultado = requests.post(url_base_aplicacoes, headers=headears, data=json)  
 #print(resultado.status_code)
-assert resultado.status_code == 201
+#assert resultado.status_code == 201
