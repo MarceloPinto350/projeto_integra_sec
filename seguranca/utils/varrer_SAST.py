@@ -183,7 +183,7 @@ def processaJuris (cnnssh,processar):
     cmd = cmd.replace( "{app_host}", processar["sist_varredura_host"])
     cmd = cmd.replace( "{app_token}", processar["sist_varredura_token"])
     cmd = cmd.replace( "{user}", app_usuario_servico) #processar["sist_varredura_usuario"])  
-    cmd = cmd.replace( "{password}", "@dm1n")  #processar["sist_varredura_senha"])  
+    cmd = cmd.replace( "{password}", os.getenv('SENHA_SERVICO'))  #processar["sist_varredura_senha"])  "@dm1n"
     print (f"2º passo: Comando: {cmd}")
     #cmd = "docker exec mn.sonar_cli bash -c 'sonar-scanner -X -Dsonar.projectKey=jurisprudencia -Dsonar.sources=app/jurisprudencia "
     #cmd = cmd + "-Dsonar.host.url=http://192.168.0.12:32768 -Dsonar.login=servico -Dsonar.password=@dm1n -Dsonar.exclusions=**/*.java'"

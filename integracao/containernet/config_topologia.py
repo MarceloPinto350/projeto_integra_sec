@@ -45,8 +45,7 @@ def topologia():
       #ipbase='172.17.0.0/24',
       cpu_shares=20, 
       privileged=True,
-      environment={'DISPLAY':":0",
-            'SENHA_SERVICO':'root',},
+      environment={'DISPLAY':":0"},
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","app:/app"],
       #dimage='ramonfontes/ubuntu:trusty')
       dimage='marcelopinto350/sonarcli-ubuntu:trusty')
@@ -57,8 +56,7 @@ def topologia():
       #ipbase='172.17.0.0/24',
       cpu_shares=20, 
       privileged=True,
-      environment={'DISPLAY':":0",
-            'SENHA_SERVICO':'zap'},
+      environment={'DISPLAY':":0"},
       #dimage="ramonfontes/zaproxy",		#atualizado o uso para essa versão por conta de ter mais recursos
       dimage="marcelopinto350/owasp_zap",
       #dcmd="zap.sh -daemon -config api.disablekey=true",
@@ -70,8 +68,7 @@ def topologia():
       #ipbase='172.17.0.0/24',
       cpu_shares=20, 
       privileged=True,
-      environment={'DISPLAY':":0",
-            'SENHA_SERVICO':'root'},
+      environment={'DISPLAY':":0"},
       dimage="marcelopinto350/owasp_dc:9.2",
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","owasp_dc:/src"])
 
@@ -129,7 +126,8 @@ def topologia():
          'POSTGRES_DB':'appseg',
          'POSTGRES_USER':'postgres',
          'POSTGRES_PASSWORD':'postgres',
-         'URL_API':'http://10.100.0.155:8000/api'},
+         'URL_API':'http://10.100.0.155:8000/api',
+         'SENHA_SERVICO':'@dm1n'},
       volumes=["/tmp/.X11-unix:/tmp/.X11-unix:rw","appseg:/appseg"])
 
    info('*** Adicionando switches de rede\n')
@@ -171,6 +169,7 @@ def topologia():
    appseg_db.cmd("su postgres -c 'pg_ctl start -D /var/lib/postgresql/data'")
    
    # Incializar o sonarqube
+   sonar.cmd("chown -R sonarqube:sonarqube /opt/sonarqube/")
    sonar.cmd("su sonarqube -c 'docker/entrypoint.sh &'")
    
    # configurar o owasp_dc
