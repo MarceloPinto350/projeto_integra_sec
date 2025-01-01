@@ -62,7 +62,9 @@ def processa_resultado(novo_resultado,aplicacao="dvwa"):
     ferramenta = ''
     aplicacao = ''
     data_execucao = ''
-    #print(estrutura)
+    resultado = ''
+    print(f"{estrutura}\n")
+    print(f"{url_base_aplicacoes}\n")
     
     if "qualityGate" in estrutura:
       ferramenta='SonarQube'
@@ -72,6 +74,14 @@ def processa_resultado(novo_resultado,aplicacao="dvwa"):
       ferramenta='Owasp dependency-check'
       data_execucao = novo_resultado['projectInfo']['reportDate']
       aplicacao = novo_resultado['projectInfo']['name']
+    elif "status" in estrutura:
+      resultado = novo_resultado['status']  
+      ferramenta='SonarQube'
+      data_execucao = novo_resultado['analysedAt']
+      aplicacao = novo_resultado['project']['key']  
+
+    print(f"{resultado}\n")
+
     apps = requests.get(url_base_aplicacoes) #, headers=headears)
     versao_id = ""
     aplicacao_id = ""
@@ -97,23 +107,26 @@ def processa_resultado(novo_resultado,aplicacao="dvwa"):
       #return(apps.status_code)  
     # obtem o sistema de varredura que gerou o resultado
     #sistemas_varredura = get_sistema_varredura(novo_resultado)
-    app_seg = Aplicacao.objects.get(nome=ferramenta)
-    sistemas_varredura = SistemaVarredura.objects.get(aplicacao_seguranca=app_seg.id)
-    # monta o resultado para ser armazenamento
-    # busca a último varredura realziada ainda em aberto
-    varredura = Varredura.objects.filter(aplicacao=aplicacao_id,situacao='EM ANDAMENTO').order_by('-data_inicio').first()
-    print (f"Varredura: {varredura.id}")
-    string_resultado={
-      "data_resultado": data_execucao,
-      "resultado": novo_resultado,
-      "aplicacao": versao_id, #aplicacao_id,
-      "varredura": varredura.id,      
-      "sistema_varredura": sistemas_varredura.id
-      }
-    print(string_resultado)
-    #json_data = json.dumps(string_resultado)
-    #return (json_data)
-    return (string_resultado)
+    try:
+      app_seg = Aplicacao.objects.get(nome=ferramenta)
+      sistemas_varredura = SistemaVarredura.objects.get(aplicacao_seguranca=app_seg.id)
+      # monta o resultado para ser armazenamento
+      # busca a último varredura realziada ainda em aberto
+      varredura = Varredura.objects.filter(aplicacao=aplicacao_id,situacao='EM ANDAMENTO').order_by('-data_inicio').first()
+      print (f"Varredura: {varredura.id}")
+      string_resultado={
+        "data_resultado": data_execucao,
+        "resultado": novo_resultado,
+        "aplicacao": versao_id, #aplicacao_id,
+        "varredura": varredura.id,      
+        "sistema_varredura": sistemas_varredura.id
+        }
+      print(string_resultado)
+      #json_data = json.dumps(string_resultado)
+      #return (json_data)
+      return (string_resultado)
+    except Exception as e:
+      return (f'Erro ao processar o resultado: {e}')
   except Exception as e:
     return (f'Erro ao processar o resultado: {e}')
   

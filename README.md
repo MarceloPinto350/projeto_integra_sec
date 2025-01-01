@@ -342,19 +342,41 @@ Outras configurações necessárias para realizações de testes
 
 1.2. Indicar nova senha @dm1n e confirmar
 
-1.3. Clicar em adicionar manualmente o projeto
+1.3. Criar um usuário de serviço para uso nas validações
 
-   1.3.1. Indique o nome do projeto
+   1.3.1. Indicar o usuário: servico
 
-   1.3.2. Indique a chave única para o projeto no sonarqube
+   1.3.2. Indicar o nome do usuaário: Usuário de Serviço
 
-   1.3.3. Indique o nome da branch principal do projeto, por exemplo, master
+   1.3.3. Deixar o e-mail do usuário em branco
 
-   1.3.4. Clique no botão Set Up
+   1.3.4. Informar a senha do usuário de serviço: @dm1n
 
-1.4. Na página de configuração da integração da aplicação clique em *Other CI*
+1.4. Criar um tokem de conexão para o usuário de serviço no sonarqube
 
-   1.4.1 Clique no botão *Generate* para gerar um token para a aplicação e copie para cadastro no appseg, por exemplo, sqp_bd4affac00ce57c87e24b65544df7bbe821c2235.
+   1.4.1. Acessar o sonarqube com o usuário de serviço
+
+   1.4.2. No anto superior direito da tela acessar o menu do usuário e selecionar a opção segurança
+
+   1.4.3. Inserir um nome para o token: TokenServico
+
+   1.4.4. Inserir validade: Nunca expira
+
+   1.4.5. Clicar no botão gerar token, em seguida copiar o token para inserir no cadastro da aplicação de segurança sonarqube, junamente com os dados do usuário de serviço.
+
+1.5. Clicar em adicionar manualmente o projeto
+
+   1.5.1. Indique o nome do projeto
+
+   1.5.2. Indique a chave única para o projeto no sonarqube
+
+   1.5.3. Indique o nome da branch principal do projeto, por exemplo, master
+
+   1.5.4. Clique no botão Set Up
+
+1.6. Na página de configuração da integração da aplicação clique em *Other CI*
+
+   1.6.1 Clique no botão *Generate* para gerar um token para a aplicação e copie para cadastro no appseg, por exemplo, sqp_bd4affac00ce57c87e24b65544df7bbe821c2235.
 
 2.Configurar o acesso direto à linha de comando do Sonar (Sonar_CLI)
 Para ter acesso ao SonarCLI pela aplicação AppSeg é necessário configurar uma chave de acesso para SSH da máquina da aplicação para a o container docker
@@ -368,6 +390,7 @@ Para ter acesso ao SonarCLI pela aplicação AppSeg é necessário configurar um
 ~/.ssh$ ssh-keygen -t rsa -b 4096
 # copiar a chave pública para a outra máquina conforme o exemplo (ssh-copy-id usuario_remote@endereço_IP_remoto)
 ~/.ssh$ ssh-copy-id docker@192.168.0.15
+# copiar a chave para os servidores de teste Sonar, Owasp_zap e Owasp_dc
 ```
 
 2.2. Gerar token de autenticação do(s) usuário(s) que irá(ão) acessar os serviços web, caso seja de interesse:
@@ -393,7 +416,7 @@ git clone https://github.com/MarceloPinto350/projeto_integra_sec.git
 **2º Passo**: Executar o comando para criação de imagem:
 
 ```shell
-# executar o comando onde estiver o arquivo Dockerfile
+# executar o comando na pasta onde estiver o arquivo Dockerfile
 ~/projeto_integra_seg$ docker build -t appseg:<versao> .
 ```
 
