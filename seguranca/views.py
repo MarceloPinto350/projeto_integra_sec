@@ -410,15 +410,37 @@ class VarrerViewSet(viewsets.ViewSet):
          vVarredura.data_fim = timezone.now()
          vVarredura.save()
       
-      
       try:  
          resultado = {
             "varredura_id": vVarredura.pk,
             "data_resultado": vVarredura.data_fim,
             "origem_varredura": vVarredura.origem,
             "aplicacao": vVarredura.aplicacao.nome,
-            "situcao": vVarredura.situacao
+            "situacao": vVarredura.situacao
          }
          return Response(resultado,status=201)   
       except Exception as e:
          return Response(f'Erro ao processar o resultado: {e}',status=500)
+
+
+# montagem do grafo de relacionamentos
+class GrafoViewSet (viewsets.ViewSet):
+   """
+   ViewSet para processar a montagem do grafo de relacionamentos
+
+   Args: Exemplo
+      {
+         "sigla_aplicacao": "DVWA",
+      }
+   """
+   def get(self, request):
+      if request.method == 'POST':
+        aplicacao_selecionada = Aplicacao.objects.get(sigla=request.data['sigla_aplicacao'])
+        # Lógica para buscar os relacionamentos e montar o JSON
+        relacionamentos = Relacionamento.objects.filter(aplicacao_id=aplicacao_selecionada.id)
+        data = []
+        # ... (montar a estrutura do JSON para o D3.js)
+        return JsonResponse(data, safe=False)
+      else:
+        # Renderizar o template inicial com o formulário de seleção da aplicação
+        return render(request, 'grafo.html')

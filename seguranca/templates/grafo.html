@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Grafo de Relacionamentos</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <form method="post">
+        <label for="aplicacao">Selecione a aplicação:</label>
+        <select name="aplicacao" id="aplicacao">
+            </select>
+        <button type="submit">Gerar Grafo</button>
+    </form>
+    <div id="grafo"></div>
+    <script>
+        // Código JavaScript para criar o grafo usando D3.js
+        // Receberá o JSON dos relacionamentos via AJAX
+        // ...
+
+        // Código exemplo usando D3.js para criar um grafo simples
+        const svg = d3.select("#grafo")
+        .append("svg")
+        .attr("width", 500)
+        .attr("height", 500);
+
+        // Função para atualizar o grafo com os novos dados
+        function updateGraph(data) {
+        // Lógica para criar os nós e as arestas do grafo usando D3.js
+        // ...
+        }
+
+        // Enviar uma requisição POST para a view Django quando o formulário for enviado
+        const form = document.querySelector('form');
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+            fetch('/grafo/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateGraph(data);
+            });
+        });
+
+    </script>
+</body>
+</html>

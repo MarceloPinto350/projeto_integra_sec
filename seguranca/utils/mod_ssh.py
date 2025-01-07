@@ -1,33 +1,14 @@
-import paramiko, paramiko.ssh_exception    
-import json, logging
-
-#from ..models import VersaoAplicacao 
-#from seguranca.models import (Aplicacao, VersaoAplicacao)
-#from seguranca.serializers import (AplicacaoSerializer, VersaoAplicacaoSerializer)
-import requests
-
-#from fabric import Connection,SerialGroup
-#import requests, docker, subprocess, paramiko    # para acessar o servidor docker
-
-# sonar_host = 'http://192.168.0.9:32768'
-# sonar_api = f'{sonar_host}/api'
-# docker_server = 'http://192.168.0.9:2375'
-# dvwa_fonte = 'https://github.com/MarceloPinto350/DVWA.git'
-# sonar_dvwa_token = 'squ_0b2cafe9d40615f6ec9dbb3ba037085fd7019363'   # mmpinto
-#sonar_dvwa_token = 'sqp_bd4affac00ce57c87e24b65544df7bbe821c2235'   #admin
+import logging, paramiko, paramiko.ssh_exception,json     
 
 # configurar o log
 logger = logging.getLogger(__name__)
-
-# parâmetros de conexão SSH
-ssh_connect = paramiko.SSHClient()
-ssh_connect.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                     
-def conecta_ssh(host, usuario, senha):    
+                    
+def conecta_ssh(cliente, host, usuario, senha):    
     """
     conecta_ssh - Função para conectar via SSH em um host remoto
 
     Args:
+        cliente: Cliente SSH já configurado
         host (url): host remoto
         usuario (string): usuário para autenticação
         senha (string): senha para autenticação
@@ -35,21 +16,28 @@ def conecta_ssh(host, usuario, senha):
     Returns:
         boolean: conectado (True) ou não conectado (False)
     """
-    try:
-        ssh_connect.connect(hostname=host, username=usuario, password=senha)
-        return True
-    except paramiko.ssh_exception.AuthenticationException as e:
-        #print(f'Erro ao conectar via SSH: {e}')
-        logger.error(f'Erro ao autenticarno SSH: {e}')  
-        return False
-    except paramiko.ssh_exception.NoValidConnectionsError as e1:
-        logger.error(f'Erro ao tentar conectar no SSH: {e1}')  
-        return  False
-    except paramiko.ssh_exception.SSHException as e2:
-        logger.error(f'Erro ao tentar conectar no SSH: {e2}')  
-        return  False
+    # parâmetros de conexão SSH
+    #cliente = paramiko.SSHClient()
+    #cliente.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    #cliente.load_system_host_keys()
 
-def exec_comando_ssh(comando):
+    try:
+        cliente.connect(hostname=host, username=usuario, password=senha)
+        return (True)
+    except paramiko.ssh_exception.AuthenticationException as e:
+        print(f'Erro ao autenticar no host {host} via SSH: {e}')
+        logger.error(f'Erro ao autenticar no host {host} via SSH: {e}')  
+        return (False)
+    except paramiko.ssh_exception.NoValidConnectionsError as e1:
+        print(f'Erro ao conectar no host {host} via SSH: {e1}')
+        logger.error(f'Erro ao conectar no host {host} via SSH: {e1}')  
+        return (False)
+    except paramiko.ssh_exception.SSHException as e2:
+        print(f'Erro ao acessar o host {host} via SSH: {e2}')  
+        logger.error(f'Erro ao acessar o host {host} via SSH: {e2}')  
+        return (False)
+
+def exec_comando_ssh(cliente, comando):
     """
     exec_comando_ssh - Função para executar um comando remoto via SSH
 
@@ -57,27 +45,35 @@ def exec_comando_ssh(comando):
         comando (string): comando a ser executado
 
     Returns:
-        dictionary: retorno do comando (stdout, stderr)
+        dictionary: retorno do comando (stdout, stderr, erro)
     """
+    print(f'Dados do cliente: {cliente}.\n')
+    print(f'Executando o comando remoto {comando}...\n')
+    logger.info(f'Executando o comando remoto {comando}...')
     try:
-        stdin,stdout,stderr = ssh_connect.exec_command(comando)
+        stdin,stdout,stderr = cliente.exec_command(comando)
         stdin.write('docker\n')
         stdin.flush()    
         stdin.close()
+        erro = stderr.read().decode('utf-8')
+        saida = stdout.read().decode('utf-8')
         retorno = {
-            "stdout": stdout.readlines(),
-            "stderr": stderr.readlines()
+            "stdout": saida,
+            "stderr": erro,
+            "erro": stderr.channel.recv_exit_status()
         }
     except paramiko.SSHException as e:
-        #print(f'Erro ao executar o comando remoto {comando}: {e}')
+        print(f'Erro ao executar o comando remoto {comando}: {e}')
         logger.error(f'Erro ao executar o comando remoto {comando}: {e}')
         retorno = {
             "stdout": None,
-            "stderr": None
+            "stderr": None,
+            "erro": e
         }
-    return retorno
+    finally:
+        return retorno
 
-def retorna_stout_ssh(comando, tipo):  
+def retorna_stout_ssh(cliente, comando, tipo):  
     """
     retorna_stout_ssh - Função para executar um comando remoto via SSH e retornar o resultado no formato especificado
     
@@ -90,7 +86,7 @@ def retorna_stout_ssh(comando, tipo):
     
     """  
     try:
-        stdin,stdout,stderr = ssh_connect.exec_command(comando)
+        stdin,stdout,stderr = cliente.exec_command(comando)
         stdin.write('docker\n')
         stdin.flush()    
         stdin.close()

@@ -13,9 +13,6 @@ headers = {'Content-Type': 'application/json'}
 url_api = os.getenv('URL_API')
 url_base_aplicacoes = f'{url_api}/v2/aplicacoes/'
 
-#url_base = "http://192.168.0.22:8000/api/v2"
-#url_base_aplicacoes = f"{url_base}/aplicacoes/"
-
 logger = logging.getLogger(__name__)  
 
 report_path = '/src/report'
@@ -27,6 +24,10 @@ jsondoc = {
       "testes": 0, 
       "tempo": 0
     }
+
+# define a conexão SSH
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
 # realiza o processamento da varredura
 @shared_task(soft_time_limit=600, time_limit=600) #limitar em 10 minutos o processamento
@@ -54,96 +55,116 @@ def processa (processar):
   }
   """
   #print()
-  #print (processar)
-  print()
   try:
-    # define a conexão SSH
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     # baixar o código fonte da aplicação
     #ssh.connect(hostname='192.168.0.10', username='docker', password='docker")
     ssh.connect(hostname=processar["sist_varredura_ip_acesso"], username=processar["sist_varredura_usuario"], password=processar["sist_varredura_senha"])
     # 1º passo: clonar na máquina do OWASP-CDC a imagem da aplicação a ser varrida
     #comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf DVWA && rm -f dc-report.json && git clone {dvwa_fonte}'\n"
     #comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf {processar['aplicacao_sigla'].lower()} && rm -f {report_path}/{processar['aplicacao_sigla'].lower()}/"
-    comando = f"cd src && rm -rf {processar['aplicacao_sigla'].lower()} && rm -rf {report_path}/{processar['aplicacao_sigla'].lower()}/"
-    comando = comando + f"{report_name} && git clone {processar['url_codigo_fonte']}" 
+    comando = f"rm -rf src/{processar['aplicacao_sigla'].lower()} && rm -rf {report_path}/{processar['aplicacao_sigla'].lower()} && cd src && git clone {processar['url_codigo_fonte']}"
+    comando = f"{comando} && mv -f {processar['aplicacao_sigla']} {processar['aplicacao_sigla'].lower()}" 
     print (f"1º passo: Comando: {comando}")   
-    comando = "ls -lah"
-    
-    ### comentado para testar a varredura com dados locais - desabilitar para homologação     
     try:  
-        stdin,stdout,stderr = ssh.exec_command(comando)
-        stdin.write("docker\n")
-        stdin.flush()    
-        stdin.close()
-        # testar se retornou erro
-        if stderr.channel.recv_exit_status() == 0:
-        #if stderr.readlines() != "[]":
-            print("Clonagem realizada com sucesso!")
-            logger.info (f"Clonagem da aplicação " + processar["aplicacao_sigla"] + "realizada com sucesso.")
-        else:
-            #print ("Erro ao clonar o repositório da aplicação.")
-            logger.error (f"Erro ao clonar o repositório da aplicação: {stderr.readlines()}")
+      stdin,stdout,stderr = ssh.exec_command(comando)
+      #stdin.write("docker\n")
+      #stdin.flush()    
+      #stdin.close()
+      cod_erro = stderr.channel.recv_exit_status()
+      erro = stderr.readlines()
+      saida = stdout.readlines()
+      if cod_erro == 0:
+        print(f"Clonagem da aplicação {processar['aplicacao_sigla']} realizada com sucesso!")
+        logger.info (f"Clonagem da aplicação {processar['aplicacao_sigla']} realizada com sucesso!")
+        #2º passo: executar a varredura da aplicação
+        #comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --project DVWA --scan /src/DVWA --format JSON --out /src/report-dvwa -n'"
+        #/bin/dependency-check.sh --project {aplicacao} --scan /src/{aplicacao} --format JSON --out /src/report/{aplicacao} -n
+        #comando = f"{comando} --nvdApiKey cd0c05ca-2b15-4034-9ae6-490fb505f439'"
+        #comando = "docker exec mn.owasp_dc bash -c '" + processar["sist_varredura_comando"] + "'" 
+        comando = processar["sist_varredura_comando"]
+        comando = comando.replace("{aplicacao}", processar["aplicacao_sigla"].lower())
+        comando = comando.replace("{report_path}", report_path)
+        print (f"2º passo: Comando: {comando}")
+        try:
+          stdin,stdout,stderr = ssh.exec_command(comando)
+          cod_erro = stderr.channel.recv_exit_status()
+          erro = stderr.readlines()
+          saida = stdout.readlines()
+          if cod_erro == 0:
+            print("Análise realizada com sucesso!")
+            logger.info (f"Análise da aplicação " + processar["aplicacao_sigla"] + "realizada com sucesso.")
+            #3º passo: carregar o resultado da varredura
+            #comando = "docker exec mn.owasp_dc cat /src/report/<aplicacao>/dependency-check-report.json"
+            #comando = f"docker exec mn.owasp_dc cat {report_path}/{processar['aplicacao_sigla'].lower()}/{report_name}"
+            comando = f"cat {report_path}/{processar['aplicacao_sigla'].lower()}/{report_name}"
+            print(f"3º passo: Comando: {comando}")
+            try:
+              #baixar o arquivo de resultado da varredura para a máquina remota do docker
+              #cmd = f"docker cp mn.owasp_dc:{report_path}/{processar['aplicacao_sigla'].lower()}/{report_name} {processar['aplicacao_sigla'].lower()}-{report_name}"
+              stdin,stdout,stderr = ssh.exec_command(comando) 
+              cod_erro = stderr.channel.recv_exit_status()
+              erro = stderr.readlines()
+              saida = stdout.readlines()
+              # copiar o arquivo localmente para a pasta midia
+              #ssh.connect(hostname=processar["sist_varredura_ip_acesso"], username=processar["sist_varredura_usuario"], password=processar["sist_varredura_senha"])
+              # testar se retornou erro
+              if cod_erro == 0:
+                print("Arquivo obtido com sucesso!")
+                #dados = json.loads(saida.replace("\\','").replace("[\"','").replace("\"]','"))
+                dados = saida
+                print (str(dados))
+                print ("------------------------------------")
+                payload = json.dumps(dados,indent=3)
+                headers = {'Content-Type': 'application/json'}
+                response = requests.post(f'{url_api}/v1/resultados/',data=payload, headers=headers)
+                if response.status_code == 201:
+                    print("Dados inseridos no BD!")
+                    logger.info (f"Resultado da análise "+ processar["aplicacao_sigla"] + "-" + processar["sist_varredura_sigla_tipo"] + "." + processar["varredura"] + " inserida no BD.")
+                else:
+                    print("Erro ao enviar os dados para gravação no BD:", response.status_code)
+                    logger.error (f"Erro ao salvar os dados no BD: {response.text}")
+                    jsondoc["erros"] = 1
+              else:
+                print (f"Erro ao copiar o arquivo de resultado.\n {erro}")
+                logger.error (f"Erro ao copiar o arquivo de resultado:\n {erro}")
+                jsondoc["erros"] = 1  
+            except paramiko.SSHException as e:
+              print(f"Erro ao executar o comando remoto: {e}")
+              logger.error (f"Erro ao executar o comando remoto: {e}")
+              jsondoc["erros"] = 1
+          else:
+            print (f"Erro ao executar a varredura.\n {erro}")
+            logger.error (f"Erro ao executar a varredura:\n {erro}")
+            jsondoc["erros"] = 1    
+        except paramiko.SSHException as e:
+          print(f"Erro ao executar o comando remoto: {e}")
+          logger.error (f"Erro ao executar o comando remoto: {e}")
+          jsondoc["erros"] = 1
+      else:
+        print (f"Erro ao clonar o repositório da aplicação.\n {erro}")
+        logger.error (f"Erro ao clonar o repositório da aplicação:\n {erro}")
+        jsondoc["erros"] = 1
     except paramiko.SSHException as e:
         print(f"Erro ao executar o comando remoto: {e}")
         logger.error (f"Erro ao executar o comando remoto: {e}")  
-        
-    # 2º passo: executar a varredura da aplicação
-    #comando = "docker exec mn.owasp_dc bash -c '/bin/dependency-check.sh --project DVWA --scan /src/DVWA --format JSON --out /src/report-dvwa -n'"
-    #comando = "docker exec mn.owasp_dc bash -c '" + processar["sist_varredura_comando"] + "'" 
-    comando = processar["sist_varredura_comando"]
-    #/bin/dependency-check.sh --project {aplicacao} --scan /src/{aplicacao} --format JSON --out /src/report/{aplicacao} -n
-    #comando = f"{comando} --nvdApiKey cd0c05ca-2b15-4034-9ae6-490fb505f439'"
-    cmd = comando.replace( "{aplicacao}", processar["aplicacao_sigla"].lower())
-    cmd = comando.replace("{report_path}", report_path)
-    print (f"2º passo: Comando: {cmd}")
-    try:
-        stdin,stdout,stderr = ssh.exec_command(cmd)
-        stdin.write("docker\n")
-        stdin.flush()    
-        stdin.close()
-        #if stderr.channel.recv_exit_status() == 0:
-        if stderr.readlines() == []:
-            #print("Análise realizada com sucesso!")
-            logger.info (f"Análise da aplicação " + processar["aplicacao_sigla"] + "realizada com sucesso.")
-        else:
-            print (f"Erro ao executar a varredura. stderr: {stderr.readlines()}; stdout: {stdout.readlines()}")
-            logger.error (f"Erro ao executar a varredura: stderr: {stderr.readlines()}; stdout: {stdout.readlines()}")
-    except paramiko.SSHException as e:
-        print(f"Erro ao executar o comando remoto: {e}")
-        logger.error (f"Erro ao executar o comando remoto: {e}")
-    
-    #3º passo: carregar o resultado da varredura
-    #comando = "docker exec mn.owasp_dc cat /src/report/<aplicacao>/dependency-check-report.json"
-    #comando = f"docker exec mn.owasp_dc cat {report_path}/{processar['aplicacao_sigla'].lower()}/{report_name}"
-    comando = f"cat {report_path}/{processar['aplicacao_sigla'].lower()}/{report_name}"
+        jsondoc["erros"] = 1
+  except paramiko.SSHException as e:
+    print(f"Erro ao executar o comando remoto: {e}")
+    logger.error (f"Erro ao executar o comando remoto: {e}")
+    jsondoc["erros"] = 1
+  finally:
+    # finalizar processamento
+    ssh.close()
+    # retornar o resultado
+    resultado = {
+      "aplicacao": processar["aplicacao_id"],
+      "varredura": processar["varredura"],
+      "sistemas_varredura": processar["sistema_varredura"],
+      "resultado": jsondoc,
+    }   
     print()
-    print(f"3º passo: Comando: {comando}")
-    try:
-      #baixar o arquivo de resultado da varredura para a máquina remota do docker
-      #cmd = f"docker cp mn.owasp_dc:{report_path}/{processar['aplicacao_sigla'].lower()}/{report_name} {processar['aplicacao_sigla'].lower()}-{report_name}"
-      stdin,stdout,stderr = ssh.exec_command(cmd) 
-      stdin.write("docker\n")
-      stdin.flush()
-      stdin.close()
-      # copiar o arquivo localmente para a pasta midia
-      #ssh.connect(hostname=processar["sist_varredura_ip_acesso"], username=processar["sist_varredura_usuario"], password=processar["sist_varredura_senha"])
-      # testar se retornou erro
-      if stderr.channel.recv_exit_status() == 0:
-        print("Análise realizada com sucesso!")
-        data = json.dumps(stdout.readlines())
-        dados = json.loads(data.replace("\\','").replace("[\"','").replace("\"]','"))
-        print ("------------------------------------")
-        payload = json.dumps(dados,indent=3)
-        headers = {'Content-Type': 'application/json'}
-        response = requests.post(f'{url_api}/v1/resultados/',data=payload, headers=headers)
-        if response.status_code == 201:
-            print("Dados inseridos no BD!")
-            logger.info (f"Resultado da análise "+ processar["aplicacao_sigla"] + "-" + processar["sist_varredura_sigla_tipo"] + "." + processar["varredura"] + " inserida no BD.")
-        else:
-            print("Erro ao enviar os dados para gravação no BD:", response.status_code)
-            logger.error (f"Erro ao salvar os dados no BD: {response.text}")
+    print (f"Resultado da varredura: {resultado}")  
+    return (resultado)
       
       
       # ## copia para máquina local
@@ -206,27 +227,27 @@ def processa (processar):
       # except subprocess.CalledProcessError as e:
       #   print(f"Erro ao copiar o arquivo de resultado: {e}")
       #   logger.error (f"Erro ao copiar o arquivo de resultado: {e}")  
-    except paramiko.SSHException as e:
-      print(f"Erro ao executar o comando remoto: {e}")
-      logger.error (f"Erro ao executar o comando remoto: {e}")
+    # except paramiko.SSHException as e:
+    #   print(f"Erro ao executar o comando remoto: {e}")
+    #   logger.error (f"Erro ao executar o comando remoto: {e}")
 
-    # finalizar processamento
-    ssh.close()
+    # # finalizar processamento
+    # ssh.close()
     
     
-    # retornar o resultado
-    resultado = {
-      "aplicacao": processar["aplicacao_id"],
-      "varredura": processar["varredura"],
-      "sistemas_varredura": processar["sistema_varredura"],
-      "resultado": jsondoc,
-    }   
-    print()
-    print (f"Resultado da varredura: {resultado}")  
-    return (resultado)
+    # # retornar o resultado
+    # resultado = {
+    #   "aplicacao": processar["aplicacao_id"],
+    #   "varredura": processar["varredura"],
+    #   "sistemas_varredura": processar["sistema_varredura"],
+    #   "resultado": jsondoc,
+    # }   
+    # print()
+    # print (f"Resultado da varredura: {resultado}")  
+    # return (resultado)
   
-  except paramiko.SSHException as e:    
-    print(f"Erro ao conectar ao servidor remoto: {e}")
-    logger.error (f"Erro ao conectar ao servidor remoto: {e}")
+  # except paramiko.SSHException as e:    
+  #   print(f"Erro ao conectar ao servidor remoto: {e}")
+  #   logger.error (f"Erro ao conectar ao servidor remoto: {e}")
 
          

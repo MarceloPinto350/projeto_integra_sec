@@ -1,8 +1,9 @@
-import requests, json, logging, datetime, paramiko
+import logging, datetime, os
  
 from ..models import Aplicacao, SistemaVarredura,VersaoAplicacao,TipoVarredura
 
-url_base = 'http://127.0.0.1:8000/api/v2'
+#url_base = 'http://127.0.0.1:8000/api/v2'
+url_base = f"{os.getenv('URL_API')}v2"
 headers = {'Content-Type': 'application/json'}
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ def inicializa(processar):
       "origem_processamento": "API",
       "sistema_varredura": ["ALL","SAST","DAST","SCA"]
       }
-    Devolve a vaeeruda a ser cadsatrada no BD
+    Devolve a varredura a ser cadastrada no BD
     varredura = {
         "origem": origem,
         "data_inicio": dth_inicio,

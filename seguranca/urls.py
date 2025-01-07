@@ -10,7 +10,7 @@ from rest_framework.routers import SimpleRouter
 from .views import (
       DetailView, IndexView, TipoAplicacaoAPIView, TiposAplicacaoAPIView, 
       AplicacaoAPIView, AplicacoesAPIView,
-      VersaoAPIView, VersoesAPIView, 
+      VersaoAPIView, VersoesAPIView, GrafoViewSet,
       ResultadoScanAPIView,ResultadosScanAPIView,
       TipoAplicacaoViewSet,AreaNegocialViewSet,AplicacaoViewSet,
       VersaoViewSet,TipoAtivoInfraestruturaViewSet,AtivoInfraestruturaViewSet,
@@ -57,6 +57,7 @@ urlpatterns = [
       
       path('resultados/', ResultadoViewSet.as_view({'post':'post'}), name='resultados'),
       path('varrer/', VarrerViewSet.as_view({'post':'post'}), name='varrer'),
+      path('grafo/', GrafoViewSet.as_view({'get':'list'}), name='grafo'),     
 
       # Visões das aplicações
       #path('aplicacoes/', views.index, name='index'),
