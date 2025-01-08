@@ -4,6 +4,8 @@ from django.utils import timezone
 
 from seguranca.serializers import ResultadoScanSerializer
 #from seguranca.utils import varredura_result
+from ..models import VersaoAplicacao
+
 from rest_framework.response import Response
 
 from celery import shared_task
@@ -91,8 +93,8 @@ def processa (processar):
           erro = stderr.readlines()
           saida = stdout.readlines()
           if cod_erro == 0:
-            print("Análise realizada com sucesso!")
-            logger.info (f"Análise da aplicação " + processar["aplicacao_sigla"] + "realizada com sucesso.")
+            print(f"Análise da aplicação {processar['aplicacao_sigla']} realizada com sucesso!")
+            logger.info (f"Análise da aplicação {processar['aplicacao_sigla']} realizada com sucesso!")
             #3º passo: carregar o resultado da varredura
             #comando = "docker exec mn.owasp_dc cat /src/report/<aplicacao>/dependency-check-report.json"
             #comando = f"docker exec mn.owasp_dc cat {report_path}/{processar['aplicacao_sigla'].lower()}/{report_name}"
@@ -111,19 +113,49 @@ def processa (processar):
               if cod_erro == 0:
                 print("Arquivo obtido com sucesso!")
                 #dados = json.loads(saida.replace("\\','").replace("[\"','").replace("\"]','"))
-                dados = saida
-                print (str(dados))
-                print ("------------------------------------")
-                payload = json.dumps(dados,indent=3)
-                headers = {'Content-Type': 'application/json'}
-                response = requests.post(f'{url_api}/v1/resultados/',data=payload, headers=headers)
-                if response.status_code == 201:
-                    print("Dados inseridos no BD!")
-                    logger.info (f"Resultado da análise "+ processar["aplicacao_sigla"] + "-" + processar["sist_varredura_sigla_tipo"] + "." + processar["varredura"] + " inserida no BD.")
+                string = str(saida)
+                #print (dados)
+                string = string.replace("'","")
+                string = string.replace("\\","")
+                # converter o texto em json
+                json_doc = ""
+                dados = json.loads(string) 
+                for item in dados:
+                  json_doc = item
+                #payload = json.dumps(dados,indent=3)
+                #headers = {'Content-Type': 'application/json'}
+                versao = VersaoAplicacao.objects.filter(aplicacao=processar["aplicacao_id"]).order_by('-data_lancamento').first()
+                #print(f"Ferramenta: {ferramenta} - Versão: {versao.nome_versao} ==> {versao.id}")
+                versao_id = versao.id
+                # busca a último varredura realizada ainda em aberto
+                string_resultado={
+                  "data_resultado": timezone.now(),
+                  "resultado": json.dumps(json_doc,indent=3),
+                  "aplicacao": versao_id,       #processar["aplicacao_id"],
+                  "varredura": processar["varredura"],
+                  "sistema_varredura": processar["sistema_varredura"]
+                }
+                print(string_resultado)
+                # gravando o resultado na base de dados
+                ssh.close()
+                serializer =  ResultadoScanSerializer(data=string_resultado)
+                if serializer.is_valid():
+                  serializer.save()
+                  print(f"Resultado salvo com sucesso: {serializer.data}")
+                  logger.info (f"Resultado salvo com sucesso: {serializer.data}")
+                  return requests.Response(serializer.data, status=201)
                 else:
-                    print("Erro ao enviar os dados para gravação no BD:", response.status_code)
-                    logger.error (f"Erro ao salvar os dados no BD: {response.text}")
-                    jsondoc["erros"] = 1
+                  print(f"Erro ao salvar o resultado: {serializer.errors}")
+                  logger.erro (f"Erro ao salvar o resultado: {serializer.errors}")
+                  return requests.Response(serializer.errors, status=400)
+                # response = requests.post(f'{url_api}/v1/resultados/',data=payload, headers=headers)
+                # if response.status_code == 201:
+                #     print("Dados inseridos no BD!")
+                #     logger.info (f"Resultado da análise "+ processar["aplicacao_sigla"] + "-" + processar["sist_varredura_sigla_tipo"] + "." + processar["varredura"] + " inserida no BD.")
+                # else:
+                #     print("Erro ao enviar os dados para gravação no BD:", response.status_code)
+                #     logger.error (f"Erro ao salvar os dados no BD: {response.text}")
+                #     jsondoc["erros"] = 1
               else:
                 print (f"Erro ao copiar o arquivo de resultado.\n {erro}")
                 logger.error (f"Erro ao copiar o arquivo de resultado:\n {erro}")

@@ -4,6 +4,9 @@ from django.utils import timezone
 
 from seguranca.serializers import ResultadoScanSerializer
 #from seguranca.utils import varredura_result
+
+from ..models import VersaoAplicacao
+
 from celery import shared_task
 
 
@@ -114,10 +117,12 @@ def processa (processar):
     #comando = f"docker exec mn.owasp_zap bash -c '{processar['sist_varredura_comando']}'\n"
     comando = f"{processar['sist_varredura_comando']}"
     #python zap-full-scan.py -t  {url_zap} -J {pasta}/owasp_zap_report_{aplicacao}.json -d
+    versao = VersaoAplicacao.objects.filter(aplicacao=processar["aplicacao_id"]).order_by('-data_lancamento').first()
     cmd = comando.replace( "{aplicacao}", processar["aplicacao_sigla"].lower())
-    cmd = cmd.replace( "{url_zap}", processar["sist_varredura_host"])
+    cmd = cmd.replace( "{url_zap}", versao.url_acesso)  #processar["sist_varredura_host"])
     cmd = cmd.replace( "{pasta}", "reports")
     print (f"1º passo: Comando: {cmd}")
+    
     try:
       logger.info (f"Iniciando a análise de vulnerabilidade da aplicação {processar['aplicacao_sigla']}...")
       stdin,stdout,stderr = ssh.exec_command(cmd)
@@ -143,30 +148,53 @@ def processa (processar):
           saida = stdout.readlines()
           erro = stderr.readlines()
           if cod_erro == 0:
-            # copiar o arquivo localmente para a pasta midia
-            arq_origem = arquivo_report
-            arq_destino = f"midia/{arquivo_report}"
-            # copia o arquivo para pasta local
-            with open(arq_destino, 'w') as arquivo:
-              dados = json.dump(saida.replace("\\','").replace("[\"','").replace("\"]','"), arquivo,indent=3)
-              print("Arquivo de resultado carregado com sucesso!")  
-              print (dados)
-              string_resultado={
-                "data_resultado": timezone.now(),
-                "resultado": json.dumps(dados,indent=3),
-                "aplicacao": processar["aplicacao_id"],
-                "varredura": processar["varredura"],      
-                "sistema_varredura": processar["sistema_varredura"]
-              }
-              serializer =  ResultadoScanSerializer(data=string_resultado)
-              if serializer.is_valid():
-                serializer.save()
-                print(f"Resultado salvo com sucesso: {serializer.data}")
-                return requests.Response(serializer.data, status=201)
-              else:
-                print(f"Erro ao salvar o resultado: {serializer.errors}")
-                return requests.Response(serializer.errors, status=400)
-                jsondoc["erros"] = 1
+            print ("Arquivo obtido com sucesso!")
+            dados = str(saida)
+            print (json.load(dados))
+            #json.dump(saida.replace("\\','").replace("[\"','").replace("\"]','"), arquivo,indent=3)
+            dados = dados.replace("'","")
+            string_resultado={
+              "data_resultado": timezone.now(),
+              "resultado": json.dumps(dados,indent=3),
+              "aplicacao": versao_id,   #processar["aplicacao_id"],
+              "varredura": processar["varredura"],
+              "sistema_varredura": processar["sistema_varredura"]
+            }
+            ssh.close()
+            serializer =  ResultadoScanSerializer(data=string_resultado)
+            if serializer.is_valid():
+              serializer.save()
+              print(f"Resultado salvo com sucesso: {serializer.data}")
+              return requests.Response(serializer.data, status=201)
+            else:
+              print(f"Erro ao salvar o resultado: {serializer.errors}")
+              return requests.Response(serializer.errors, status=400)
+              jsondoc["erros"] = 1
+
+            # # copiar o arquivo localmente para a pasta midia
+            # arq_origem = arquivo_report
+            # arq_destino = f"midia/{arquivo_report}"
+            # # copia o arquivo para pasta local
+            # with open(arq_destino, 'w') as arquivo:
+            #   dados = json.dump(saida.replace("\\','").replace("[\"','").replace("\"]','"), arquivo,indent=3)
+            #   print("Arquivo de resultado carregado com sucesso!")  
+            #   print (dados)
+            #   string_resultado={
+            #     "data_resultado": timezone.now(),
+            #     "resultado": json.dumps(dados,indent=3),
+            #     "aplicacao": processar["aplicacao_id"],
+            #     "varredura": processar["varredura"],      
+            #     "sistema_varredura": processar["sistema_varredura"]
+            #   }
+            #   serializer =  ResultadoScanSerializer(data=string_resultado)
+            #   if serializer.is_valid():
+            #     serializer.save()
+            #     print(f"Resultado salvo com sucesso: {serializer.data}")
+            #     return requests.Response(serializer.data, status=201)
+            #   else:
+            #     print(f"Erro ao salvar o resultado: {serializer.errors}")
+            #     return requests.Response(serializer.errors, status=400)
+            #     jsondoc["erros"] = 1
           else: 
             print(f"Erro ao tentar copiar os dados do resultado da varredura")
             logger.error (f"Erro ao tentar copiar os dados do resultado da varredura")
