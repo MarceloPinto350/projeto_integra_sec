@@ -416,8 +416,8 @@ git clone https://github.com/MarceloPinto350/projeto_integra_sec.git
 **2º Passo**: Executar o comando para criação de imagem:
 
 ```shell
-# executar o comando na pasta onde estiver o arquivo Dockerfile
-~/projeto_integra_seg$ docker build -t appseg:<versao> .
+# executar o comando na pasta onde estiver o arquivo Dockerfile usando o parâmetro --no-cache para atualizar sempre todos os arquivos da nova versão
+~/projeto_integra_seg$ docker build -t appseg:<versao> . --no-cache
 ```
 
 **3º Passo**: Executar a aplicação para se certificar que está tudo ok
