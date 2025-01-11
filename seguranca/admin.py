@@ -3,6 +3,7 @@ from .models import (AreaNegocial, TipoAplicacao, TipoVarredura, SistemaVarredur
     ModeloDocumento, ArquivoConfiguracao, Configuracao, TipoAtivoInfraestrutura, AtivoInfraestrutura, Relacionamento, 
     TipoRelacionamento, Servico, Servidor, Rede, BancoDados
     )
+from .forms import SistemaVarreduraForm, BancoDadosForm, AplicacaoForm, RedeForm
 
 #class CustomAdminSite(admin.AdminSite):
 #    site_header = 'Sistema de integração de segurança de aplicações - SISAP'
@@ -28,23 +29,37 @@ class TipoVarreduraAdmin(admin.ModelAdmin):
     list_display_icons = True
     list_per_page = 10
 
+# @admin.register(SistemaVarredura)
+# class SistemaVarreduraAdmin(admin.ModelAdmin):
+#     list_display = ('aplicacao_seguranca','tipo_varredura','usa_webhook','situacao','get_aplicacoes')
+#     #filter_horizontal = ('get_aplicacoes')
+#     list_display_icons = True
+#     list_per_page = 10
+
+#Ajustado para exibir as aplicações de segurança e as aplicações de varredura filtradas
 @admin.register(SistemaVarredura)
 class SistemaVarreduraAdmin(admin.ModelAdmin):
-    list_display = ('aplicacao_seguranca','tipo_varredura','usa_webhook','situacao','get_aplicacoes')
-    #filter_horizontal = ('get_aplicacoes')
-    list_display_icons = True
-    list_per_page = 10
+     form = SistemaVarreduraForm
+     list_display_icons = True
+     list_per_page = 10
+
+# @admin.register(Aplicacao)
+# class AplicacaoAdmin(admin.ModelAdmin):
+#     list_display = ('nome','sigla', 'descricao',
+#                     'categoria','url_codigo_fonte',
+#                     'data_descontinuacao',
+#                     'tipo_aplicacao','aplicacao_pai','usuario_servico'
+#                     )
+#     #filter_horizontal = ('versoes')
+#     list_display_icons = True
+#     list_per_page = 5
 
 @admin.register(Aplicacao)
 class AplicacaoAdmin(admin.ModelAdmin):
-    list_display = ('nome','sigla', 'descricao',
-                    'categoria','url_codigo_fonte',
-                    'data_descontinuacao',
-                    'tipo_aplicacao','aplicacao_pai','usuario_servico'
-                    )
-    #filter_horizontal = ('versoes')
+    form = AplicacaoForm
+    list_display = ('nome','sigla', 'descricao','categoria','url_codigo_fonte')
     list_display_icons = True
-    list_per_page = 5
+    list_per_page = 10
     
 @admin.register(VersaoAplicacao)
 class VersaoAplicacaoAdmin(admin.ModelAdmin):
@@ -103,19 +118,35 @@ class ServicoAdmin(admin.ModelAdmin):
     list_display_icons = True
     list_per_page = 10
 
+# @admin.register(Rede)
+# class Rede(admin.ModelAdmin):
+#     list_display = ('tipo','ip','mascara','gateway','ativo_infraestrutura')
+#     #filter_horizontal = ('servidores',)
+#     list_display_icons = True
+#     list_per_page = 10      
+
 @admin.register(Rede)
 class Rede(admin.ModelAdmin):
-    list_display = ('tipo','ip','mascara','gateway','ativo_infraestrutura')
-    #filter_horizontal = ('servidores',)
+    form = RedeForm
+    list_display = ('tipo','ip','mascara','gateway')
     list_display_icons = True
     list_per_page = 10      
+
     
+# @admin.register(BancoDados) 
+# class BancoDados(admin.ModelAdmin):
+#     list_display = ('nome','tipo','ambiente','versao','string_conexao','porta','ativo_infraestrutura')
+#     #filter_horizontal = ('aplicacoes',)
+#     list_display_icons = True
+#     list_per_page = 10
+
+#ajuste nos dados do bando de dados para mostrar os ativos de infraestrutura filtrados
 @admin.register(BancoDados) 
-class BancoDados(admin.ModelAdmin):
-    list_display = ('nome','tipo','ambiente','versao','string_conexao','ativo_infraestrutura')
-    #filter_horizontal = ('aplicacoes',)
+class BancoDadosForm(admin.ModelAdmin):
+    form = BancoDadosForm
     list_display_icons = True
     list_per_page = 10
+
     
 @admin.register(Servidor)
 class Servidor(admin.ModelAdmin):

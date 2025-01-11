@@ -29,7 +29,7 @@ ENV POSTGRES_PASSWORD 'postgres'
 ENV URL_API 'http://10.21.220.150:8000/api'
 
 # Expondo o Django service na máquina
-EXPOSE 8000
+#EXPOSE 8000
 
 # Executando a aplicação quando o container inicia
 #CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

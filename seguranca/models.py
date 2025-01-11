@@ -249,6 +249,8 @@ class TipoRelacionamento(models.Model):
          ("can_delete_tipo_relacionamento", "Can delete tipos relacionamento"),
          ]
       ordering = ['nome']
+   def __str__(self):
+      return self.nome 
    
 # Modelo de documento
 class ModeloDocumento(models.Model):
@@ -469,6 +471,7 @@ class SistemaVarredura(models.Model):
       return self.aplicacoes.all()
    def __str__(self):
       return self.aplicacao_seguranca.nome + ' - ' + self.tipo_varredura.nome
+   
 
 # Varreduras de vulnerabilidade
 class Varredura(models.Model):
@@ -660,7 +663,7 @@ class Relacionamento (models.Model):
          ("can_delete_relacionamento", "Can delete relacionamentos"),
          ]
    def __str__(self):
-      return f"{self.aplicacao.nome} - {self.ativo_infraestrutura.nome} ({self.tipo_relacao})"
+      return f"{self.aplicacao.nome} - {self.ativo_infraestrutura.nome})"
 
 # Classes relacionadas aos ativos de infraestrutura e serviços
 # Redes de infraestrutura      
@@ -678,7 +681,9 @@ class Rede(models.Model):
    ip = models.GenericIPAddressField("Endereço IP",protocol="IPv4",null=False)
    mascara = models.GenericIPAddressField("Máscara de subrede",protocol="IPv4",null=False)
    gateway = models.GenericIPAddressField("Gateway",protocol="IPv4",null=False)
-   ativo_infraestrutura = models.ForeignKey(AtivoInfraestrutura, verbose_name="Ativo de Infraestrutura",on_delete=models.CASCADE,null=False)
+   #ativo_infraestrutura = models.ForeignKey(AtivoInfraestrutura, verbose_name="Ativo de Infraestrutura",on_delete=models.CASCADE,null=False)
+   #aplicacoes = models.ManyToManyField(VersaoAplicacao, related_name='aplicacoes_varridas', blank=True)
+   ativos_infraestrutura = models.ManyToManyField(AtivoInfraestrutura, related_name='redes', blank=True)
    class Meta:
       db_table = "tb_rede"
       verbose_name = 'Rede'
@@ -691,7 +696,7 @@ class Rede(models.Model):
          ]
       ordering = ['tipo']
    def __str__(self):
-      return (self.tipo, " - ", self.ip, " - ", self.mascara) 
+      return (self.tipo) 
 
 # Serviço de infraestrutura   
 class Servico(models.Model):
@@ -725,7 +730,7 @@ class Servico(models.Model):
          ]
       ordering = ['nome_servico']
    def __str__(self):
-      return (self.nome_servico, " - ", self.url)
+      return (self.nome_servico)
 
 # Bases de dados de infraestrutura   
 class BancoDados(models.Model):
@@ -745,7 +750,7 @@ class BancoDados(models.Model):
    ambiente = models.CharField("Ambiente",max_length=50,null=False,choices=TIPO_AMBIENTE_CHOICES,default='DESENVOLVIMENTO')
    ativo_infraestrutura = models.ForeignKey(AtivoInfraestrutura, verbose_name="Ativo de Infraestrutura",on_delete=models.CASCADE,null=True)
    porta = models.IntegerField("Porta",null=False, default=1521) 
-   versao = models.TextField("Versão",max_length=50,null=True,default='1.0')
+   versao = models.TextField("Versão",max_length=50,null=True)
    string_conexao = models.TextField("String de Conexão",max_length=1000,null=False)
    
    class Meta:
@@ -760,7 +765,7 @@ class BancoDados(models.Model):
          ]
       ordering = ['tipo']
    def __str__(self):
-      return (self.tipo, " - ", self.versao)
+      return (self.nome)
 
 # Servidores de infraestrutura   
 class Servidor(models.Model):
@@ -809,6 +814,6 @@ class Servidor(models.Model):
       """Retorna os bancos de dados associados ao servidor."""
       return self.bancos_dados.all()
    def __str__(self):
-      return (self.tipo, " - ", self.sistema_operacional)
+      return (self.nome)
 
    
