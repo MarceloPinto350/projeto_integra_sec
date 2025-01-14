@@ -1,10 +1,11 @@
 import requests, logging, json, paramiko, paramiko.message, os
 
-from . import mod_ssh
+#from . import mod_ssh
 
 from celery import shared_task
 
-headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
+#headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
+headers = {'Content-Type': 'application/json'}
 url_api = os.getenv('URL_API')
 url_base_aplicacoes = f'{url_api}/v2/aplicacoes/'
 
@@ -47,7 +48,7 @@ def processa (processar):
     "caminho_resultado": f"{aplicacao.sigla}_{sist_varredura.sigla}_{datetime.now().strftime('%Y%m%d%H%M%S")}.json"
   }
   """
-   #print (processar["sist_varredura_ip_acesso"], processar["sist_varredura_usuario"], processar["sist_varredura_senha"],"\n")
+  #print (processar["sist_varredura_ip_acesso"], processar["sist_varredura_usuario"], processar["sist_varredura_senha"],"\n")
   try:
     # Conecta via SSH no host para processamenteo da varredura
     print ('Conectando  via SSH...')
@@ -55,21 +56,23 @@ def processa (processar):
     # clonar o repositório da aplicação a ser analisada
     comando = f"rm -rf /tmp/{processar['aplicacao_sigla'].lower()} && cd /tmp && git clone {processar['url_codigo_fonte']}"
     comando = f"{comando} && mv -f {processar['aplicacao_sigla']} {processar['aplicacao_sigla'].lower()}"
+    # adapatacao feita no TRT21 para copiar usando git (ssh) ao inves de https
+    comando = comando.replace("https://git.trt21.local/","git@git.trt21.local:")
     print (f"Clonando o repositório... {comando}")
     stdin,stdout,stderr = ssh.exec_command(comando)
-    #stdin.write("docker\n")
-    #stdin.flush()
-    #stdin.close()
     cod_erro = stderr.channel.recv_exit_status()
     erro = stderr.readlines()
     saida = stdout.readlines()
     if  cod_erro == 0:
-      print ('Obtendo dados da aplicação...')
+      print(f"Clonagem da aplicação {processar['aplicacao_sigla']} realizada com sucesso!")
+      logger.info (f"Clonagem da aplicação {processar['aplicacao_sigla']} realizada com sucesso!")
       # obtem o camando de varredura a ser executado pela ferramenta de varredura de vulnerabiliade
       comando = processar["sist_varredura_comando"] 
       try:
         # pega a aplicação para obter os dados para processamento
+        #print(f"{url_base_aplicacoes}{processar['sistema_varredura']}")
         response = requests.get (f"{url_base_aplicacoes}{processar['sistema_varredura']}")
+        response.raise_for_status()
         # obetem a senha a ser cadastrada como ENVIRONMENT para o sonarqube e outros serviços associados, com a senha do usuário "servico"
         senha_servico=os.getenv('SENHA_SERVICO') 
         app_usuario_servico = response.json().get('usuario_servico')
@@ -88,8 +91,8 @@ def processa (processar):
           erro = stderr.readlines()
           saida = stdout.readlines()
           if cod_erro == 0:
-            print(f"Análise da aplicação " + processar["aplicacao_sigla"] + "realizada com sucesso!")
-            logger.info (f"Análise da aplicação " + processar["aplicacao_sigla"] + "realizada com sucesso!")
+            print(f"Análise da aplicação {processar['aplicacao_sigla']} realizada com sucesso!")
+            logger.info (f"Análise da aplicação {processar['aplicacao_sigla']} realizada com sucesso!")
             if not processar["sist_varredura_webhook"]:  #se usar webhook o carregamento é feito pela chamado do webhook
                print(f"3º passo: Comando: {processar['caminho_resultado']}")
                carregar_arquivo_resultado (processar)
@@ -112,9 +115,11 @@ def processa (processar):
           print(f'Erro ao executar o comando remoto {comando}:\n {e1}')
           logger.error(f'Erro ao executar o comando remoto {comando}:\n {e1}')
           jsondoc["erros"] = 1
-      except requests.exceptions.RequestException as e2:
-        print (f"Erro ao buscar os dados da aplicação:\n {e2}")
-        logger.error (f"Erro ao buscar os dados da aplicação:\n {e2}")
+      #except requests.exceptions.RequestException as e2:
+      except requests.exceptions.HTTPError as e2:
+      #else:
+        print (f"Erro ao buscar os dados da aplicação:\nErro {response.status_code}\n{e2}")
+        logger.error (f"Erro ao buscar os dados da aplicação:\nErro {response.status_code}\n{e2}")
         jsondoc["erros"] = 1
     else:
       print (f"Erro ao clonar o repositório:\n {erro}")

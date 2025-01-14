@@ -12,8 +12,6 @@ from celery import shared_task
 
 #headears = {'Authorization':'Token 61a384f801cb080e0c8f975c7731443b51c9f02e'}
 headers = {'Content-Type': 'application/json'}
-#url_base = "http://192.168.0.22:8000/api/v2"
-#url_base_aplicacoes = f"{url_base}/aplicacoes/"
 url_api = os.getenv('URL_API')
 url_base_aplicacoes = f'{url_api}/v2/aplicacoes/'
 
@@ -204,8 +202,8 @@ def processa (processar):
           logger.error (f"Erro ao tentar copiar o resultada da análise:\n {e2}")
           jsondoc["erros"] = 1
       else:
-        print(f"Erro ao analisar a aplicação")
-        logger.error (f"Erro ao analisar a aplicação")    
+        print(f"Erro ao analisar a aplicação\nErro: {erro}\nSaída: {saida}")
+        logger.error (f"Erro ao analisar a aplicação\nErro: {erro}\nSaída: {saida}")    
         jsondoc["erros"] = 1
     except paramiko.SSHException as e3:
       print(f"Erro ao executar o comando remoto para análise da vulnerabilidades:\n {e3}")

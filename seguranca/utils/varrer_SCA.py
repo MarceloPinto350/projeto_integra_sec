@@ -17,7 +17,7 @@ url_base_aplicacoes = f'{url_api}/v2/aplicacoes/'
 
 logger = logging.getLogger(__name__)  
 
-report_path = '/src/report'
+report_path = '/tmp/report'
 report_name = 'dependency-check-report.json'
 
 jsondoc = {
@@ -64,8 +64,10 @@ def processa (processar):
     # 1º passo: clonar na máquina do OWASP-CDC a imagem da aplicação a ser varrida
     #comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf DVWA && rm -f dc-report.json && git clone {dvwa_fonte}'\n"
     #comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf {processar['aplicacao_sigla'].lower()} && rm -f {report_path}/{processar['aplicacao_sigla'].lower()}/"
-    comando = f"rm -rf src/{processar['aplicacao_sigla'].lower()} && rm -rf {report_path}/{processar['aplicacao_sigla'].lower()} && cd src && git clone {processar['url_codigo_fonte']}"
+    comando = f"rm -rf /tmp/{processar['aplicacao_sigla'].lower()} && rm -rf {report_path}/{processar['aplicacao_sigla'].lower()} && cd /tmp && git clone {processar['url_codigo_fonte']}"
     comando = f"{comando} && mv -f {processar['aplicacao_sigla']} {processar['aplicacao_sigla'].lower()}" 
+    # adapatacao feita no TRT21 para copiar usando git (ssh) ao inves de https
+    comando = comando.replace("https://git.trt21.local/","git@git.trt21.local:")
     print (f"1º passo: Comando: {comando}")   
     try:  
       stdin,stdout,stderr = ssh.exec_command(comando)
@@ -85,6 +87,8 @@ def processa (processar):
         #comando = "docker exec mn.owasp_dc bash -c '" + processar["sist_varredura_comando"] + "'" 
         comando = processar["sist_varredura_comando"]
         comando = comando.replace("{aplicacao}", processar["aplicacao_sigla"].lower())
+        # adapatacao feita no TRT21 para copiar usando git (ssh) ao inves de https
+        comando = comando.replace("https://git.trt21.local/","git@git.trt21.local:")
         comando = comando.replace("{report_path}", report_path)
         print (f"2º passo: Comando: {comando}")
         try:

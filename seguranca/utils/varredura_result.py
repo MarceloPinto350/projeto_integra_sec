@@ -78,7 +78,7 @@ def processa_resultado(novo_resultado,aplicacao="dvwa"):
   #   data_execucao = novo_resultado['analysedAt']
   #   aplicacao = novo_resultado['project']['key']  
 
-  #print(data_execucao, aplicacao, str(aplicacao).upper(), ferramenta)
+  print(ferramenta,data_execucao, aplicacao, str(aplicacao).upper())
 
   # obter os dados da aplicação
   try:

@@ -415,7 +415,12 @@ git clone https://github.com/MarceloPinto350/projeto_integra_sec.git
 
 **2º Passo**: Executar o comando para criação de imagem:
 
+Uma obervação importante acerca da geração de novas versões da aplicação, caso a pasta do container da aplicação esteja sendo persistida, é necesário remover o volume antes de gerar a nova versão. 
+
 ```shell
+# caso nseja necessário apager o volume da aplicação appseg
+~/projeto_integra_seg$ docker volume rm appseg
+
 # executar o comando na pasta onde estiver o arquivo Dockerfile usando o parâmetro --no-cache para atualizar sempre todos os arquivos da nova versão
 ~/projeto_integra_seg$ docker build -t appseg:<versao> . --no-cache
 ```
