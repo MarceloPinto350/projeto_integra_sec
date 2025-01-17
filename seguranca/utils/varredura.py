@@ -38,7 +38,7 @@ def inicializa(processar):
         msg = "Erro na estrtura do JSON encaminhado."
         logger.error (msg)
         print (msg)
-        return ({"mensagem": msg})
+        #return ({"mensagem": msg})
     
     #registrando o inicio do processamento...
     dth_inicio = datetime.datetime.now()
@@ -82,7 +82,12 @@ def inicializa(processar):
         "aplicacao": apps.id,
         "log": None,
     }
-    logger.info(f"Gravando a varredura para aplicação: {varredura}")    
+    if msg:
+        varredura['log'] = msg
+        varredura['situacao'] = 'FALHA'
+        logger.info(f"VArredura da aplicação com falha: {varredura}")    
+    else:
+        logger.info(f"Gravando a varredura para aplicação: {varredura}")    
     return (varredura)
 
 

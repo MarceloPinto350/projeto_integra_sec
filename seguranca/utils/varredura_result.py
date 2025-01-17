@@ -61,7 +61,7 @@ def processa_resultado(novo_resultado,aplicacao="dvwa"):
   ferramenta = ''
   aplicacao = ''
   data_execucao = ''
-  #print(f"{estrutura}\n")
+  print(f"{estrutura}\n")
   #print(f"{url_base_aplicacoes}\n")
   
   if "qualityGate" in estrutura:
@@ -83,7 +83,9 @@ def processa_resultado(novo_resultado,aplicacao="dvwa"):
   # obter os dados da aplicação
   try:
     #apps = requests.get(url_base_aplicacoes) #, headers=headears)
-    app = Aplicacao.objects.get(sigla=str(aplicacao).upper())    #id=2)
+    #app = Aplicacao.objects.get(sigla=str(aplicacao))    #id=2)
+    #app = Aplicacao.objects.get(sigla=aplicacao)    
+    app = Aplicacao.objects.get(sigla=aplicacao)
     versao_id = ""
     aplicacao_id = app.id
     print(f"Aplicação: {aplicacao_id} - {app.nome} - {app.sigla}")

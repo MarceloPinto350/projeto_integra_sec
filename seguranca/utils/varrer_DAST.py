@@ -140,34 +140,46 @@ def processa (processar):
         comando = f"cat {report_path}/{arquivo_report}"
         print(f"2º passo: Comando: {comando}")
         try:
-          #baixar o arquivo de resultado da varredura para a máquina remota do docker
-          stdin,stdout,stderr = ssh.exec_command(comando) 
-          cod_erro = stderr.channel.recv_exit_status()
-          saida = stdout.readlines()
-          erro = stderr.readlines()
-          if cod_erro == 0:
-            print ("Arquivo obtido com sucesso!")
-            dados = str(saida)
-            print (json.load(dados))
-            #json.dump(saida.replace("\\','").replace("[\"','").replace("\"]','"), arquivo,indent=3)
-            dados = dados.replace("'","")
-            string_resultado={
-              "data_resultado": timezone.now(),
-              "resultado": json.dumps(dados,indent=3),
-              "aplicacao": versao_id,   #processar["aplicacao_id"],
-              "varredura": processar["varredura"],
-              "sistema_varredura": processar["sistema_varredura"]
-            }
-            ssh.close()
-            serializer =  ResultadoScanSerializer(data=string_resultado)
-            if serializer.is_valid():
-              serializer.save()
-              print(f"Resultado salvo com sucesso: {serializer.data}")
-              return requests.Response(serializer.data, status=201)
-            else:
-              print(f"Erro ao salvar o resultado: {serializer.errors}")
-              return requests.Response(serializer.errors, status=400)
-              jsondoc["erros"] = 1
+          arq_remoto = f"{report_path}/{arquivo_report}"
+          arq_destino = f"appseg/arquivos/{arquivo_report}"
+          print (arq_remoto)
+          print (arq_destino)
+          sftp = ssh.open_sftp()
+          #faz a copia do arquivo para a maquina local
+          sftp.get(arq_remoto, arq_destino)
+          with open(arq_destino, 'r') as f:
+            dados = json.load(f)
+            print ("Dados convertidos para o formato json")
+          sftp.close()
+          print ("Arquivo obtido com sucesso!")
+          #print (json.load(dados))
+          #json.dump(saida.replace("\\','").re
+          string_resultado={
+            "data_resultado": timezone.now(),
+            "resultado": json.dumps(dados,indent=3),
+            "aplicacao": versao_id,   #processar["aplicacao_id"],
+            "varredura": processar["varredura"],
+            "sistema_varredura": processar["sistema_varredura"]
+          }
+          ssh.close()
+          serializer =  ResultadoScanSerializer(data=string_resultado)
+          if serializer.is_valid():
+            serializer.save()
+            print(f"Resultado salvo com sucesso: {serializer.data}")
+            return requests.Response(serializer.data, status=201)
+          else:
+            print(f"Erro ao salvar o resultado: {serializer.errors}")
+            return requests.Response(serializer.errors, status=400)
+            jsondoc["erros"] = 1
+
+        except json.JSONDecodeError as e:
+          print("Erro ao converter para JSON:", e)
+          logger.error (f"Erro ao executar o comando remoto: {e}")
+          jsondoc["erros"] = 1
+        except Exception  as err:
+          print("Erro ao obter o arquivo JSON:", err)
+          logger.error (f"Erro ao executar o comando remoto: {err}")
+          jsondoc["erros"] = 1
 
             # # copiar o arquivo localmente para a pasta midia
             # arq_origem = arquivo_report
@@ -193,18 +205,14 @@ def processa (processar):
             #     print(f"Erro ao salvar o resultado: {serializer.errors}")
             #     return requests.Response(serializer.errors, status=400)
             #     jsondoc["erros"] = 1
-          else: 
-            print(f"Erro ao tentar copiar os dados do resultado da varredura")
-            logger.error (f"Erro ao tentar copiar os dados do resultado da varredura")
-            jsondoc["erros"] = 1    
-        except paramiko.SSHException as e2:
-          print(f"Erro ao tentar copiar o resultada da análise:\n {e2}")
-          logger.error (f"Erro ao tentar copiar o resultada da análise:\n {e2}")
-          jsondoc["erros"] = 1
-      else:
-        print(f"Erro ao analisar a aplicação\nErro: {erro}\nSaída: {saida}")
-        logger.error (f"Erro ao analisar a aplicação\nErro: {erro}\nSaída: {saida}")    
-        jsondoc["erros"] = 1
+      #   except paramiko.SSHException as e2:
+      #     print(f"Erro ao tentar copiar o resultada da análise:\n {e2}")
+      #     logger.error (f"Erro ao tentar copiar o resultada da análise:\n {e2}")
+      #     jsondoc["erros"] = 1
+      # else:
+      #   print(f"Erro ao analisar a aplicação\nErro: {erro}\nSaída: {saida}")
+      #   logger.error (f"Erro ao analisar a aplicação\nErro: {erro}\nSaída: {saida}")    
+      #   jsondoc["erros"] = 1
     except paramiko.SSHException as e3:
       print(f"Erro ao executar o comando remoto para análise da vulnerabilidades:\n {e3}")
       logger.error (f"Erro ao executar o comando remoto para análise da vulnerabilidades:\n {e3}")

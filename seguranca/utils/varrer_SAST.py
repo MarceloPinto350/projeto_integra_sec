@@ -73,18 +73,25 @@ def processa (processar):
         #print(f"{url_base_aplicacoes}{processar['sistema_varredura']}")
         response = requests.get (f"{url_base_aplicacoes}{processar['sistema_varredura']}")
         response.raise_for_status()
-        # obetem a senha a ser cadastrada como ENVIRONMENT para o sonarqube e outros serviços associados, com a senha do usuário "servico"
-        senha_servico=os.getenv('SENHA_SERVICO') 
-        app_usuario_servico = response.json().get('usuario_servico')
-        app_host = response.json().get('url_codigo_fonte')
-        #print (f"Usuário do serviço: {app_usuario_servico}")
-        cmd = comando.replace("{aplicacao}", processar["aplicacao_sigla"].lower())
-        #cmd = cmd.replace("{app_host}", processar["sist_varredura_host"])
-        cmd = cmd.replace("{app_host}", app_host)
-        cmd = cmd.replace("{app_token}", processar["sist_varredura_token"])
-        cmd = cmd.replace("{user}", app_usuario_servico) #processar["sist_varredura_usuario"])  
-        cmd = cmd.replace("{password}", senha_servico)  #processar["sist_varredura_senha"])  
-        print (f"Varrendo vulnerabilidades... {cmd}\n")
+        # pega os dados da aplicação
+        app_url_acesso = processar["sist_varredura_url_acesso"] #response.json().get('url_codigo_fonte')
+        app_usuario_servico = processar["sist_varredura_usr_servico"]   #response.json().get('usuario_servico')
+        app_senha_servico = processar["sist_varredura_senha_servico"]   #os.getenv('SENHA_SERVICO') 
+        app_token_acesso = processar["sist_varredura_token_servico"]
+        try:
+          # substitui os dados do comando pelos obtidos da aplicação
+          cmd = comando.replace("{aplicacao}", processar["aplicacao_sigla"].lower())
+          cmd = cmd.replace("https://git.trt21.local/","git@git.trt21.local:")
+          cmd = cmd.replace("{app_host}", app_url_acesso)
+          cmd = cmd.replace("{app_token}", app_token_acesso)
+          cmd = cmd.replace("{user}", app_usuario_servico)
+          cmd = cmd.replace("{password}", app_senha_servico)
+          print (f"Varrendo vulnerabilidades... {cmd}\n")
+        except Exception as ex:
+          print (f"Erro ao substituir dados do comando:\n{ee}")
+          logger.error (f"Erro ao substituir dados do comando:\n {ex}")
+          jsondoc["erros"] = 1
+          jsondoc["mensagem"] = ex
         try:
           stdin,stdout,stderr = ssh.exec_command(cmd)
           cod_erro = stderr.channel.recv_exit_status()
@@ -105,30 +112,33 @@ def processa (processar):
               "sistemas_varredura": processar["sistema_varredura"],
               "resultado": jsondoc,
             }
-            print (resultado)
+            #print (resultado)
             return (resultado)
           else:
             print (f"Erro ao validar vulnerabilidades do repositório:\n {erro}")
             logger.error (f"Erro ao validar vulnerabilidades do repositório:\n {erro}")
             jsondoc["erros"] = 1
+            jsondoc["mensagem"] = erro
         except paramiko.SSHException as e1:
           print(f'Erro ao executar o comando remoto {comando}:\n {e1}')
           logger.error(f'Erro ao executar o comando remoto {comando}:\n {e1}')
           jsondoc["erros"] = 1
-      #except requests.exceptions.RequestException as e2:
+          jsondoc["mensagem"] = e1
       except requests.exceptions.HTTPError as e2:
-      #else:
         print (f"Erro ao buscar os dados da aplicação:\nErro {response.status_code}\n{e2}")
         logger.error (f"Erro ao buscar os dados da aplicação:\nErro {response.status_code}\n{e2}")
         jsondoc["erros"] = 1
+        jsondoc["mensagem"] = e2
     else:
       print (f"Erro ao clonar o repositório:\n {erro}")
       logger.error (f"Erro ao clonar o repositório:\n {erro}")
       jsondoc["erros"] = 1
+      jsondoc["mensagem"] = erro
   except paramiko.SSHException as e3:
     print(f'Erro ao executar o comando remoto {comando}:\n {e3}')
     logger.error(f'Erro ao executar o comando remoto {comando}:\n {e3}')
     jsondoc["erros"] = 1
+    jsondoc["mensagem"] = e3
   finally:
     resultado = {
       "aplicacao": processar["aplicacao_id"],

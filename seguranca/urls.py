@@ -11,7 +11,7 @@ from .views import (
       DetailView, IndexView, TipoAplicacaoAPIView, TiposAplicacaoAPIView, 
       AplicacaoAPIView, AplicacoesAPIView,
       VersaoAPIView, VersoesAPIView, GrafoViewSet,
-      ResultadoScanAPIView,ResultadosScanAPIView,
+      ResultadoScanAPIView,ResultadosScanAPIView, RelacionamentoViewSet,
       TipoAplicacaoViewSet,AreaNegocialViewSet,AplicacaoViewSet,
       VersaoViewSet,TipoAtivoInfraestruturaViewSet,AtivoInfraestruturaViewSet,
       ResultadoScanViewSet,ResultadoViewSet,TipoVarreduraViewSet,VarrerViewSet,
@@ -27,6 +27,7 @@ router.register('versoes',VersaoViewSet)
 router.register('tipoativoinfraestrutura',TipoAtivoInfraestruturaViewSet)
 router.register('ativoinfraestrutura',AtivoInfraestruturaViewSet)
 router.register('resultadosscan',ResultadoScanViewSet)
+router.register('relacionamentos',RelacionamentoViewSet)
 # ativos de infraestrutura
 router.register('redes',RedeViewSet)      
 router.register('servicos',ServicoViewSet)

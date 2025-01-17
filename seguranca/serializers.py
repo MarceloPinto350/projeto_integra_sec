@@ -164,3 +164,6 @@ class SonarResultSerializer(serializers.ModelSerializer):
    class Meta:
       model = ResultadoScan
       fields = 'resultado'
+      
+      
+      

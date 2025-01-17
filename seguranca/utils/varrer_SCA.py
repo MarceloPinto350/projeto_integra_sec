@@ -117,41 +117,61 @@ def processa (processar):
               if cod_erro == 0:
                 print("Arquivo obtido com sucesso!")
                 #dados = json.loads(saida.replace("\\','").replace("[\"','").replace("\"]','"))
-                string = str(saida)
+                #string = str(saida)
                 #print (dados)
-                string = string.replace("'","")
-                string = string.replace("\\","")
+                #string = string.replace("'","")
+                #string = string.replace("\\","")
                 # converter o texto em json
-                json_doc = ""
-                dados = json.loads(string) 
-                for item in dados:
-                  json_doc = item
+                #json_doc = ""
+                #dados = json.loads(string) 
+                #for item in dados:
+                #  json_doc = item
                 #payload = json.dumps(dados,indent=3)
                 #headers = {'Content-Type': 'application/json'}
-                versao = VersaoAplicacao.objects.filter(aplicacao=processar["aplicacao_id"]).order_by('-data_lancamento').first()
-                #print(f"Ferramenta: {ferramenta} - Versão: {versao.nome_versao} ==> {versao.id}")
-                versao_id = versao.id
-                # busca a último varredura realizada ainda em aberto
-                string_resultado={
-                  "data_resultado": timezone.now(),
-                  "resultado": json.dumps(json_doc,indent=3),
-                  "aplicacao": versao_id,       #processar["aplicacao_id"],
-                  "varredura": processar["varredura"],
-                  "sistema_varredura": processar["sistema_varredura"]
-                }
-                print(string_resultado)
-                # gravando o resultado na base de dados
-                ssh.close()
-                serializer =  ResultadoScanSerializer(data=string_resultado)
-                if serializer.is_valid():
-                  serializer.save()
-                  print(f"Resultado salvo com sucesso: {serializer.data}")
-                  logger.info (f"Resultado salvo com sucesso: {serializer.data}")
-                  return requests.Response(serializer.data, status=201)
-                else:
-                  print(f"Erro ao salvar o resultado: {serializer.errors}")
-                  logger.erro (f"Erro ao salvar o resultado: {serializer.errors}")
-                  return requests.Response(serializer.errors, status=400)
+                arq_remoto = f"{report_path}/{processar['aplicacao_sigla']}/{report_name}"
+                arq_destino = f"appseg/arquivos/{report_name}"
+                print (arq_remoto)
+                print (arq_destino)
+                try:
+                  sftp = ssh.open_sftp()
+                  #faz a copia do arquivo para a maquina local
+                  sftp.get(arq_remoto, arq_destino)
+                  with open(arq_destino, 'r') as f:
+                    dados = json.load(f)
+                  sftp.close()  
+                  versao = VersaoAplicacao.objects.filter(aplicacao=processar["aplicacao_id"]).order_by('-data_lancamento').first()
+                  #print(f"Ferramenta: {ferramenta} - Versão: {versao.nome_versao} ==> {versao.id}")
+                  versao_id = versao.id
+                  # busca a último varredura realizada ainda em aberto
+                  string_resultado={
+                    "data_resultado": timezone.now(),
+                    "resultado": dados,    #json.dumps(json_doc,indent=3),
+                    "aplicacao": versao_id,       #processar["aplicacao_id"],
+                    "varredura": processar["varredura"],
+                    "sistema_varredura": processar["sistema_varredura"]
+                  }
+                  print(string_resultado)
+                  # gravando o resultado na base de dados
+                  ssh.close()
+                  serializer =  ResultadoScanSerializer(data=string_resultado)
+                  if serializer.is_valid():
+                    serializer.save()
+                    print(f"Resultado salvo com sucesso: {serializer.data}")
+                    logger.info (f"Resultado salvo com sucesso: {serializer.data}")
+                    return requests.Response(serializer.data, status=201)
+                  else:
+                    print(f"Erro ao salvar o resultado: {serializer.errors}")
+                    logger.erro (f"Erro ao salvar o resultado: {serializer.errors}")
+                    return requests.Response(serializer.errors, status=400)                    
+                except json.JSONDecodeError as e:
+                  print("Erro ao converter para JSON:", e)
+                  logger.error (f"Erro ao executar o comando remoto: {e}")
+                  jsondoc["erros"] = 1
+                except Exception  as err:
+                  print("Erro ao OBTER ARQUIVO JSON:", err)
+                  logger.error (f"Erro ao OBTER ARQUIVO JSON: {err}")
+                  jsondoc["erros"] = 1
+                
                 # response = requests.post(f'{url_api}/v1/resultados/',data=payload, headers=headers)
                 # if response.status_code == 201:
                 #     print("Dados inseridos no BD!")
@@ -199,7 +219,7 @@ def processa (processar):
       "resultado": jsondoc,
     }   
     print()
-    print (f"Resultado da varredura: {resultado}")  
+    #print (f"Resultado da varredura: {resultado}")  
     return (resultado)
       
       
