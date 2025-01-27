@@ -175,7 +175,7 @@ def topologia():
    # configurar o owasp_dc
    owasp_dc.cmd('echo export JAVA_OPTION="Xmx2g" >> ~/.bashrc')
    
-   # Inicializar o owasp zap colocando a pasta de trabalho como sendo de propriedade do usuário zap
+   # Inicializar o owasp zap colocando a pasta de trabalho como sendo de propriedade770 do usuário zap
    owasp_zap.cmd('chown -R zap:zap wrk')
    
    # Rodar a aplicação de teste DVWA
@@ -188,10 +188,10 @@ def topologia():
    # configuração específica para o permitir aesso às aplicaçãoes via host local do docker
    #appseg.cmd("route add -net 172.17.0.0 netmask 255.255.0.0 gw 172.17.0.1 "
    
-   #comandos para processar varredura
-   #sonar_cli.cmd('sonar-scanner -X -Dsonar.projectKey={aplicacao} -Dsonar.sources={aplicacao} -Dsonar.host.url={app_host} -Dsonar.token={app_token} -Dsonar.login={user} -Dsonar.password={password} -Dsonar.exclusions=**/*.java')
-   #owasp_dc.cmd('/bin/dependency-check.sh --project {aplicacao} --scan /src/{aplicacao} --format JSON --out {report_path}/{aplicacao} -n')
-   #owasp_zap.cmd('python zap-full-scan.py -t  {url_zap} -J {pasta}/owasp_zap_report_{aplicacao}.json -d')
+   # Exemplos/modelos de comandos para processar varredura, no Sonar, Owasp-dc e Owasp-zap, respectivamente
+   # 1. sonar_cli.cmd('sonar-scanner -X -Dsonar.projectKey={aplicacao} -Dsonar.sources={aplicacao} -Dsonar.host.url={url_app} -Dsonar.token={app_token} -Dsonar.login={user} -Dsonar.password={password} -Dsonar.exclusions=**/*.java')
+   # 2. owasp_dc.cmd('/bin/dependency-check.sh --project {aplicacao} --scan /src/{aplicacao} --format JSON --out {report_path}/{aplicacao} -n')
+   # 3. owasp_zap.cmd('python zap-full-scan.py -t  {url_app} -J {report_path}/owasp_zap_report_{aplicacao}.json -d')
  
    info('*** Executando CLI\n')
    CLI(net)

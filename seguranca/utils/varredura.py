@@ -7,6 +7,7 @@ url_base = f"{os.getenv('URL_API')}v2"
 headers = {'Content-Type': 'application/json'}
 
 logger = logging.getLogger(__name__)
+
     
 # método que inicia a análise e processa a varredura da aplicação, conforme o caso
 def inicializa(processar):
@@ -30,6 +31,7 @@ def inicializa(processar):
     """
     print ("Inicializando a varredura...")
     logger.info("Inicializando a varredura...")
+    msg = None 
     try:
         nomeApp = processar['nome_aplicacao']
         origem = processar['origem_processamento']
@@ -80,7 +82,7 @@ def inicializa(processar):
         "data_fim": dth_termino,
         "situacao": 'EM ANDAMENTO', # FALHA|EM ANDAMENTO|CONCLUÍDA
         "aplicacao": apps.id,
-        "log": None,
+        "log": None
     }
     if msg:
         varredura['log'] = msg

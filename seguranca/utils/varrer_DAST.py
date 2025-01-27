@@ -117,10 +117,9 @@ def processa (processar):
     #python zap-full-scan.py -t  {url_zap} -J {pasta}/owasp_zap_report_{aplicacao}.json -d
     versao = VersaoAplicacao.objects.filter(aplicacao=processar["aplicacao_id"]).order_by('-data_lancamento').first()
     cmd = comando.replace( "{aplicacao}", processar["aplicacao_sigla"].lower())
-    cmd = cmd.replace( "{url_zap}", versao.url_acesso)  #processar["sist_varredura_host"])
-    cmd = cmd.replace( "{pasta}", "reports")
+    cmd = cmd.replace( "{url_app}", versao.url_acesso)  #processar["sist_varredura_host"])
+    cmd = cmd.replace( "{report_path}", report_path)
     print (f"1º passo: Comando: {cmd}")
-    
     try:
       logger.info (f"Iniciando a análise de vulnerabilidade da aplicação {processar['aplicacao_sigla']}...")
       stdin,stdout,stderr = ssh.exec_command(cmd)
@@ -135,7 +134,7 @@ def processa (processar):
         #report_path = 'zap/wrk'
         #report_name = "owasp_zap_report_{aplicacao}.json"
         #comando = f"docker exec mn.owasp_zap cat /src/report/<aplicacao>/dependency-check-report.json"
-        arquivo_report = report_name.replace('{aplicacao}',processar['aplicacao_sigla'].lower())
+        arquivo_report = report_name.replace('{aplicacao}',processar['aplicacao_sigla'])
         #comando = f"docker exec mn.owasp_zap cat {report_path}/{arquivo}"
         comando = f"cat {report_path}/{arquivo_report}"
         print(f"2º passo: Comando: {comando}")
@@ -157,7 +156,7 @@ def processa (processar):
           string_resultado={
             "data_resultado": timezone.now(),
             "resultado": json.dumps(dados,indent=3),
-            "aplicacao": versao_id,   #processar["aplicacao_id"],
+            "aplicacao": processar["aplicacao_id"],   # versao_id,
             "varredura": processar["varredura"],
             "sistema_varredura": processar["sistema_varredura"]
           }
@@ -169,9 +168,8 @@ def processa (processar):
             return requests.Response(serializer.data, status=201)
           else:
             print(f"Erro ao salvar o resultado: {serializer.errors}")
-            return requests.Response(serializer.errors, status=400)
             jsondoc["erros"] = 1
-
+            return requests.Response(serializer.errors, status=400)
         except json.JSONDecodeError as e:
           print("Erro ao converter para JSON:", e)
           logger.error (f"Erro ao executar o comando remoto: {e}")
@@ -180,7 +178,27 @@ def processa (processar):
           print("Erro ao obter o arquivo JSON:", err)
           logger.error (f"Erro ao executar o comando remoto: {err}")
           jsondoc["erros"] = 1
+    except paramiko.SSHException as e3:
+      print(f"Erro ao executar o comando remoto para análise da vulnerabilidades:\n {e3}")
+      logger.error (f"Erro ao executar o comando remoto para análise da vulnerabilidades:\n {e3}")
+      jsondoc["erros"] = 1
+  except paramiko.SSHException as e4:
+      print(f"Erro ao tentar conectar no servidor remoto:\n {e4}")
+      logger.error (f"Erro ao tentar conctar no servidor remoto:\n {e4}")
+      jsondoc["erros"] = 1
+  finally:
+    ssh.close()    
+    # retornar o resultado
+    resultado = {
+      "aplicacao": processar["aplicacao_id"],
+      "varredura": processar["varredura"],
+      "sistemas_varredura": processar["sistema_varredura"],
+      "resultado": jsondoc,
+    }   
+    return (resultado)
 
+         
+ 
             # # copiar o arquivo localmente para a pasta midia
             # arq_origem = arquivo_report
             # arq_destino = f"midia/{arquivo_report}"
@@ -213,27 +231,6 @@ def processa (processar):
       #   print(f"Erro ao analisar a aplicação\nErro: {erro}\nSaída: {saida}")
       #   logger.error (f"Erro ao analisar a aplicação\nErro: {erro}\nSaída: {saida}")    
       #   jsondoc["erros"] = 1
-    except paramiko.SSHException as e3:
-      print(f"Erro ao executar o comando remoto para análise da vulnerabilidades:\n {e3}")
-      logger.error (f"Erro ao executar o comando remoto para análise da vulnerabilidades:\n {e3}")
-      jsondoc["erros"] = 1
-  except paramiko.SSHException as e4:
-      print(f"Erro ao tentar conectar no servidor remoto:\n {e4}")
-      logger.error (f"Erro ao tentar conctar no servidor remoto:\n {e4}")
-      jsondoc["erros"] = 1
-  finally:
-    ssh.close()    
-    # retornar o resultado
-    resultado = {
-      "aplicacao": processar["aplicacao_id"],
-      "varredura": processar["varredura"],
-      "sistemas_varredura": processar["sistema_varredura"],
-      "resultado": jsondoc,
-    }   
-    return (resultado)
-
-         
- 
   
   
     # 1º passo: criar e copiar arquivo de configuração para o servidor Owasp_ZAP

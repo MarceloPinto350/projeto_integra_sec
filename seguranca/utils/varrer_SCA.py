@@ -18,7 +18,7 @@ url_base_aplicacoes = f'{url_api}/v2/aplicacoes/'
 logger = logging.getLogger(__name__)  
 
 report_path = '/tmp/report'
-report_name = 'dependency-check-report.json'
+arquivo_report = 'dependency-check-report.json'
 
 jsondoc = {
       "erros": 0, 
@@ -65,7 +65,9 @@ def processa (processar):
     #comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf DVWA && rm -f dc-report.json && git clone {dvwa_fonte}'\n"
     #comando = f"docker exec mn.owasp_dc bash -c 'cd /src && rm -rf {processar['aplicacao_sigla'].lower()} && rm -f {report_path}/{processar['aplicacao_sigla'].lower()}/"
     comando = f"rm -rf /tmp/{processar['aplicacao_sigla'].lower()} && rm -rf {report_path}/{processar['aplicacao_sigla'].lower()} && cd /tmp && git clone {processar['url_codigo_fonte']}"
-    comando = f"{comando} && mv -f {processar['aplicacao_sigla']} {processar['aplicacao_sigla'].lower()}" 
+    comando = f"{comando} && [[ '$(echo {processar['aplicacao_sigla']} | tr '[:upper:]' '[:lower:]')' != {processar['aplicacao_sigla']} ]]"
+    comando = f"{comando} && mv -f {processar['aplicacao_sigla']} {processar['aplicacao_sigla'].lower()}"
+    #comando = f"{comando} && mv -f {processar['aplicacao_sigla']} {processar['aplicacao_sigla'].lower()}" 
     # adapatacao feita no TRT21 para copiar usando git (ssh) ao inves de https
     comando = comando.replace("https://git.trt21.local/","git@git.trt21.local:")
     print (f"1º passo: Comando: {comando}")   
@@ -86,9 +88,10 @@ def processa (processar):
         #comando = f"{comando} --nvdApiKey cd0c05ca-2b15-4034-9ae6-490fb505f439'"
         #comando = "docker exec mn.owasp_dc bash -c '" + processar["sist_varredura_comando"] + "'" 
         comando = processar["sist_varredura_comando"]
-        comando = comando.replace("{aplicacao}", processar["aplicacao_sigla"].lower())
         # adapatacao feita no TRT21 para copiar usando git (ssh) ao inves de https
+        #arquivo_report = arquivo_report.replace("{aplicacao}", processar["aplicacao_sigla"].lower())  
         comando = comando.replace("https://git.trt21.local/","git@git.trt21.local:")
+        comando = comando.replace("{aplicacao}", processar["aplicacao_sigla"].lower())
         comando = comando.replace("{report_path}", report_path)
         print (f"2º passo: Comando: {comando}")
         try:
@@ -102,92 +105,139 @@ def processa (processar):
             #3º passo: carregar o resultado da varredura
             #comando = "docker exec mn.owasp_dc cat /src/report/<aplicacao>/dependency-check-report.json"
             #comando = f"docker exec mn.owasp_dc cat {report_path}/{processar['aplicacao_sigla'].lower()}/{report_name}"
-            comando = f"cat {report_path}/{processar['aplicacao_sigla'].lower()}/{report_name}"
+            
+            comando = f"cat {report_path}/{processar['aplicacao_sigla'].lower()}/{arquivo_report}"
             print(f"3º passo: Comando: {comando}")
             try:
-              #baixar o arquivo de resultado da varredura para a máquina remota do docker
-              #cmd = f"docker cp mn.owasp_dc:{report_path}/{processar['aplicacao_sigla'].lower()}/{report_name} {processar['aplicacao_sigla'].lower()}-{report_name}"
-              stdin,stdout,stderr = ssh.exec_command(comando) 
-              cod_erro = stderr.channel.recv_exit_status()
-              erro = stderr.readlines()
-              saida = stdout.readlines()
-              # copiar o arquivo localmente para a pasta midia
-              #ssh.connect(hostname=processar["sist_varredura_ip_acesso"], username=processar["sist_varredura_usuario"], password=processar["sist_varredura_senha"])
-              # testar se retornou erro
-              if cod_erro == 0:
-                print("Arquivo obtido com sucesso!")
-                #dados = json.loads(saida.replace("\\','").replace("[\"','").replace("\"]','"))
-                #string = str(saida)
-                #print (dados)
-                #string = string.replace("'","")
-                #string = string.replace("\\","")
-                # converter o texto em json
-                #json_doc = ""
-                #dados = json.loads(string) 
-                #for item in dados:
-                #  json_doc = item
-                #payload = json.dumps(dados,indent=3)
-                #headers = {'Content-Type': 'application/json'}
-                arq_remoto = f"{report_path}/{processar['aplicacao_sigla']}/{report_name}"
-                arq_destino = f"appseg/arquivos/{report_name}"
-                print (arq_remoto)
-                print (arq_destino)
-                try:
-                  sftp = ssh.open_sftp()
-                  #faz a copia do arquivo para a maquina local
-                  sftp.get(arq_remoto, arq_destino)
-                  with open(arq_destino, 'r') as f:
-                    dados = json.load(f)
-                  sftp.close()  
-                  versao = VersaoAplicacao.objects.filter(aplicacao=processar["aplicacao_id"]).order_by('-data_lancamento').first()
-                  #print(f"Ferramenta: {ferramenta} - Versão: {versao.nome_versao} ==> {versao.id}")
-                  versao_id = versao.id
-                  # busca a último varredura realizada ainda em aberto
-                  string_resultado={
-                    "data_resultado": timezone.now(),
-                    "resultado": dados,    #json.dumps(json_doc,indent=3),
-                    "aplicacao": versao_id,       #processar["aplicacao_id"],
-                    "varredura": processar["varredura"],
-                    "sistema_varredura": processar["sistema_varredura"]
-                  }
-                  print(string_resultado)
-                  # gravando o resultado na base de dados
-                  ssh.close()
-                  serializer =  ResultadoScanSerializer(data=string_resultado)
-                  if serializer.is_valid():
-                    serializer.save()
-                    print(f"Resultado salvo com sucesso: {serializer.data}")
-                    logger.info (f"Resultado salvo com sucesso: {serializer.data}")
-                    return requests.Response(serializer.data, status=201)
-                  else:
-                    print(f"Erro ao salvar o resultado: {serializer.errors}")
-                    logger.erro (f"Erro ao salvar o resultado: {serializer.errors}")
-                    return requests.Response(serializer.errors, status=400)                    
-                except json.JSONDecodeError as e:
-                  print("Erro ao converter para JSON:", e)
-                  logger.error (f"Erro ao executar o comando remoto: {e}")
-                  jsondoc["erros"] = 1
-                except Exception  as err:
-                  print("Erro ao OBTER ARQUIVO JSON:", err)
-                  logger.error (f"Erro ao OBTER ARQUIVO JSON: {err}")
-                  jsondoc["erros"] = 1
-                
-                # response = requests.post(f'{url_api}/v1/resultados/',data=payload, headers=headers)
-                # if response.status_code == 201:
-                #     print("Dados inseridos no BD!")
-                #     logger.info (f"Resultado da análise "+ processar["aplicacao_sigla"] + "-" + processar["sist_varredura_sigla_tipo"] + "." + processar["varredura"] + " inserida no BD.")
-                # else:
-                #     print("Erro ao enviar os dados para gravação no BD:", response.status_code)
-                #     logger.error (f"Erro ao salvar os dados no BD: {response.text}")
-                #     jsondoc["erros"] = 1
+              arq_remoto = f"{report_path}/{arquivo_report}"
+              arq_destino = f"appseg/arquivos/{arquivo_report}"
+              print (arq_remoto,arq_destino)
+              sftp = ssh.open_sftp()
+              #faz a copia do arquivo para a maquina local
+              sftp.get(arq_remoto, arq_destino)
+              try:
+                with open(arq_destino, 'r') as f:
+                  dados = json.load(f)
+                  print ("Dados convertidos para o formato json")
+              except json.JSONDecodeError as e:
+                print("Erro ao converter para JSON:", e)
+                logger.error (f"Erro ao executar o comando remoto: {e}")
+                sftp.close()
+                jsondoc["erros"] = 1
+                return (jsondoc)  
+              sftp.close()
+              print ("Arquivo obtido com sucesso!")
+              #print (json.load(dados))
+              #json.dump(saida.replace("\\','").re
+              string_resultado={
+                "data_resultado": timezone.now(),
+                "resultado": dados, #json.dumps(dados,indent=3),
+                "aplicacao": processar["aplicacao_id"],   # versao_id,
+                "varredura": processar["varredura"],
+                "sistema_varredura": processar["sistema_varredura"]
+              }
+              ssh.close()
+              serializer =  ResultadoScanSerializer(data=string_resultado)
+              if serializer.is_valid():
+                serializer.save()
+                print(f"Resultado salvo com sucesso: {serializer.data}")
+                return requests.Response(serializer.data, status=201)
               else:
-                print (f"Erro ao copiar o arquivo de resultado.\n {erro}")
-                logger.error (f"Erro ao copiar o arquivo de resultado:\n {erro}")
-                jsondoc["erros"] = 1  
-            except paramiko.SSHException as e:
-              print(f"Erro ao executar o comando remoto: {e}")
+                print(f"Erro ao salvar o resultado: {serializer.errors}")
+                jsondoc["erros"] = 1
+                return requests.Response(serializer.errors, status=400)
+            except json.JSONDecodeError as e:
+              print("Erro ao converter para JSON:", e)
               logger.error (f"Erro ao executar o comando remoto: {e}")
               jsondoc["erros"] = 1
+            except Exception  as err:
+              print("Erro ao obter o arquivo JSON:", err)
+              logger.error (f"Erro ao executar o comando remoto: {err}")
+              jsondoc["erros"] = 1
+            # try:
+            #   #baixar o arquivo de resultado da varredura para a máquina remota do docker
+            #   #cmd = f"docker cp mn.owasp_dc:{report_path}/{processar['aplicacao_sigla'].lower()}/{report_name} {processar['aplicacao_sigla'].lower()}-{report_name}"
+            #   stdin,stdout,stderr = ssh.exec_command(comando) 
+            #   cod_erro = stderr.channel.recv_exit_status()
+            #   erro = stderr.readlines()
+            #   saida = stdout.readlines()
+            #   # copiar o arquivo localmente para a pasta midia
+            #   #ssh.connect(hostname=processar["sist_varredura_ip_acesso"], username=processar["sist_varredura_usuario"], password=processar["sist_varredura_senha"])
+            #   # testar se retornou erro
+            #   if cod_erro == 0:
+            #     print("Arquivo obtido com sucesso!")
+            #     #dados = json.loads(saida.replace("\\','").replace("[\"','").replace("\"]','"))
+            #     #string = str(saida)
+            #     #print (dados)
+            #     #string = string.replace("'","")
+            #     #string = string.replace("\\","")
+            #     # converter o texto em json
+            #     #json_doc = ""
+            #     #dados = json.loads(string) 
+            #     #for item in dados:
+            #     #  json_doc = item
+            #     #payload = json.dumps(dados,indent=3)
+            #     #headers = {'Content-Type': 'application/json'}
+            #     arq_remoto = f"{report_path}/{processar['aplicacao_sigla']}/{report_name}"
+            #     arq_destino = f"appseg/arquivos/{report_name}"
+            #     print (arq_remoto)
+            #     print (arq_destino)
+            #     try:
+            #       sftp = ssh.open_sftp()
+            #       #faz a copia do arquivo para a maquina local
+            #       sftp.get(arq_remoto, arq_destino)
+            #       with open(arq_destino, 'r') as f:
+            #         dados = json.load(f)
+            #       sftp.close()  
+            #       versao = VersaoAplicacao.objects.filter(aplicacao=processar["aplicacao_id"]).order_by('-data_lancamento').first()
+            #       #print(f"Ferramenta: {ferramenta} - Versão: {versao.nome_versao} ==> {versao.id}")
+            #       versao_id = versao.id
+            #       # busca a último varredura realizada ainda em aberto
+            #       string_resultado={
+            #         "data_resultado": timezone.now(),
+            #         "resultado": dados,    #json.dumps(json_doc,indent=3),
+            #         "aplicacao": versao_id,       #processar["aplicacao_id"],
+            #         "varredura": processar["varredura"],
+            #         "sistema_varredura": processar["sistema_varredura"]
+            #       }
+            #       print(string_resultado)
+            #       # gravando o resultado na base de dados
+            #       ssh.close()
+            #       serializer =  ResultadoScanSerializer(data=string_resultado)
+            #       if serializer.is_valid():
+            #         serializer.save()
+            #         print(f"Resultado salvo com sucesso: {serializer.data}")
+            #         logger.info (f"Resultado salvo com sucesso: {serializer.data}")
+            #         return requests.Response(serializer.data, status=201)
+            #       else:
+            #         print(f"Erro ao salvar o resultado: {serializer.errors}")
+            #         logger.erro (f"Erro ao salvar o resultado: {serializer.errors}")
+            #         return requests.Response(serializer.errors, status=400)                    
+            #     except json.JSONDecodeError as e:
+            #       print("Erro ao converter para JSON:", e)
+            #       logger.error (f"Erro ao executar o comando remoto: {e}")
+            #       jsondoc["erros"] = 1
+            #     except Exception  as err:
+            #       print("Erro ao OBTER ARQUIVO JSON:", err)
+            #       logger.error (f"Erro ao OBTER ARQUIVO JSON: {err}")
+            #       jsondoc["erros"] = 1
+                
+            #     # response = requests.post(f'{url_api}/v1/resultados/',data=payload, headers=headers)
+            #     # if response.status_code == 201:
+            #     #     print("Dados inseridos no BD!")
+            #     #     logger.info (f"Resultado da análise "+ processar["aplicacao_sigla"] + "-" + processar["sist_varredura_sigla_tipo"] + "." + processar["varredura"] + " inserida no BD.")
+            #     # else:
+            #     #     print("Erro ao enviar os dados para gravação no BD:", response.status_code)
+            #     #     logger.error (f"Erro ao salvar os dados no BD: {response.text}")
+            #     #     jsondoc["erros"] = 1
+            #   else:
+            #     print (f"Erro ao copiar o arquivo de resultado.\n {erro}")
+            #     logger.error (f"Erro ao copiar o arquivo de resultado:\n {erro}")
+            #     jsondoc["erros"] = 1  
+            # except paramiko.SSHException as e:
+            #   print(f"Erro ao executar o comando remoto: {e}")
+            #   logger.error (f"Erro ao executar o comando remoto: {e}")
+            #   jsondoc["erros"] = 1
           else:
             print (f"Erro ao executar a varredura.\n {erro}")
             logger.error (f"Erro ao executar a varredura:\n {erro}")

@@ -495,7 +495,8 @@ class Varredura(models.Model):
    vulnerabilidades = models.IntegerField("Vulnerabilidades",default=0,null=False)
    erros = models.IntegerField("Erros",default=0,null=False)
    situacao = models.CharField("Situação",max_length=20,null=False,choices=SITUACAO_VARREDURA_CHOICES)
-   log = models.FileField("Log",upload_to='logs/',null=True,blank=True)
+   #log = models.FileField("Log",upload_to='logs/',null=True,blank=True)
+   log = models.CharField("Log",max_length=5000,null=True,blank=True)
    class Meta:
       db_table = "tb_varredura"
       verbose_name = 'Varredura'
