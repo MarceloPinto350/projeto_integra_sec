@@ -517,17 +517,3 @@ containernet> owasp_zap service ssh start
 
 **APPSEG** Necesário configurar o acesso do servdor appseg para as demais máquinas via SSH direto, sendo necessário eventualmente ajustar em cada servidor a permissão para conectar via SSH ao usuário root, para os conforme o caso.
 
-## Outros ações necessárias para habilitar o ambinete de caso de testes
-
-### Instalar certificado do TRT na Máquina Virtual do containernet
-
-```shell
-# Copiar o arquivo .crt para o servidor
-~/Download>$ sudo cp certificado.crt /usr/local/share/ca-certificates
-
-# sincronizar os dados do repositório do ca-certificates
-~/Download>$ sudo dpkg-reconfigure ca-certificates
-
-# instalar os certificados copiados para a pasta local
-~/Download>$ sudo update-ca-certificates
-```
