@@ -1,0 +1,101 @@
+Title,Quality Score
+Smart Contract and DevSecOps,1.0
+Software Composition Analysis for Vulnerability Detection: An Empirical Study on Java Projects,3.5
+Definition of a DevSecOps Operating Model for software development in a large Enterprise,3.5
+"Secure, resilient, and agile software development",4.0
+Securing Open Source Libraries,4.0
+Using Secure Software Engineering Metrics to support the automated calculation and visualization of Team Security Maturity in Agile Development Projects,0.5
+A Systematic Framework for Addressing Critical Challenges in Adopting DevOps Culture in Software Development: A PLS-SEM Perspective,0.0
+Identifying personal data processing for code review,0.0
+Secure Inter-Container Communications Using XDP/eBPF,1.0
+Security in Cloud-Native Services: A Survey,0.5
+BASTION: A security enforcement network stack for container networks,1.0
+Efficient feature selection for static analysis vulnerability prediction,2.0
+“Open Weakness and vulnerability modeler” (OVVL): An updated approach to threat modeling,1.5
+Agent-based zerologon vulnerability detection,0.5
+Take Over the Whole Cluster: Attacking Kubernetes via Excessive Permissions of Third-party Applications,0.0
+A Large-scale Fine-grained Empirical Study on Security Concerns in Open-source Software,3.0
+Open Source Solutions for Vulnerability Assessment: A Comparative Analysis,4.0
+Practical security automation and testing: tools and techniques for automated security scanning and testing in devsecops,5.0
+DevSecOps for web applications: a case study,1.0
+Linux Capabilities: Autonomously Securing LXC Containers within the DevSecOps Pipeline,1.0
+Challenges and solutions when adopting DevSecOps: A systematic review,4.0
+Towards modeling framework for devops: Requirements derived from industry use case,3.0
+Improve software quality through practicing DevOps,1.5
+Research Findings in the Domain of CI/CD and DevOps on Security Compliance,2.0
+Architecture Scheme of DevOps for Cross Network and Multiple Environment Collaboration,1.0
+Securing CI/CD Pipeline: Automating the detection of misconfigurations and integrating security tools,3.5
+OpenSource tools for a secdevops pipeline,4.0
+"Hands-On Security in DevOps: Ensure continuous security, deployment, and delivery with DevSecOps",4.0
+A Model For Measuring Improvement Of Security In Continuous Integration pipelines: Metrics and Four-Axis Maturity Driven DevSecOps (MFAM),4.0
+Safe and secure model-driven design for embedded systems,4.0
+Agile and Secure Software Development,4.0
+Design and Implementation of Security Test Pipeline based on DevSecOps,3.5
+Towards an IT Governance of DevOps Metamodel,1.0
+"Implementation of a Continuous Integration and Deployment Pipeline for Containerized Applications in Amazon Web Services Using Jenkins, Ansible and Kubernetes",4.5
+Implementing DevOps Practices in CPPS Using Microservices and GitOps,1.0
+"ISO/IEC/IEEE International Standard--Information technology--DevOps--Building reliable and secure systems including application build, package and deployment",0.0
+The DevOps Reference Architecture Evaluation : A Design Science Research Case Study,3.0
+Facilitating the Management of Agile and Devops Activities: Implementation of a Data Consolidator,1.5
+Empirical analysis of security-related code reviews in npm packages,0.5
+Towards a hypothetical framework to secure DevOps adoption: Grounded theory approach,4.0
+Implementation of DevSecOps by Integrating Static and Dynamic Security Testing in CI/CD Pipelines,4.0
+The role of diversity in cybersecurity risk analysis: Anexperimental plan,0.0
+An Integrated Framework for {DevSecOps} Adoption,3.5
+Parallelware Tools: An Experimental Evaluation on {POWER}Systems,2.0
+{DevOps} A historical review and Future works,2.0
+Software Development Analytics in practice: A systematic literature review,0.0
+An introduction to adaptive software security,0.5
+Software repositories and machine learning research in cybersecurity,3.0
+Full-stack vulnerability analysis of the cloud-native platform,4.5
+Kunerva: Automated Network Policy Discovery Framework for Containers,0.0
+Why don't developers detect improper input validation? '; DROP TABLE Papers; -,2.0
+Example-Based Vulnerability Detection and Repair in Java Code,2.5
+Keyword Extraction From Specification Documents for Planning Security Mechanisms,2.5
+Topical issues related to certification tests of information security tools,0.5
+Containers’ Privacy and Data Protection via Runtime Scanning Methods,2.0
+DAVS: Dockerfile Analysis for Container Image Vulnerability Scanning,4.0
+Secure Software Development in the Era of Fluid Multi-party Open Software and Services,0.5
+A model-based mode-switching framework based on security vulnerability scores,2.5
+DevOps for containerized applications,1.0
+A novel Security-by-Design methodology: Modeling and assessing security by SLAs with a quantitative approach,1.5
+Reproducible Software Vulnerability Testing with IaC,3.5
+Generating Tests for the Discovery of Security Flaws in Product Variants,0.0
+From DevOps to DevSecOps is not enough. CyberDevOps: an extreme shifting-left architecture to bring cybersecurity within software security lifecycle pipeline,3.0
+"SEAF: A Scalable, Efficient, and Application-independent Framework for container security detection",2.5
+CD3T: Cross-project dependency defect detection tool,3.5
+The evolution of distributed systems towards microservices architecture,1.0
+Towards automated security design flaw detection,2.5
+Ambush from All Sides: Understanding Security Threats in Open-Source Software CI/CD Pipelines,0.5
+Applying and Researching DevOps: A Tertiary Study,2.0
+"Embracing IaC Through the DevSecOps Philosophy: Concepts, Challenges, and a Reference Framework",3.5
+Within-Project Defect Prediction of Infrastructure-as-Code Using Product and Process Metrics,2.5
+Mitigating risks in software development through effectiverequirements engineering,0.0
+{InferFix}: End-to-end program repair with {LLMs},3.0
+Machine learning based approach to recommend {MITRE}{ATT\&CK} framework for software requirements and design specifications,3.0
+Secure Software Development: Issues and Challenges,2.0
+Implementing and Automating Security Scanning to a DevSecOps CI/CD Pipeline,4.5
+Design and Practice of Security Architecture via DevSecOps Technology,3.5
+"DevSecOps in Practice with VMware Tanzu: Build, run, and manage secure multi-cloud apps at scale on Kubernetes with the Tanzu portfolio",1.5
+"Unifying Governance, Risk and Controls Framework Using SDLC, CICD and DevOps",1.5
+Infrastructure as Code as a Foundational Technique for Increasing the DevOps Maturity Level: Two Case Studies,1.0
+Analysis on the Use of Declarative and Pull-based Deployment Models on GitOps Using Argo CD,2.5
+Self-Service Cybersecurity Monitoring as Enabler for DevSecOps,2.0
+Konveyor Move2Kube: A Framework For Automated Application Replatforming,0.0
+A solution on cloud and digital transformation for IT system using DevOps yundao platform,0.5
+A Framework of DevSecOps for Software Development Teams,4.0
+Automated Software Testing Starting from Static Analysis: Current State of the Art,4.5
+Kubernetes Near Real-Time Monitoring and Secure Network Architectures,1.0
+Static Analysis,2.5
+A transformer-based GitHub Action for Vulnerability Detection,1.5
+Generic SAST tool comparer,1.0
+Guidelines on minimum standards for developer verification of software,2.0
+Vulnerability exploration and understanding services,0.0
+An Empirical Study on the Use of Static Analysis Tools in Open Source Embedded Software,2.0
+Design and implementation of SFCI: A tool for security focused continuous integration,3.0
+A Unified Framework for Automating Software Security Analysis in DevSecOps,4.0
+Software Engineering Tools For Secure Application Development,3.5
+Comparison and Evaluation on Static Application Security Testing (SAST) Tools for Java,3.5
+Securing the Software Development Life Cycle,4.0
+Towards Practical Cybersecurity Mapping of STRIDE and CWE - A Multi-perspective Approach,4.0
+Software for Improve the Security of Kubernetes-based CI/CD Pipeline,3.5

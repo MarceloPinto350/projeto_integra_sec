@@ -1,0 +1,29 @@
+AUTOR,VISÃO GERAL,SUGERE,FERRAMENTAS,AUTOMAÇÃO,
+mohammed2017exploring,"Identificou 52 abordagens (top 5)
+1) secure requirements modeling, 2) vulnerability identification, adaption and mitigation, 3) software security focused process, 4) extended UML-based secure modeling profiles e 5) non UML-based secure modeling notations",Usar SAST e DAST,N/I,N/I,
+assal2018security,"Identificou os estágios: Design Stage, Implementation stage, Developer testing stage, Code analysis stage, Code review stage, Post-development testing stage","Usar uma das inciativas (MSSDL,OWASP ou BSIIM) para usar nas 12 práticas que identificou ",N/I,N/I,
+karim2016pratice,"Propoe modelo com 5 etapas: Gerenciamento do projeto, Etapa de Requerimentos, Etapa de Desenho, Etapa de Implementação e Etapa de Teste",Plano de desenvolvimento,N/I,N/I,
+luz2019adopting,O que é necessário para implantar DevOps,Pano de implantação DevOps,N/I,,
+gonccalves2022devsecops,Compara modelos para fazer analogia ao DevOps,Plano de implantação de DevOps com automação,N/I,Pipeline,
+"leite2019survey,","Propõe um modelo conceitual composto de 4 categorias:pessoas, runtime, entrega e processo ",Pano de implantação DevOps,N/I,,
+akujobi2021model,Propõe a implantação de framework para Devops,"Usar CVE, OWASP","OWASP ZAP, Puppet, CircleCI, Splunk, Gitlab, IAST",Pipeline,
+zhao2023software,"Classifica o modelo de avaliação SCA em 3 aspectos: Modos, Métodos e escopo",Propõe solução para varredura de código de terie,OWASP Dependency Check,Pipeline,
+tortoriello2022definition,"Framework dividido em 3 fases: Governança, Desenvolvimento e Operação","Sugere que a tecnologia seja a última coisa a ser considerada. Primeiro os processos e as pessoas para implementá-lo. 
+Adoção de padrões: OWASP Top 10, SANS top 25 ou CERT Coding Standards","JIRA, GitHub ou Gitlab, Maven, Jenkins, Nexus, Docker, Kubernetes,Terraform, Datadog, SonarQube, Mend SCA, acutinex, Veracode, AppScanApSca",Pipeline,CANDIDATO
+merkow2019secure,Foca em explicar com os controles de segurança afetam a forma como o software é desenvolvido atualmente,Plano de desenvolvimento,N/I,N/I,
+hsu2018hands,"Fala de 3 níveis de maturidade de  práticas DevOps CI, CD e CDE","OWASP SAMM, OWASP Top 10 e CWE/SANS Top 25
+Monitoramento de configuração","Jenkins,  Git, Teste unitário, IaC (Puppet), Docker, NMAP, OpenVAS,FindBugs for Java, Infer do Java, OWASP dependency check, OWASP ZAP, Archni-Scanner, Burp Suite, SQLMap, w3afm, Nmap, NCAT, Wireshark, SSLScan,sslyz, OpenSCAP, InSpec, Pentest Box for Windows,Kali Linux,Mobile Security Testing Framework, ELK, MISP-Open Source Threat Intelligence Platform, OSSCE-Open Souce HIDS Security, Facebook/osquery-performance endpoint visibility, Alien Valt OSSIM-Open Source, SIEM	
+
+",Pipeline,
+hsu2019practical,"Proposta de framework para automação de segurança, devendo cemeçar OWASP top 10 application security risks e CWE top 25 softwares errors
+","Testes funcionais, de API, Mock, SAST, Testes BDD e geradore de dados DDT","Arachni, OWASP ZAP, OWASP Depency Check, OpenVAS, RetireJS, Radamsa, SecList,  FuzzDB, NMap, SSL Labs-Scan, SSLyze, Visual Code Grpper (VCG) (Windows), Grep Rough Audit (baseado em Regex),Bandit (Python), OpenSCAP (Linux OS)",Script (CRI),
+gupta2022integrated,"Recomenda a implantação de DevOps em pequenas etapas;
+Desenvolver a estratégia de implantação com base nos princípios: mindset “segurança-primeiro”, Automação E CI/CD
+","Considerando ser a execução o ponto central, ir implementando aos poucos um framework  tendo como base as seguintes ferramentas:","OWASP, SonarQube, Fortify, HashiCorp Vault",Pipeline,CANDIDATO
+mangla2023securing,"Apresenta uma solução de segurança para AWS, utilizando o Github como repositório; ",Adoção de o mínimo padrão,"Github Actions, Terraform AWS Security Hub, Cloud Inspector, Prowler e ScouteSuite",Pipeline,
+canyelles2022opensource,Estuda as ferramentas para adicionar a um pipeline de SecDevOps,Implementação de pipeline DevSecOps,"Sugere o uso das ferramentas: Vault, Research Code Scanning, CodeQl, Semgrep, SonarQube, Research Secret management, Docker Swarm and .env file, GitGuardian, Self update Dependencies, Research Container Scanning, Trivy e Grype",Pipeline,CANDIDATO
+li2018safe,"Discorre sobre os modelos de SDLC: Agile, Cascata e V",Plano de desenvolvimento,N/I,,
+cruz2023open,Faz uma explanação geral sobre os conceitos gerais inerentes ao desenvolvimento de software seguro,Implantação de framework,"Docker, relatório em SARIF, Horusec (code scanning), Dockle, Hadolint e Trivy (image issues), GitLeaks, Dependency Check (SCA), OWASP Zap (DAST)
+",Pipeline,
+putra2022implementation,"Apresentou um framework nas seguintes etapas: Continuous Development, Continuous Testing, Continuous Integration, Continuous Deploymen e Continuous Monitoring
+",Uso de SAST e DAST,N/I,N/I,
