@@ -515,5 +515,15 @@ root@owasp_zap:/# service ssh start
 containernet> owasp_zap service ssh start
 ```
 
-**APPSEG** Necesário configurar o acesso do servdor appseg para as demais máquinas via SSH direto, sendo necessário eventualmente ajustar em cada servidor a permissão para conectar via SSH ao usuário root, para os conforme o caso.
+**APPSEG** Necesário configurar o acesso do servidor appseg para as demais máquinas via SSH direto, sendo necessário eventualmente ajustar em cada servidor a permissão para conectar via SSH ao usuário root, para os conforme o caso.
 
+
+## Configurar a AppSeg para executar os comando de varredura
+
+As ferramentas de análise de vulnerabilidade mapeadas inicialmente neste trabalho posuem as seguintes linhas de comando para realização da varredura, a ser utilizada na configuração da AppSeg.
+
+| Ferramenta               | Comando                                                                                                                                                                                                                |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SonarQube - CLI          | sonar-scanner -X -Dsonar.projectKey={aplicacao} -Dsonar.sources=/tmp/{aplicacao} -Dsonar.host.url={url_app} -Dsonar.token={app_token} -Dsonar.login={user} -Dsonar.password={password} -Dsonar.exclusions=\*\*/\*.java |
+| Owasp - Dependency Check | /bin/dependency-check.sh --project {aplicacao} --scan /tmp/{aplicacao} --format JSON --out {report_path}/{aplicacao} -n                                                                                                |
+| Owasp - Zad Attack Proxy | python /zap/zap-full-scan.py -t {url_app} -J {report_path}/owasp_zap_report_{aplicacao}.json -d  
